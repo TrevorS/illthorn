@@ -1,10 +1,13 @@
-import { type WebContents } from "electron"
+import type { WebContents } from "electron";
 
-let webContents : WebContents = undefined
-export function setWebContents (newWebContents : WebContents) {
-  webContents = newWebContents
+let webContents: WebContents;
+export function setWebContents(newWebContents: WebContents) {
+  webContents = newWebContents;
 }
 
-export function useWebContents (): WebContents {
-  return webContents!
+export function useWebContents(): WebContents {
+  if (!webContents) {
+    throw new Error("WebContents not initialized. Call setWebContents() first.");
+  }
+  return webContents;
 }

@@ -4,72 +4,84 @@ enum AttrState {
   HAS_EQUALS,
   IDLE,
 }
-type Key =
-  | string
+type Key = string;
 
-type Value =
-  | string
-  | true
+type Value = string | true;
 
-export type GemstoneTagAttrs =
-  | Record<Key, Value>
+export type GemstoneTagAttrs = Record<Key, Value>;
 
-export function parseAttrs (contents : string) : GemstoneTagAttrs {
-  const attrs : Array<[Key, Value]> = []
-  let pendingValue = ""
-  let pendingKey   = ""
-  let escapeChar   = ""
-  let state        = AttrState.IDLE
-  Array.from(contents).forEach(char => {
+export function parseAttrs(contents: string): GemstoneTagAttrs {
+  const attrs: Array<[Key, Value]> = [];
+  let pendingValue = "";
+  let pendingKey = "";
+  let escapeChar = "";
+  let state = AttrState.IDLE;
+  Array.from(contents).forEach((char) => {
     switch (char) {
       case " ":
         switch (state) {
           case AttrState.IN_ATTRIBUTE_VALUE:
-            return pendingValue += char
+            pendingValue += char;
+            return;
           case AttrState.IN_ATTRIBUTE_NAME:
-            attrs.push([pendingKey, true])
-            return (pendingKey = "", pendingValue = "")
-          default: return
+            attrs.push([pendingKey, true]);
+            pendingKey = "";
+            pendingValue = "";
+            return;
+          default:
+            return;
         }
       case `=`:
         switch (state) {
           case AttrState.IN_ATTRIBUTE_NAME:
-            return state = AttrState.HAS_EQUALS
+            state = AttrState.HAS_EQUALS;
+            return;
           case AttrState.IN_ATTRIBUTE_VALUE:
-            return pendingValue += char
-          default: return
+            pendingValue += char;
+            return;
+          default:
+            return;
         }
       case `"`:
       case `'`:
         switch (state) {
           case AttrState.HAS_EQUALS:
-            escapeChar = char
-            return state = AttrState.IN_ATTRIBUTE_VALUE
+            escapeChar = char;
+            state = AttrState.IN_ATTRIBUTE_VALUE;
+            return;
           case AttrState.IN_ATTRIBUTE_VALUE:
             if (escapeChar !== char) {
-              return pendingValue += char
+              pendingValue += char;
+              return;
             }
 
             //console.log("Attr/pair", [pendingKey, pendingValue])
-            attrs.push([pendingKey, pendingValue])
-            state = AttrState.IDLE
-            return (pendingKey = "", pendingValue = "", escapeChar = "")
+            attrs.push([pendingKey, pendingValue]);
+            state = AttrState.IDLE;
+            pendingKey = "";
+            pendingValue = "";
+            escapeChar = "";
+            return;
 
-          default: return
+          default:
+            return;
         }
       default:
         //console.log([pendingKey, AttrState[state]])
         switch (state) {
           case AttrState.IN_ATTRIBUTE_VALUE:
-            return pendingValue += char
+            pendingValue += char;
+            return;
           case AttrState.IN_ATTRIBUTE_NAME:
-            return pendingKey += char
+            pendingKey += char;
+            return;
           case AttrState.IDLE:
-            pendingKey += char
-            return state = AttrState.IN_ATTRIBUTE_NAME
+            pendingKey += char;
+            state = AttrState.IN_ATTRIBUTE_NAME;
+            return;
         }
     }
-  })
+  });
   //console.log("attrs/parse -> %s", contents, attrs, Object.fromEntries(attrs))
-  return Object.fromEntries(attrs)
+  return Object.fromEntries(attrs);
 }

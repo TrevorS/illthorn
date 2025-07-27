@@ -1,23 +1,21 @@
-import { div } from "./util/dom"
+import { div } from "./util/dom";
 
-export const app : HTMLDivElement = document.querySelector("#app")!
-export const leftActions = div({id: "actions"})
-export const sessionsMenu = div({id: "sessions"})
-export const currentContext = div({id: "current-context"})
+export const app: HTMLDivElement = document.querySelector("#app") as HTMLDivElement;
+export const leftActions = div({ id: "actions" });
+export const sessionsMenu = div({ id: "sessions" });
+export const currentContext = div({ id: "current-context" });
 
+export const leftPane = div({ id: "app-left-pane" });
+export const rightPane = div({ id: "app-right-pane" });
 
-export const leftPane = div({id: "app-left-pane"})
-export const rightPane = div({id: "app-right-pane"})
-
-export function initLayout () {
+export function initLayout() {
   // left side
-  leftActions.append(sessionsMenu)
-  leftPane.append(leftActions)
-  
+  leftActions.append(sessionsMenu);
+  leftPane.append(leftActions);
+
   // right side
 
-  rightPane.append(currentContext, )
+  rightPane.append(currentContext);
 
-  app.append(leftPane, rightPane)
+  app.append(leftPane, rightPane);
 }
-

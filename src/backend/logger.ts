@@ -1,3 +1,3 @@
-import debug from "debug"
+import debug from "debug";
 
-export const log = debug("illthorn/backend")
+export const log = debug("illthorn/backend");

@@ -1,78 +1,74 @@
-import { type FrontendSession as Session } from "../../session/index"
+import type { FrontendSession as Session } from "../../session/index";
 /**
  * a TCP Game feed -> DOM renderer
  */
- export class Feed extends HTMLElement {
-
-  static MIN_SCROLL_BUFFER = 300
+export class Feed extends HTMLElement {
+  static MIN_SCROLL_BUFFER = 300;
   /**
    * maximum number of nodes to store in memory
    */
-  static MAX_MEMORY_LENGTH = 100 * 5
+  static MAX_MEMORY_LENGTH = 100 * 5;
 
   /**
    * creates a new Feed instance
    * tying a Session to an HTMLElement
    */
-  constructor(readonly session : Session) {
-    super()
+  constructor(readonly session: Session) {
+    super();
 
     this.addEventListener("click", (e) => {
-      const target = e.target as HTMLElement
-      if (!target) return
+      const target = e.target as HTMLElement;
+      if (!target) return;
       // do not break text selection by re-rendering
-      const selection = window.getSelection()?.toString()
-      if (selection) return
+      const selection = window.getSelection()?.toString();
+      if (selection) return;
 
       switch (target.tagName) {
         case "D":
         case "A":
-          console.log("click -> %o", target)
-          return console.warn("<%s> handling not implemented", target.tagName)
+          console.log("click -> %o", target);
+          return console.warn("<%s> handling not implemented", target.tagName);
       }
-    })
+    });
 
-    this.classList.add("feed", "scroll")
+    this.classList.add("feed", "scroll");
   }
 
   get isScrolling() {
     // no content scrollable
-    if (this.scrollHeight == this.clientHeight) return false
+    if (this.scrollHeight === this.clientHeight) return false;
     // check the relative scroll offset from the head
     //console.log("feed.scrollPosition=%s", this.scrollHeight - this.scrollTop - this.clientHeight)
-    return this.scrollHeight - this.scrollTop - this.clientHeight > 1
+    return this.scrollHeight - this.scrollTop - this.clientHeight > 1;
   }
   /**
    * clean up all unsafe references
    */
   destroy() {
-    this.idle()
-    this.remove()
+    this.idle();
+    this.remove();
   }
   /**
    * mark a feed as idle
    */
   idle() {
-    this.removeAttribute("focused")
-    this.parentElement && this.parentElement.removeChild(this)
-    return this
+    this.removeAttribute("focused");
+    this.parentElement?.removeChild(this);
+    return this;
   }
   /**
    * clear previously rendered nodes
    */
   activate() {
-    this.setAttribute("focused", "")
-    this.scrollToNow()
-    return this
+    this.setAttribute("focused", "");
+    this.scrollToNow();
+    return this;
   }
   /**
    * if the HEAD of the feed is a prompt or not
    */
   has_prompt() {
-    return (
-      this.lastElementChild &&
-      this.lastElementChild.tagName.toLowerCase() === "prompt"
-    )
+    return this.lastElementChild && this.lastElementChild.tagName.toLowerCase() === "prompt";
   }
   /**
    * appends a single <pre> element to the HEAD
@@ -82,40 +78,39 @@ import { type FrontendSession as Session } from "../../session/index"
    *   1. handle when detached from DOM tree
    *   2. re-render slices of pruned nodes when scrolling
    */
-  appendParsed(ele : DocumentFragment | Element) {
+  appendParsed(ele: DocumentFragment | Element) {
     if (!ele.hasChildNodes()) {
-      return console.trace("{error: %o}", ele)
+      return console.trace("{error: %o}", ele);
     }
-    const wasScrolling = this.isScrolling
+    const wasScrolling = this.isScrolling;
     // append the tag to the actual HTML
-    this.append(ele)
+    this.append(ele);
     // if our pruned in-memory buffer has grown too long
     // we must prune it again.  These messages are lost forever
     // but that is what logs are for!
-    this.flush()
+    this.flush();
     // scroll the feed to the HEAD position
     // TODO: Investigate pure CSS based pin-to-bottom scrolling:
     // https://blog.eqrion.net/pin-to-bottom/ (may have better performance)
-    if (!wasScrolling) this.scrollToNow()
+    if (!wasScrolling) this.scrollToNow();
   }
   /**
    * some user gesture (scrolling forward/button) has triggered
    * reattaching to the head of the message feed
    */
-  scrollToNow () {
-    this.scrollTop = this.scrollHeight
-    return this
+  scrollToNow() {
+    this.scrollTop = this.scrollHeight;
+    return this;
   }
   /**
    * finalizer for pruned nodes
    */
   flush() {
     while (this.childElementCount > Feed.MAX_MEMORY_LENGTH) {
-      this.firstChild && this.firstChild.remove()
+      this.firstChild?.remove();
     }
-    return this
+    return this;
   }
 }
 
-
-window.customElements.define("illthorn-feed", Feed)
+window.customElements.define("illthorn-feed", Feed);

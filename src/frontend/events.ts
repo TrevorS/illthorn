@@ -19,5 +19,5 @@ export enum IllthornEvent {
   /**
    * when a prompt is encountered in the feed
    */
-  PROMPT_UPDATE = "prompt/update"
+  PROMPT_UPDATE = "prompt/update",
 }

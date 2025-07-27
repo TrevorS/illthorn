@@ -1,18 +1,17 @@
 //import { IllthornEvent } from "../events"
 
-type Handler<T> = (a : CustomEvent<T>)=>void
+type Handler<T> = (a: CustomEvent<T>) => void;
 
 export class Bus {
-  constructor (readonly _ele : HTMLDivElement = document.createElement("div")) {
+  constructor(readonly _ele: HTMLDivElement = document.createElement("div")) {}
+
+  dispatchEvent<T>(name: string, detail: T): void {
+    const e = new CustomEvent(name, { detail });
+    this._ele.dispatchEvent(e);
   }
 
-  dispatchEvent <T>(name : string, detail : T) : void {
-    const e = new CustomEvent(name as any, {detail})
-    this._ele.dispatchEvent(e)
-  }
-
-  subscribeEvent <T>(name : string, handler : Handler<T>) {
-    this._ele.addEventListener(name as any, handler)
+  subscribeEvent<T>(name: string, handler: Handler<T>) {
+    this._ele.addEventListener(name, handler as EventListener);
   }
 }
 
