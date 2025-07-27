@@ -1,9 +1,9 @@
 import type { Configuration } from 'webpack';
 
-import { rules } from './webpack.rules';
+import { rendererRules } from './webpack.rules';
 import { plugins } from './webpack.plugins';
 
-rules.push({
+rendererRules.push({
   test: /\.css$/,
   use: [ {loader: 'style-loader'}
        , {loader: 'css-loader'}
@@ -11,7 +11,7 @@ rules.push({
        ],
 });
 
-rules.push({
+rendererRules.push({
   test: /\.s[ac]ss$/i,
   use: [
     // Creates `style` nodes from JS strings
@@ -19,13 +19,21 @@ rules.push({
     // Translates CSS into CommonJS
     "css-loader",
     // Compiles Sass to CSS
-    "sass-loader",
+    {
+      loader: "sass-loader",
+      options: {
+        api: "modern", // Use the modern Sass API (modern-compiler requires sass-loader >=14.2.0)
+        sassOptions: {
+          // Add any Sass options here if needed
+        },
+      },
+    },
   ],
 })
 
 export const rendererConfig: Configuration = {
   module: {
-    rules,
+    rules: rendererRules,
   },
   plugins,
   resolve: {

@@ -1,19 +1,19 @@
 /*! App styles */
 
-@import "vars";
-@import "reset";
-@import "typography";
-@import "layout";
-@import "session";
-@import "sessions";
-@import "panels";
-@import "room";
-@import "streams";
-@import "hands";
-@import "feed";
-@import "hilite";
-@import "cli";
-@import "modals";
-@import "util";
-@import "vitals";
-@import "themes/rogue"
+@use "vars";
+@use "reset";
+@use "typography";
+@use "layout";
+@use "session";
+@use "sessions";
+@use "panels";
+@use "room";
+@use "streams";
+@use "hands";
+@use "feed";
+@use "hilite";
+@use "cli";
+@use "modals";
+@use "util";
+@use "vitals";
+@use "themes/rogue";

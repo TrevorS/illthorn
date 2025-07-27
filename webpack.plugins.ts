@@ -6,7 +6,7 @@ const ForkTsCheckerWebpackPlugin: typeof IForkTsCheckerWebpackPlugin = require('
 
 export const copyPlugins = ["icons"].map((asset) => {
   return new CopyWebpackPlugin({
-    patterns: [{ from: path.resolve(__dirname, asset), to: asset }],
+    patterns: [{ from: path.resolve(process.cwd(), asset), to: asset }],
   })
 })
 

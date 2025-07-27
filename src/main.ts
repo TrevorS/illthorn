@@ -20,7 +20,10 @@ const createWindow = async (): Promise<void> => {
     width: screen.getPrimaryDisplay().size.width,
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-      nodeIntegration: true
+      nodeIntegration: false,
+      nodeIntegrationInWorker: false,
+      contextIsolation: true,
+      enableRemoteModule: false,
     },
   });
 
@@ -36,7 +39,7 @@ const createWindow = async (): Promise<void> => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools()
-  mainWindow.setIcon(path.join(__dirname, "icons", "app-icon.png"))
+  mainWindow.setIcon(path.join(app.getAppPath(), "icons", "app-icon.png"))
 }
 
 // This method will be called when Electron has finished

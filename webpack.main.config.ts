@@ -1,6 +1,6 @@
 
 import type { Configuration } from 'webpack'
-import { rules } from './webpack.rules'
+import { mainRules } from './webpack.rules'
 import { copyPlugins } from "./webpack.plugins";
 
 export const mainConfig: Configuration = {
@@ -9,11 +9,17 @@ export const mainConfig: Configuration = {
    * that runs in the main process.
    */
   entry: './src/main.ts',
+  target: 'electron-main',
   // Put your normal webpack config below here
   module: {
-    rules,
+    rules: mainRules,
   },
   resolve: {
     extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json'],
-  }, plugins: copyPlugins
+  },
+  plugins: copyPlugins,
+  node: {
+    __dirname: false,
+    __filename: false,
+  },
 };
