@@ -15,7 +15,10 @@ Illthorn is a modern cross-platform Electron application that serves as a front-
 
 ### Code Quality
 - **Lint**: `yarn lint` - Runs ESLint on TypeScript files
-- **Test**: `yarn test` - Runs AVA test suite (alias for `yarn ava`)
+- **Test**: `yarn test` - Runs Vitest test suite
+- **Test with UI**: `yarn test:ui` - Runs Vitest with browser UI
+- **Test coverage**: `yarn test:coverage` - Generates coverage report
+- **Single test**: `yarn test test/command-history.spec.ts` - Run specific test file
 
 ### Versioning
 - **Release candidate**: `yarn rc` - Creates prerelease version, commits, and pushes tags
@@ -39,31 +42,56 @@ The backend uses a modular IPC (Inter-Process Communication) pattern:
 
 ### Frontend Architecture (`src/frontend/`)
 - **Session Management** (`session/`): Frontend session state, command handling, UI rendering
-- **Components** (`components/`): Reusable UI components organized by feature
-- **Parser** (`parser/`): Game text parsing and DOM manipulation for content display
+- **Components** (`components/`): Vanilla Web Components using `customElements.define()`
+- **Parser** (`parser/`): Game text parsing with tag-based content transformation
 - **Themes** (`styles/themes/`): Multiple visual themes for customization
-- **Bus System** (`util/bus.ts`): Event-driven communication between frontend modules
+- **Bus System** (`util/bus.ts`): Custom event-driven communication between components
 
 ### Key Design Patterns
 - **IPC Communication**: Structured three-layer pattern (handlers → API → methods) for secure main/renderer communication
 - **Session Mapping**: Both frontend and backend maintain session maps for multi-character support
-- **Event Bus**: Custom event system for decoupled frontend component communication
-- **Parser Architecture**: Modular text parsing with tag-based content transformation
+- **Event Bus**: Custom DOM-based event system using `CustomEvent` for component communication
+- **Web Components**: Vanilla custom elements extending `HTMLElement` with lifecycle management
+- **Parser Architecture**: Stateful parser consuming game text streams and producing structured DOM
+
+### Game Text Processing Flow
+1. **TCP Stream**: Raw game text received from Lich via WebSocket
+2. **Parser** (`parser/parser.ts`): Tokenizes XML-like tags and text into structured `GameTag` objects
+3. **DOM Rendering**: Components subscribe to parsed events and update their display
+4. **Highlighting**: Text is processed through highlight groups with configurable CSS styling
+
+### Session Detection & Connection
+- **Auto-detection**: Scans `/tmp/simutronics/sessions/` for Lich session descriptors
+- **Manual connection**: `:connect <name> <port>` command for explicit session creation
+- **Multi-session**: Multiple characters supported simultaneously with alt+# switching
 
 ## Development Notes
 
 ### Package Management
-- Uses Yarn (specified in volta config: Node 18.17.0, Yarn 3.6.1)
-- Electron Forge for build tooling and packaging
-- Webpack for bundling with custom configurations
+- Uses Yarn 4.5.3 (specified in volta config: Node 22.11.0)
+- Electron Forge with Vite plugin for build tooling and packaging
+- Vite for bundling with SCSS support
 
 ### Testing Setup
-- AVA test framework with TypeScript support
+- Vitest test framework with TypeScript support
 - Tests located in `/test/` directory
-- ESM module support configured via ts-node
+- Path alias `@` points to `src/` for imports
+- Global test environment with Node.js runtime
 
-### Game Integration
-Connects to Lich processes via TCP sockets on configurable ports (default 8003+). Sessions are auto-detected when Lich runs with `--without-frontend --detachable-client=PORT` flags.
+### CLI Commands (User-facing)
+Frontend commands prefixed with `:` (vim-style):
+- `:theme <name>` - Switch themes (original, rogue, dark-king, icemule, kobold, raging-thrak)
+- `:connect <name> <port>` or `:c` - Create new session
+- `:focus <session>` or `:f` - Switch session focus
+- `:set <path> <value>` - Configure settings (e.g., `clickable` boolean)
+- `:ui <name> <state>` - Toggle UI panels (vitals, injuries, active-spells, compass)
+- `:stream <name> <state>` - Toggle stream panels (thoughts, speech, logon, logoff, death)
+- `:hilite add <group> <pattern>` - Add highlight patterns with regex
+- `:hilite group <group> <property>=<value>` - Style highlight groups with CSS
 
-### Theme System
-Multiple built-in themes stored in `src/frontend/styles/themes/` with runtime switching via `:theme <name>` commands.
+### Component Development Patterns
+- Extend `HTMLElement` and use `customElements.define("illthorn-*", Class)`
+- Implement `observedAttributes` and `attributeChangedCallback` for reactivity
+- Use constructor for DOM creation and `connectedCallback` for initialization
+- Subscribe to bus events for inter-component communication
+- Maintain existing API compatibility when migrating components

@@ -5,16 +5,16 @@
   "description": "a modern FE for Gemstone IV",
   "main": ".vite/build/main.js",
   "scripts": {
-    "start": "electron-forge start",
+    "start": "electron-forge start --enable-logging",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
     "rc": "yarn version prerelease && git push && git push --tags",
-    "test": "vitest",
-    "test:run": "vitest run",
+    "test": "vitest run --reporter=verbose --bail=1",
+    "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": {
@@ -31,6 +31,7 @@
     "@electron-forge/plugin-vite": "^7.8.1",
     "@types/debug": "^4.1.7",
     "@types/events": "^3",
+    "@types/jsdom": "^21.1.7",
     "@types/mark.js": "^8.11.8",
     "@types/node": "^24.1.0",
     "@types/path-browserify": "^1",
@@ -42,6 +43,7 @@
     "eslint": "^8.0.1",
     "eslint-plugin-import": "^2.25.0",
     "events": "^3.3.0",
+    "jsdom": "^26.1.0",
     "path-browserify": "^1.0.1",
     "sass": "^1.58.3",
     "semver": "^7.7.2",
@@ -57,6 +59,7 @@
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.1.0",
     "keyboardjs": "^2.7.0",
+    "lit": "^3.3.1",
     "mark.js": "^8.11.1",
     "ws": "^8.12.1"
   },
