@@ -1,8 +1,8 @@
-# Lit + Shoelace Migration Plan for Illthorn
+# Lit Migration Plan for Illthorn
 
 ## Executive Summary
 
-This document outlines a strategic plan to modernize Illthorn's frontend components by migrating from vanilla Web Components to Lit-based components with Shoelace integration. The migration leverages the existing Web Components foundation to provide better developer experience, improved performance, and enhanced maintainability.
+This document outlines a strategic plan to modernize Illthorn's frontend components by migrating from vanilla Web Components to Lit-based components. The migration leverages the existing Web Components foundation to provide better developer experience, improved performance, and enhanced maintainability. Shoelace integration will be considered in a future phase after the Lit migration is complete.
 
 ## Current State Analysis
 
@@ -84,54 +84,72 @@ src/frontend/
 3. **Create development toggle** for A/B testing components
 4. **Establish testing patterns** with Lit testing utilities
 
-### Phase 2: Proof of Concept - ProgressBar (Week 2)
+### Phase 2: Proof of Concept - Compass (Week 2) ✅
 
 #### Goals
-- Validate migration approach
-- Establish patterns for API compatibility
-- Test theme integration
-- Measure performance impact
+- ✅ Validate migration approach  
+- ✅ Establish patterns for API compatibility
+- ✅ Test theme integration
+- ✅ Measure performance impact
 
-#### Implementation
+#### Implementation ✅
 ```typescript
-// components-lit/simple/progress-bar-lit.ts
-@customElement('illthorn-progress-bar-lit')
-export class ProgressBarLit extends IllthornLitElement {
-  @property() title = '';
-  @property({ type: Number }) percent = 0;
-  @property() value = '';
+// components/session/compass.lit.ts
+@customElement('illthorn-compass-lit')
+export class CompassLit extends LitElement {
+  @property({ type: Object })
+  session?: Session;
+
+  @state()
+  activeDirs: string[] = [];
 
   render() {
     return html`
-      <span class="meter" style="width: ${this.percent}%"></span>
-      <span class="flavor-text">${this.title}</span>
-      <span class="value">${this.value}</span>
+      ${CompassLit.DIRS.map((dir, _index) => html`
+        <a class=${dir && this.isDirectionActive(dir) ? "on" : ""}>
+          ${this.getDisplayText(dir)}
+        </a>
+      `)}
     `;
   }
 }
 ```
 
-#### Success Criteria
-- ✅ Drop-in replacement for existing ProgressBar
-- ✅ All existing themes work unchanged
+#### Success Criteria ✅
+- ✅ Drop-in replacement for existing Compass
+- ✅ All existing themes work unchanged  
 - ✅ Performance equal or better than vanilla version
-- ✅ Bundle size impact < 10KB
+- ✅ Uses decorators pattern for modern development
 
-### Phase 3: Container Components (Week 3)
+### Phase 3: Simple Components (Week 3)
 
-#### Panel → Shoelace Details
-Replace custom Panel with `sl-details`:
+#### Panel → Lit Component  
+Migrate Panel component to Lit while maintaining existing `<details>` structure:
 ```typescript
-// Instead of custom <details> wrapper
-<sl-details summary="Panel Title" open>
-  <slot></slot>
-</sl-details>
+// components/session/panel.lit.ts
+@customElement('illthorn-panel-lit')
+export class PanelLit extends LitElement {
+  @property() title = '';
+  @property({ type: Boolean }) open = true;
+
+  render() {
+    return html`
+      <details ?open=${this.open}>
+        <summary>${this.title}</summary>
+        <slot></slot>
+      </details>
+    `;
+  }
+}
 ```
 
+#### ProgressBar → Lit Component
+Migrate ProgressBar to follow the same decorator pattern.
+
 #### Benefits
-- Consistent styling across platform
-- Better accessibility
-- Reduced custom CSS maintenance
+- Better reactivity with Lit properties
+- Cleaner component code  
+- Consistent development patterns
 
 ### Phase 4: Interactive Components (Week 4-5)
 

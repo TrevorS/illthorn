@@ -12,7 +12,8 @@
     "lint": "biome check --write .",
     "format": "biome format --write .",
     "rc": "yarn version prerelease && git push && git push --tags",
-    "test": "vitest run --reporter=verbose --bail=1",
+    "typecheck": "tsc --noEmit",
+    "test": "VITE_CJS_IGNORE_WARNING=true vitest run --reporter=verbose --bail=1",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage"

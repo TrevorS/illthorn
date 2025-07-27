@@ -3,7 +3,7 @@ import { CLI } from "../components/session/cli";
 import { Feed } from "../components/session/feed";
 import { Prompt } from "../components/session/prompt";
 import "../components/session/compass.lit";
-import type { CompassLit } from "../components/session/compass.lit";
+import type { Compass } from "../components/session/compass.lit";
 import { Effects } from "../components/session/effects";
 import { type Hand, makeHand } from "../components/session/hand";
 import { Panel } from "../components/session/panel";
@@ -26,7 +26,7 @@ export function makeSessionUI(session: Session): SessionUI {
 
   context.append(hud, main);
   /** left / hud */
-  const compass = document.createElement("illthorn-compass-lit") as CompassLit;
+  const compass = document.createElement("illthorn-compass") as Compass;
   compass.session = session;
   const room = new Room(session);
   const vitals = new Vitals(session);

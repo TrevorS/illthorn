@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { CompassLit } from "../src/frontend/components/session/compass.lit";
+import { Compass } from "../src/frontend/components/session/compass.lit";
 import { createMockCompassData, createMockSession, mockDirections } from "./mocks";
 
-describe("CompassLit", () => {
+describe("Compass", () => {
   const setup = () => {
-    const compass = document.createElement("illthorn-compass-lit") as CompassLit;
+    const compass = document.createElement("illthorn-compass") as Compass;
     const mockSession = createMockSession();
     document.body.appendChild(compass);
     return { compass, mockSession };
   };
 
-  const teardown = (compass: CompassLit) => {
+  const teardown = (compass: Compass) => {
     if (compass.parentNode) {
       compass.parentNode.removeChild(compass);
     }
@@ -20,8 +20,8 @@ describe("CompassLit", () => {
     it("should create compass element", () => {
       const { compass } = setup();
 
-      expect(compass).toBeInstanceOf(CompassLit);
-      expect(compass.tagName.toLowerCase()).toBe("illthorn-compass-lit");
+      expect(compass).toBeInstanceOf(Compass);
+      expect(compass.tagName.toLowerCase()).toBe("illthorn-compass");
 
       teardown(compass);
     });
@@ -154,16 +154,16 @@ describe("CompassLit", () => {
 
   describe("Static properties", () => {
     it("should have correct DIRS array", () => {
-      expect(CompassLit.DIRS).toHaveLength(15);
-      expect(CompassLit.DIRS[1]).toBe("up");
-      expect(CompassLit.DIRS[13]).toBe("down");
-      expect(CompassLit.DIRS[7]).toBe("out");
+      expect(Compass.DIRS).toHaveLength(15);
+      expect(Compass.DIRS[1]).toBe("up");
+      expect(Compass.DIRS[13]).toBe("down");
+      expect(Compass.DIRS[7]).toBe("out");
     });
 
     it("should have correct MAP for direction abbreviations", () => {
-      expect(CompassLit.MAP.up).toBe("u");
-      expect(CompassLit.MAP.down).toBe("d");
-      expect(CompassLit.MAP.out).toBe("o");
+      expect(Compass.MAP.up).toBe("u");
+      expect(Compass.MAP.down).toBe("d");
+      expect(Compass.MAP.out).toBe("o");
     });
   });
 });
