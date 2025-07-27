@@ -6,7 +6,8 @@ import "../components/session/compass.lit";
 import type { Compass } from "../components/session/compass.lit";
 import { Effects } from "../components/session/effects";
 import { type Hand, makeHand } from "../components/session/hand";
-import { Panel } from "../components/session/panel";
+import "../components/session/panel.lit";
+import type { Panel } from "../components/session/panel.lit";
 import { Room } from "../components/session/room";
 import { Streams } from "../components/session/streams";
 import { Vitals } from "../components/session/vitals";
@@ -14,6 +15,13 @@ import type { FrontendSession as Session } from "../session";
 import { div } from "../util/dom";
 
 export type SessionUI = { context: Context; cli: CLI; feed: Feed; prompt: Prompt; vitals: Vitals; streams: Streams; hands: { left: Hand; right: Hand; spell: Hand } };
+
+function createPanel(title: string, ...content: HTMLElement[]): Panel {
+  const panel = document.createElement("illthorn-panel") as Panel;
+  panel.title = title;
+  panel.append(...content);
+  return panel;
+}
 
 export function makeSessionUI(session: Session): SessionUI {
   // wrapper for an app context
@@ -36,12 +44,12 @@ export function makeSessionUI(session: Session): SessionUI {
   const debuffs = new Effects(session, "Debuffs");
 
   hud.append(
-    new Panel("room", [room, compass]),
-    new Panel("vitals", vitals),
-    new Panel("active spells", activeSpells),
-    new Panel("buffs", buffs),
-    new Panel("cooldowns", cooldowns),
-    new Panel("debuffs", debuffs),
+    createPanel("room", room, compass),
+    createPanel("vitals", vitals),
+    createPanel("active spells", activeSpells),
+    createPanel("buffs", buffs),
+    createPanel("cooldowns", cooldowns),
+    createPanel("debuffs", debuffs),
   );
 
   /** main  **/

@@ -8,30 +8,37 @@ export class Panel extends LitElement {
   static styles = css`
     :host {
       display: block;
+      font-size: 13px;
+      position: relative;
+      resize: vertical;
     }
 
     details {
-      border: 1px solid var(--panel-border, #ccc);
-      border-radius: 4px;
-      margin-bottom: 0.5rem;
+      margin: 0;
+      padding: 0;
+      border: none;
     }
 
     summary {
-      background: var(--panel-header-bg, #f5f5f5);
-      padding: 0.5rem;
-      cursor: pointer;
+      margin: 0;
+      padding: 0.5em;
+      text-transform: uppercase;
+      text-align: center;
+      background-color: var(--info);
       font-weight: bold;
+      cursor: pointer;
       user-select: none;
+      list-style: none;
     }
 
-    summary:hover {
-      background: var(--panel-header-hover-bg, #e5e5e5);
+    summary::-webkit-details-marker {
+      display: none;
     }
 
-    .content {
-      padding: 0.5rem;
-      background: var(--panel-content-bg, transparent);
+    summary:focus {
+      outline: 0;
     }
+
   `;
 
   @property({ type: String })
@@ -44,9 +51,7 @@ export class Panel extends LitElement {
     return html`
       <details ?open=${this.open}>
         <summary>${this.title}</summary>
-        <div class="content">
-          <slot></slot>
-        </div>
+        <slot></slot>
       </details>
     `;
   }

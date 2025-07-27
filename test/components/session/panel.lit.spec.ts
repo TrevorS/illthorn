@@ -115,8 +115,8 @@ describe("Panel", () => {
       const slot = panel.shadowRoot?.querySelector("slot");
       expect(slot).toBeTruthy();
 
-      const contentContainer = panel.shadowRoot?.querySelector(".content");
-      expect(contentContainer).toBeTruthy();
+      const details = panel.shadowRoot?.querySelector("details");
+      expect(details).toBeTruthy();
 
       teardown(panel);
     });
@@ -146,11 +146,11 @@ describe("Panel", () => {
 
       const details = panel.shadowRoot?.querySelector("details");
       const summary = panel.shadowRoot?.querySelector("summary");
-      const content = panel.shadowRoot?.querySelector(".content");
+      const slot = panel.shadowRoot?.querySelector("slot");
 
       expect(details).toBeTruthy();
       expect(summary).toBeTruthy();
-      expect(content).toBeTruthy();
+      expect(slot).toBeTruthy();
 
       teardown(panel);
     });
