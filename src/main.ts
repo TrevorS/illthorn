@@ -20,7 +20,6 @@ const createWindow = async (): Promise<void> => {
       nodeIntegration: false,
       nodeIntegrationInWorker: false,
       contextIsolation: true,
-      enableRemoteModule: false,
     },
   });
 

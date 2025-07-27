@@ -89,9 +89,84 @@ Frontend commands prefixed with `:` (vim-style):
 - `:hilite add <group> <pattern>` - Add highlight patterns with regex
 - `:hilite group <group> <property>=<value>` - Style highlight groups with CSS
 
-### Component Development Patterns
+### Lit Component Development Patterns
+
+#### Component Structure
+- Use `@customElement('illthorn-*-lit')` decorator for component registration
+- Use `@property()` for reactive public properties
+- Use `@state()` for internal reactive state
+- Always include `declare global` interface for TypeScript support
+
+#### Code Style Requirements
+- **NEVER use single-line if statements** - always use block format with braces
+- **Prefer Array<T> over T[]** for array type declarations
+- Use descriptive property types: `@property({ type: Object })`, `@property({ type: Boolean })`
+- Place static styles as first class member after decorators
+- Use CSS custom properties for theming integration
+
+#### Example Pattern
+```typescript
+// ABOUTME: Brief description of component purpose
+// ABOUTME: Additional implementation details
+import { css, html, LitElement } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+
+@customElement('illthorn-example-lit')
+export class ExampleLit extends LitElement {
+  static styles = css`
+    :host {
+      display: block;
+    }
+    /* Theme-aware styling with CSS custom properties */
+  `;
+
+  @property({ type: String })
+  title = '';
+
+  @state()
+  private _internalState = false;
+
+  render() {
+    return html`
+      <div class="container">
+        <h2>${this.title}</h2>
+        <slot></slot>
+      </div>
+    `;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    "illthorn-example-lit": ExampleLit;
+  }
+}
+```
+
+### Legacy Component Development Patterns (being migrated)
 - Extend `HTMLElement` and use `customElements.define("illthorn-*", Class)`
 - Implement `observedAttributes` and `attributeChangedCallback` for reactivity
 - Use constructor for DOM creation and `connectedCallback` for initialization
 - Subscribe to bus events for inter-component communication
 - Maintain existing API compatibility when migrating components
+
+## Project Validation Tools
+
+### Project Type
+
+Node.js/TypeScript Electron project
+
+### Package Manager
+
+- **Node.js**: `yarn`
+
+### Validation Commands
+
+- **Format**: `yarn format`
+- **Lint**: `yarn lint`
+- **Type Check**: `yarn typecheck`
+- **Test**: `yarn test`
+
+### Last Updated
+
+2025-07-27

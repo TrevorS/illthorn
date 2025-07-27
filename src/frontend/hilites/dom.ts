@@ -3,8 +3,14 @@ import { getCachedHilites } from "./index";
 
 export async function addHilites(frag: DocumentFragment): Promise<void> {
   const hilites = getCachedHilites();
-  if (hilites.length === 0) return;
-  const mark = new Mark(frag as HTMLElement | DocumentFragment);
+  if (hilites.length === 0) {
+    return;
+  }
+  const elements = Array.from(frag.children) as Array<HTMLElement>;
+  if (elements.length === 0) {
+    return;
+  }
+  const mark = new Mark(elements);
   await hilites.reduce(async (io, [pattern, group]) => {
     await io;
     return await new Promise((resolve) => {

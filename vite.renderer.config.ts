@@ -25,4 +25,13 @@ export default defineConfig({
   server: {
     port: 3001, // Match the webpack dev server port
   },
+  esbuild: {
+    target: 'ESNext',
+    tsconfigRaw: {
+      compilerOptions: {
+        experimentalDecorators: true,
+        useDefineForClassFields: false,
+      },
+    },
+  },
 });
