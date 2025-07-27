@@ -1,3 +1,4 @@
+import './styles/index.scss'
 import "./illthorn"
 import { reloadHilites } from "./hilites"
 import {initLayout} from "./layout"
