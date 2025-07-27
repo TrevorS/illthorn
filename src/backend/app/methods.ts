@@ -1,3 +1,3 @@
-export enum AppMethods 
-  { SetTile = "app/set-title"
-  }
+export enum AppMethods {
+  SetTile = "app/set-title",
+}

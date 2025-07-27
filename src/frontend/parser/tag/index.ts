@@ -1,5 +1,5 @@
-import { GemstoneTagAttrs } from "./attributes"
-import { TagName } from "./names"
+import type { GemstoneTagAttrs } from "./attributes";
+import type { TagName } from "./names";
 export enum TagKind {
   TEXT,
   METADATA,
@@ -7,53 +7,36 @@ export enum TagKind {
 }
 
 export enum TagState {
-  OPEN, CLOSED
+  OPEN,
+  CLOSED,
 }
 
-export type GameTag =
-  { kind     : TagKind
-  ; name     : string
-  ; gameName : string
-  ; attrs    : GemstoneTagAttrs
-  ; children : GameTag[]
-  ; state    : TagState
-  ; text     : string
-  }
+export type GameTag = { kind: TagKind; name: string; gameName: string; attrs: GemstoneTagAttrs; children: GameTag[]; state: TagState; text: string };
 
+export const makeTag = (name: TagName, gameName: string = ""): GameTag => ({ name, kind: kindFrom(name), gameName, attrs: {}, children: [], text: "", state: TagState.OPEN });
 
-export const makeTag = (name : TagName, gameName: string = ""): GameTag => (
-  { name
-  , kind: kindFrom(name)
-  , gameName
-  , attrs: {}
-  , children: []
-  , text: ""
-  , state: TagState.OPEN
-  })
-
-export const kindFrom = (name : TagName) => {
+export const kindFrom = (name: TagName) => {
   switch (name) {
     case ":text":
-      return TagKind.TEXT
+      return TagKind.TEXT;
     case "a":
     case "b":
     case "d":
-      return TagKind.INLINE
+      return TagKind.INLINE;
     default:
-      return TagKind.METADATA
-
+      return TagKind.METADATA;
   }
-}
+};
 
-export const normalizeTagName = (name : string) => {
+export const normalizeTagName = (name: string) => {
   switch (name) {
     case "pushStream":
     case "popStream":
-      return "stream"
+      return "stream";
     case "pushBold":
     case "popBold":
-      return "b"
+      return "b";
     default:
-      return name as TagName
+      return name as TagName;
   }
-}
+};

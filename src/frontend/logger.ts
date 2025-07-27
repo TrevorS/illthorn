@@ -1,3 +1,3 @@
-import debug from "debug"
+import debug from "debug";
 
-const log = debug("illthorn/frontend")
+const _log = debug("illthorn/frontend");

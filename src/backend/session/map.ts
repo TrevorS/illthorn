@@ -1,3 +1,3 @@
-import { BackendSession } from ".";
+import type { BackendSession } from ".";
 
-export const SessionMap = new Map<string, BackendSession>()
+export const SessionMap = new Map<string, BackendSession>();

@@ -1,29 +1,13 @@
 // ABOUTME: Lit-based compass component for displaying directional navigation in Gemstone IV
 // ABOUTME: Shows available exits with visual states (active/inactive) based on game metadata
-import { LitElement, html, css } from 'lit'
-import { GameTag } from "../../parser/tag"
-import { type FrontendSession as Session } from "../../session/index"
+import { css, html, LitElement } from "lit";
+import type { GameTag } from "../../parser/tag";
+import type { FrontendSession as Session } from "../../session/index";
 
 export class CompassLit extends LitElement {
-  static DIRS = [
-    "",
-    "up",
-    "",
-    "nw",
-    "n",
-    "ne",
-    "w",
-    "out",
-    "e",
-    "sw",
-    "s",
-    "se",
-    "",
-    "down",
-    "",
-  ]
+  static DIRS = ["", "up", "", "nw", "n", "ne", "w", "out", "e", "sw", "s", "se", "", "down", ""];
 
-  static MAP = { up: "u", down: "d", out: "o" } as Record<string, string>
+  static MAP = { up: "u", down: "d", out: "o" } as Record<string, string>;
 
   static styles = css`
     :host {
@@ -67,76 +51,78 @@ export class CompassLit extends LitElement {
     a:empty {
       visibility: hidden;
     }
-  `
+  `;
 
   static properties = {
     session: { type: Object },
-    activeDirs: { type: Array, state: true }
-  }
+    activeDirs: { type: Array, state: true },
+  };
 
-  declare session?: Session
-  declare activeDirs: string[]
+  declare session?: Session;
+  declare activeDirs: string[];
 
-  private _eventListenerSetup = false
+  private _eventListenerSetup = false;
 
   constructor() {
-    super()
-    this.activeDirs = []
+    super();
+    this.activeDirs = [];
   }
 
   connectedCallback() {
-    super.connectedCallback()
-    console.log('CompassLit connected to DOM')
+    super.connectedCallback();
+    console.log("CompassLit connected to DOM");
   }
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {
-    super.updated(changedProperties)
-    
-    if (changedProperties.has('session')) {
-      console.log('CompassLit session property changed:', this.session)
+    super.updated(changedProperties);
+
+    if (changedProperties.has("session")) {
+      console.log("CompassLit session property changed:", this.session);
       if (this.session && !this._eventListenerSetup) {
-        this.setupEventListeners()
-        this._eventListenerSetup = true
+        this.setupEventListeners();
+        this._eventListenerSetup = true;
       }
     }
   }
 
   private setupEventListeners() {
-    if (!this.session) return
+    if (!this.session) return;
 
     this.session.bus.subscribeEvent<GameTag>("metadata/compass", ({ detail: compass }) => {
-      this.activeDirs = compass.children.map(({ attrs }) => attrs.value)
-      this.requestUpdate()
-    })
+      this.activeDirs = compass.children.map(({ attrs }) => attrs.value);
+      this.requestUpdate();
+    });
   }
 
   private getDisplayText(dir: string): string {
-    return CompassLit.MAP[dir] || dir
+    return CompassLit.MAP[dir] || dir;
   }
 
   private isDirectionActive(dir: string): boolean {
-    return this.activeDirs.includes(dir)
+    return this.activeDirs.includes(dir);
   }
 
   render() {
     return html`
-      ${CompassLit.DIRS.map((dir, index) => html`
+      ${CompassLit.DIRS.map(
+        (dir, _index) => html`
         <a 
-          class=${dir && this.isDirectionActive(dir) ? 'on' : ''}
+          class=${dir && this.isDirectionActive(dir) ? "on" : ""}
           title=${dir}
-          style=${dir ? '' : 'visibility: hidden; width: 30px; height: 30px;'}
+          style=${dir ? "" : "visibility: hidden; width: 30px; height: 30px;"}
         >
           ${this.getDisplayText(dir)}
         </a>
-      `)}
-    `
+      `,
+      )}
+    `;
   }
 }
 
-window.customElements.define("illthorn-compass-lit", CompassLit)
+window.customElements.define("illthorn-compass-lit", CompassLit);
 
 declare global {
   interface HTMLElementTagNameMap {
-    'illthorn-compass-lit': CompassLit
+    "illthorn-compass-lit": CompassLit;
   }
 }

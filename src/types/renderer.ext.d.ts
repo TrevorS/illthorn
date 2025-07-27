@@ -1,40 +1,34 @@
-import { type Illthorn } from "src/frontend/state"
+import { type Illthorn } from "src/frontend/state";
 
-interface IPCEventCallback {
-  (e: Electron.IpcRendererEvent, message : any): void
-}
+type IPCEventCallback = (e: Electron.IpcRendererEvent, message: unknown) => void;
 
-type Ok = 
-  {ok: true
-  }
+type Ok = { ok: true };
 
-type Noop =
-  {noop: true
-  }
+type Noop = { noop: true };
 
 export interface ISessionAPI {
-  async connect (config : Illthorn.Session.Config, callback: IPCEventCallback)
-  async registerSingletonListener (eventName: string, callback: IPCEventCallback): Noop | Ok
-  async listAvailable (): Array<Illthorn.LichSessionDescriptor>
-  async listConnected(): Array<Illthorn.Session.Pojo>
-  async sendCommand(session : Illthorn.Session.Pojo, command : string): Ok
+  connect(config: Illthorn.Session.Config, callback: IPCEventCallback): Promise<Illthorn.Session.Pojo>;
+  registerSingletonListener(eventName: string, callback: IPCEventCallback): Promise<Noop | Ok>;
+  listAvailable(): Promise<Array<Illthorn.LichSessionDescriptor>>;
+  listConnected(): Promise<Array<Illthorn.Session.Pojo>>;
+  sendCommand(session: Illthorn.Session.Pojo, command: string): Promise<Ok>;
 }
 
 export interface IAppAPI {
-  setTitle(config : {title: string}): void;
+  setTitle(config: { title: string }): void;
 }
 
-export interface ISettingsAPI<T = Record<string, any>> {
-  async load (): T
-  async get<A>(key : string): A|undefined
-  async set<V>(key : string, value : V): void
+export interface ISettingsAPI<T = Record<string, unknown>> {
+  load(): Promise<T>;
+  get<A>(key: string): Promise<A | undefined>;
+  set<V>(key: string, value: V): Promise<void>;
 }
 
 declare global {
   interface Window {
-    Session: ISessionAPI
-    App: IAppAPI
-    Settings : ISettingsAPI
-    Illthorn: typeof Illthorn
+    Session: ISessionAPI;
+    App: IAppAPI;
+    Settings: ISettingsAPI;
+    Illthorn: typeof Illthorn;
   }
 }

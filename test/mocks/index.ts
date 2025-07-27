@@ -1,8 +1,8 @@
 // ABOUTME: Centralized mock objects for testing
 // ABOUTME: Provides consistent mock implementations for session, bus, and game components
 
-import { Bus } from '../../src/frontend/util/bus';
-import { GameTag, makeTag } from '../../src/frontend/parser/tag';
+import { type GameTag, makeTag } from "../../src/frontend/parser/tag";
+import { Bus } from "../../src/frontend/util/bus";
 
 export interface MockSession {
   bus: Bus;
@@ -13,7 +13,7 @@ export interface MockSession {
   name: string;
 }
 
-export const createMockSession = (name = 'test-session'): MockSession => ({
+export const createMockSession = (name = "test-session"): MockSession => ({
   bus: new Bus(),
   parser: {},
   ui: undefined,
@@ -23,19 +23,19 @@ export const createMockSession = (name = 'test-session'): MockSession => ({
 });
 
 export const createMockCompassData = (directions: string[]): GameTag => {
-  const children = directions.map(dir => {
-    const tag = makeTag('dir');
+  const children = directions.map((dir) => {
+    const tag = makeTag("dir");
     tag.attrs = { value: dir };
     return tag;
   });
-  const compass = makeTag('compass');
+  const compass = makeTag("compass");
   compass.children = children;
   return compass;
 };
 
 export const mockDirections = {
   empty: [],
-  basic: ['north', 'south'],
-  full: ['north', 'south', 'east', 'west', 'northeast', 'northwest', 'southeast', 'southwest'],
-  withSpecial: ['north', 'up', 'out'],
+  basic: ["north", "south"],
+  full: ["north", "south", "east", "west", "northeast", "northwest", "southeast", "southwest"],
+  withSpecial: ["north", "up", "out"],
 } as const;
