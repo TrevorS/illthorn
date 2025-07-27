@@ -2,7 +2,8 @@ import {CLI} from "../components/session/cli"
 import { Prompt } from "../components/session/prompt"
 import { Context } from "../components/context"
 import { Feed } from "../components/session/feed"
-import { Compass } from "../components/session/compass"
+import "../components/session/compass.lit"
+import type { CompassLit } from "../components/session/compass.lit"
 import {makeHand, Hand}   from "../components/session/hand"
 import { Vitals } from "../components/session/vitals"
 import {Panel} from "../components/session/panel"
@@ -33,7 +34,8 @@ export function makeSessionUI (session : Session): SessionUI {
 
   context.append(hud, main)
   /** left / hud */
-  const compass = new Compass(session)
+  const compass = document.createElement('illthorn-compass-lit') as CompassLit
+  compass.session = session
   const room    = new Room(session)
   const vitals  = new Vitals(session)
   const activeSpells = new Effects(session, "Active Spells")
