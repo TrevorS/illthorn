@@ -78,6 +78,34 @@ The backend uses a modular IPC (Inter-Process Communication) pattern:
 - Path alias `@` points to `src/` for imports
 - Global test environment with Node.js runtime
 
+### Debug Logging System
+The project includes a structured debug logging system using the `debug` library for troubleshooting game events and data flow:
+
+#### Available Debug Namespaces
+- `illthorn:bus` - Bus event dispatching and subscriptions
+- `illthorn:metadata` - XML metadata processing and event creation  
+- `illthorn:raw-input` - Raw Lich input data before parsing
+- `illthorn:effects` - Effects component event processing
+- `illthorn:session` - Session-level message processing
+
+#### Enabling Debug Logging
+**Browser Console** (for frontend debugging):
+```javascript
+localStorage.setItem('debug', 'illthorn:*');  // Enable all loggers
+localStorage.setItem('debug', 'illthorn:bus,illthorn:metadata');  // Specific loggers
+```
+
+**Environment Variable** (for development):
+```bash
+DEBUG=illthorn:* yarn start  # Enable all debug logging
+DEBUG=illthorn:effects,illthorn:metadata yarn start  # Specific loggers
+```
+
+#### Common Debug Patterns
+- **Spell Effects Issues**: `DEBUG=illthorn:effects,illthorn:metadata,illthorn:bus`
+- **Raw Input Analysis**: `DEBUG=illthorn:raw-input,illthorn:session`
+- **Event Flow Debugging**: `DEBUG=illthorn:*`
+
 ### CLI Commands (User-facing)
 Frontend commands prefixed with `:` (vim-style):
 - `:theme <name>` - Switch themes (original, rogue, dark-king, icemule, kobold, raging-thrak)

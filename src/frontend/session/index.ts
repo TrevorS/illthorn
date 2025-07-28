@@ -3,6 +3,7 @@ import { addHilites } from "../hilites/dom";
 import { castToHTML, createPrompt } from "../parser/dom";
 import { Parser } from "../parser/parser";
 import { Bus } from "../util/bus";
+import { debugRawInput, debugSession, safeStringify } from "../util/logger";
 import { CommandHistory } from "./command-history";
 import { dispatchMetadata } from "./helpers";
 import { SessionMap } from "./map";
@@ -50,8 +51,11 @@ export class FrontendSession {
   }
 
   async onMessage(incoming: string) {
+    debugRawInput(`[${this.name}] Raw input (${incoming.length} chars): ${safeStringify(incoming, 200)}`);
     const parsed = this.parser.parse(incoming);
+    debugSession(`[${this.name}] Parsed ${parsed.length} tags from input`);
     const { frag, metadata } = castToHTML(parsed);
+    debugSession(`[${this.name}] Generated DOM fragment, found ${metadata.length} metadata tags`);
     const promptInfo = metadata.find((tag) => tag.name === "prompt");
     const prompt = promptInfo && createPrompt(promptInfo);
 
@@ -74,7 +78,10 @@ export class FrontendSession {
     if (!this.ui.feed.has_prompt() && prompt) {
       this.ui.feed.appendParsed(prompt);
     }
-    if (metadata.length) metadata.forEach((tag) => dispatchMetadata(this, tag));
+    if (metadata.length) {
+      debugSession(`[${this.name}] Processing ${metadata.length} metadata tags: ${metadata.map((tag) => tag.name).join(", ")}`);
+      metadata.forEach((tag) => dispatchMetadata(this, tag));
+    }
   }
 
   handleMacro(macro: string) {

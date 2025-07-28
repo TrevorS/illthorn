@@ -4,6 +4,7 @@ import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { GameTag } from "../../parser/tag";
 import type { FrontendSession as Session } from "../../session/index";
+import { logEffectsEvent } from "../../util/logger";
 import "./spell-effect.lit";
 
 interface SpellEffectData {
@@ -56,30 +57,54 @@ export class EffectsLit extends LitElement {
 
   private attachListeners() {
     if (!this.session || !this.name) {
+      logEffectsEvent(this.constructor.name, "Cannot attach listeners - missing session or name", {
+        hasSession: !!this.session,
+        name: this.name,
+      });
       return;
     }
 
-    this.session.bus.subscribeEvent<GameTag>(`metadata/dialogData/${this.name}`, ({ detail: dialog }) => {
+    const eventName = `metadata/dialogData/${this.name}`;
+    logEffectsEvent(this.constructor.name, `Subscribing to event: ${eventName}`);
+
+    this.session.bus.subscribeEvent<GameTag>(eventName, ({ detail: dialog }) => {
+      logEffectsEvent(this.constructor.name, `Received dialog event for ${this.name}`, dialog);
       this.renderDialog(dialog);
     });
   }
 
   private renderDialog(dialog: GameTag) {
+    logEffectsEvent(this.constructor.name, `Processing dialog for ${this.name}`, {
+      childrenCount: dialog.children.length,
+      children: dialog.children.map((c) => c.name),
+    });
+
     if (dialog.children.length === 0) {
+      logEffectsEvent(this.constructor.name, `No children found in dialog for ${this.name} - clearing effects`);
       this._spellEffects = [];
       return;
     }
 
     const progressBars = dialog.children.filter((child) => child.name === "progressBar");
+    logEffectsEvent(this.constructor.name, `Found ${progressBars.length} progressBar elements`, {
+      total: dialog.children.length,
+      progressBars: progressBars.length,
+      progressBarAttrs: progressBars.map((bar) => bar.attrs),
+    });
+
     this._spellEffects = progressBars.map((bar) => {
       const { text, id, time, value } = bar.attrs;
-      return {
+      const effectData = {
         text: String(text || ""),
         id: String(id || ""),
         time: String(time || "").replace(/^0/, ""),
         value: String(value || ""),
       };
+      logEffectsEvent(this.constructor.name, `Mapped progress bar to spell effect`, effectData);
+      return effectData;
     });
+
+    logEffectsEvent(this.constructor.name, `Final spell effects count: ${this._spellEffects.length}`);
   }
 
   render() {
