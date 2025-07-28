@@ -48,9 +48,11 @@ export class ProgressBarLit extends LitElement {
   @property({ type: String })
   value = "";
 
-  constructor(name: string) {
+  constructor(name?: string) {
     super();
-    this.classList.add(name.toLocaleLowerCase().replace(/\s+/g, "-"));
+    if (name) {
+      this.classList.add(name.toLocaleLowerCase().replace(/\s+/g, "-"));
+    }
   }
 
   connectedCallback() {

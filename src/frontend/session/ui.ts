@@ -4,7 +4,8 @@ import { Feed } from "../components/session/feed";
 import { Prompt } from "../components/session/prompt";
 import "../components/session/compass.lit";
 import type { Compass } from "../components/session/compass.lit";
-import { Effects } from "../components/session/effects";
+import "../components/session/effects.lit";
+import type { EffectsLit } from "../components/session/effects.lit";
 import { type Hand, makeHand } from "../components/session/hand";
 import "../components/session/panel.lit";
 import type { Panel } from "../components/session/panel.lit";
@@ -40,10 +41,18 @@ export function makeSessionUI(session: Session): SessionUI {
   const room = new Room(session);
   const vitals = document.createElement("illthorn-vitals-lit") as Vitals;
   vitals.session = session;
-  const activeSpells = new Effects(session, "Active Spells");
-  const buffs = new Effects(session, "Buffs");
-  const cooldowns = new Effects(session, "Cooldowns");
-  const debuffs = new Effects(session, "Debuffs");
+  const activeSpells = document.createElement("illthorn-effects-lit") as EffectsLit;
+  activeSpells.session = session;
+  activeSpells.name = "Active Spells";
+  const buffs = document.createElement("illthorn-effects-lit") as EffectsLit;
+  buffs.session = session;
+  buffs.name = "Buffs";
+  const cooldowns = document.createElement("illthorn-effects-lit") as EffectsLit;
+  cooldowns.session = session;
+  cooldowns.name = "Cooldowns";
+  const debuffs = document.createElement("illthorn-effects-lit") as EffectsLit;
+  debuffs.session = session;
+  debuffs.name = "Debuffs";
 
   hud.append(
     createPanel("room", room, compass),
