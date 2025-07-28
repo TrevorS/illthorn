@@ -10,7 +10,8 @@ import "../components/session/panel.lit";
 import type { Panel } from "../components/session/panel.lit";
 import { Room } from "../components/session/room";
 import { Streams } from "../components/session/streams";
-import { Vitals } from "../components/session/vitals";
+import "../components/session/vitals/vitals.lit";
+import type { Vitals } from "../components/session/vitals/vitals.lit";
 import type { FrontendSession as Session } from "../session";
 import { div } from "../util/dom";
 
@@ -37,7 +38,8 @@ export function makeSessionUI(session: Session): SessionUI {
   const compass = document.createElement("illthorn-compass") as Compass;
   compass.session = session;
   const room = new Room(session);
-  const vitals = new Vitals(session);
+  const vitals = document.createElement("illthorn-vitals-lit") as Vitals;
+  vitals.session = session;
   const activeSpells = new Effects(session, "Active Spells");
   const buffs = new Effects(session, "Buffs");
   const cooldowns = new Effects(session, "Cooldowns");

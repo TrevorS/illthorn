@@ -1,6 +1,6 @@
 import type { GameTag } from "../../parser/tag";
 import type { FrontendSession as Session } from "../../session/index";
-import { ProgressBar } from "./progress-bar";
+import { ProgressBarLit } from "./progress-bar.lit";
 
 export class Effects extends HTMLElement {
   constructor(
@@ -19,7 +19,7 @@ export class Effects extends HTMLElement {
     progressBars.forEach((bar) => {
       const { text, id, time, value } = bar.attrs;
       //console.log("dialog/%s", this.name, bar.attrs)
-      const progressEle = new ProgressBar(`${text}`);
+      const progressEle = new ProgressBarLit(`${text}`);
       progressEle.dataset.spellId = `${id}`;
       progressEle.updateText(`${text}`);
       progressEle.updateValue(`${time}`.replace(/^0/, ""));
