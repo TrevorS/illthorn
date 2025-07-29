@@ -1,9 +1,9 @@
-.streams-on illthorn-streams {
+.streams-on illthorn-streams-lit {
   border-bottom: var(--border-width, 3px) solid
     var(--border-color, var(--info));
 }
 
-illthorn-streams {
+illthorn-streams-lit {
   font-size: var(
     --stream-font-size,
     var(--base-font-size, 15px)
@@ -13,11 +13,11 @@ illthorn-streams {
   overflow-y: scroll;
 }
 
-illthorn-streams mark {
+illthorn-streams-lit mark {
   background: transparent;
 }
 
-illthorn-streams pre {
+illthorn-streams-lit pre {
   margin: 0.2em 0;
   white-space: pre-wrap;
 }

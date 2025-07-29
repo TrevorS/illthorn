@@ -1,6 +1,4 @@
 import { Context } from "../components/context";
-import { CLI } from "../components/session/cli";
-import { Feed } from "../components/session/feed";
 import { Prompt } from "../components/session/prompt";
 import "../components/session/compass.lit";
 import type { Compass } from "../components/session/compass.lit";
@@ -12,9 +10,14 @@ import "../components/session/panel.lit";
 import type { Panel } from "../components/session/panel.lit";
 import type { RoomLit as Room } from "../components/session/room.lit";
 import "../components/session/room.lit";
-import { Streams } from "../components/session/streams";
 import "../components/session/vitals/vitals.lit";
 import type { Vitals } from "../components/session/vitals/vitals.lit";
+import "../components/session/cli.lit";
+import type { CLILit as CLI } from "../components/session/cli.lit";
+import "../components/session/feed.lit";
+import type { FeedLit as Feed } from "../components/session/feed.lit";
+import "../components/session/streams.lit";
+import type { StreamsLit as Streams } from "../components/session/streams.lit";
 import type { FrontendSession as Session } from "../session";
 import { div } from "../util/dom";
 
@@ -61,12 +64,14 @@ export function makeSessionUI(session: Session): SessionUI {
   handsContainer.append(left, right, spell);
 
   // feeds and streams
-  const streams = new Streams();
-  const feed = new Feed(session);
+  const streams = document.createElement("illthorn-streams-lit") as Streams;
+  const feed = document.createElement("illthorn-feed-lit") as Feed;
+  feed.session = session;
 
   // cli related ui components
   const commandBar = div({ classes: "cli-wrapper" });
-  const cli = new CLI(session);
+  const cli = document.createElement("illthorn-cli-lit") as CLI;
+  cli.session = session;
   const prompt = new Prompt(session);
   commandBar.append(prompt, cli);
 
