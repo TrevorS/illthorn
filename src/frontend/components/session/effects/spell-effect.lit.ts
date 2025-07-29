@@ -4,7 +4,7 @@ import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
 @customElement("illthorn-spell-effect")
-export class SpellEffectLit extends LitElement {
+export class SpellEffect extends LitElement {
   static styles = css`
     :host {
       display: block;
@@ -90,7 +90,7 @@ export class SpellEffectLit extends LitElement {
   private updatePercentClasses() {
     const percentRemaining = this.percent;
 
-    // Toggle CSS classes based on percentage (same logic as ProgressBarLit)
+    // Toggle CSS classes based on percentage thresholds
     this.classList.toggle("high", percentRemaining >= 66);
     this.classList.toggle("medium", percentRemaining < 66 && percentRemaining >= 33);
     this.classList.toggle("low", percentRemaining < 33);
@@ -108,6 +108,6 @@ export class SpellEffectLit extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-spell-effect": SpellEffectLit;
+    "illthorn-spell-effect": SpellEffect;
   }
 }

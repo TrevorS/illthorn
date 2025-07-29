@@ -1,10 +1,10 @@
-// ABOUTME: Lit-based Effects component for displaying game dialog spell effects (spells, cooldowns, buffs, debuffs)
+// ABOUTME: Lit-based Effects component for displaying game dialog spell effects (Active Spells)
 // ABOUTME: Uses SpellEffect components for clean text-based status indicators, not progress bars
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { GameTag } from "../../parser/tag";
-import type { FrontendSession as Session } from "../../session/index";
-import { logEffectsEvent } from "../../util/logger";
+import type { GameTag } from "../../../parser/tag";
+import type { FrontendSession as Session } from "../../../session/index";
+import { logEffectsEvent } from "../../../util/logger";
 import "./spell-effect.lit";
 
 interface SpellEffectData {
@@ -15,7 +15,7 @@ interface SpellEffectData {
 }
 
 @customElement("illthorn-effects-lit")
-export class EffectsLit extends LitElement {
+export class Effects extends LitElement {
   static styles = css`
     :host {
       display: block;
@@ -125,6 +125,6 @@ export class EffectsLit extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-effects-lit": EffectsLit;
+    "illthorn-effects-lit": Effects;
   }
 }

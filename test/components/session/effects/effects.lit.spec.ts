@@ -1,22 +1,26 @@
-// ABOUTME: Test suite for EffectsLit component verifying reactive rendering and bus integration
+// ABOUTME: Test suite for Effects component verifying reactive rendering and bus integration
 // ABOUTME: Tests API parity with vanilla Effects component including constructor signature and behavior
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EffectsLit } from "../../../src/frontend/components/session/effects.lit";
-import type { GameTag } from "../../../src/frontend/parser/tag";
-import { TagKind, TagState } from "../../../src/frontend/parser/tag/index";
-import type { FrontendSession } from "../../../src/frontend/session/index";
+import { Effects } from "../../../../src/frontend/components/session/effects/effects.lit";
+import type { SpellEffect } from "../../../../src/frontend/components/session/effects/spell-effect.lit";
+import type { GameTag } from "../../../../src/frontend/parser/tag";
+import { TagKind, TagState } from "../../../../src/frontend/parser/tag/index";
+import type { FrontendSession } from "../../../../src/frontend/session/index";
 
-describe("EffectsLit", () => {
+describe("Effects", () => {
   let mockSession: Partial<FrontendSession>;
-  let mockBus: any;
+  let mockBus: {
+    subscribeEvent: vi.Mock;
+    dispatchEvent: vi.Mock;
+  };
 
   const setup = (sessionParam?: FrontendSession, name?: string) => {
-    const effects = new EffectsLit(sessionParam, name);
+    const effects = new Effects(sessionParam, name);
     document.body.appendChild(effects);
     return effects;
   };
 
-  const teardown = (effects: EffectsLit) => {
+  const teardown = (effects: Effects) => {
     if (effects.parentNode) {
       effects.parentNode.removeChild(effects);
     }
@@ -85,11 +89,11 @@ describe("EffectsLit", () => {
   });
 
   describe("Dialog Rendering", () => {
-    let effects: EffectsLit;
-    let eventCallback: (event: any) => void;
+    let effects: Effects;
+    let eventCallback: (event: CustomEvent<GameTag>) => void;
 
     beforeEach(() => {
-      mockBus.subscribeEvent = vi.fn().mockImplementation((eventName: string, callback: any) => {
+      mockBus.subscribeEvent = vi.fn().mockImplementation((_eventName: string, callback: (event: CustomEvent<GameTag>) => void) => {
         eventCallback = callback;
       });
 
@@ -250,7 +254,7 @@ describe("EffectsLit", () => {
       const spellEffects = effects.shadowRoot?.querySelectorAll("illthorn-spell-effect");
       expect(spellEffects?.length).toBe(1);
       // Verify the time was processed (leading zero removed from "05" to "5")
-      expect((spellEffects?.[0] as any)?.timeRemaining).toBe("5");
+      expect((spellEffects?.[0] as SpellEffect)?.timeRemaining).toBe("5");
 
       teardown(effects);
     });

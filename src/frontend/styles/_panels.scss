@@ -27,12 +27,6 @@ illthorn-panel {
       cursor: pointer;
     }
   }
-  illthorn-progress-bar-lit {
-    position: relative;
-    padding: 0.4em 0 0.2em;
-    display: flex;
-    align-items: center;
-  }
   span {
     flex: 1;
   }
@@ -42,28 +36,6 @@ illthorn-panel {
   }
 }
 
-// This order should probably be enforced in the DOM by the JavaScript since for accessibility the visual order should match the tabbing order. But this is a fix for now.
-illthorn-progress-bar-lit.health {
-  order: 1;
-}
-illthorn-progress-bar-lit.mana {
-  order: 2;
-}
-illthorn-progress-bar-lit.spirit {
-  order: 3;
-}
-illthorn-progress-bar-lit.stamina {
-  order: 4;
-}
-illthorn-progress-bar-lit.encum {
-  order: 5;
-}
-illthorn-progress-bar-lit.stance {
-  order: 6;
-}
-illthorn-progress-bar-lit.mind {
-  order: 7;
-}
 
 .high .label {
   color: var(--ok);

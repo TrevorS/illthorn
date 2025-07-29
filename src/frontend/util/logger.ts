@@ -1,6 +1,7 @@
 // ABOUTME: Structured debug logging system using the debug library with namespaced loggers
 // ABOUTME: Provides controllable logging via DEBUG environment variable for debugging game events and data flow
 import Debug from "debug";
+import type { GameTag } from "../parser/tag";
 
 // Main namespace for all Illthorn debug loggers
 const NAMESPACE = "illthorn";
@@ -23,11 +24,11 @@ export function safeStringify(obj: unknown, maxLength = 500): string {
 }
 
 // Logger utility for metadata events with structured output
-export function logMetadataEvent(eventName: string, tag: any, childCount = 0): void {
+export function logMetadataEvent(eventName: string, tag: GameTag, childCount = 0): void {
   debugMetadata(`Event: ${eventName}`);
   debugMetadata(`  Tag: ${tag.name} (${childCount} children)`);
   debugMetadata(`  Attrs: ${safeStringify(tag.attrs)}`);
-  if (tag.text && tag.text.trim()) {
+  if (tag.text?.trim()) {
     debugMetadata(`  Text: "${tag.text.trim()}"`);
   }
 }

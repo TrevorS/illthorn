@@ -1,16 +1,16 @@
-// ABOUTME: Test suite for SpellEffectLit component verifying text-based spell status display
+// ABOUTME: Test suite for SpellEffect component verifying text-based spell status display
 // ABOUTME: Tests styling, property updates, and percentage-based visual feedback without progress bars
 import { describe, expect, it } from "vitest";
-import { SpellEffectLit } from "../../../src/frontend/components/session/spell-effect.lit";
+import { SpellEffect } from "../../../../src/frontend/components/session/effects/spell-effect.lit";
 
-describe("SpellEffectLit", () => {
+describe("SpellEffect", () => {
   const setup = () => {
-    const spellEffect = new SpellEffectLit();
+    const spellEffect = new SpellEffect();
     document.body.appendChild(spellEffect);
     return spellEffect;
   };
 
-  const teardown = (spellEffect: SpellEffectLit) => {
+  const teardown = (spellEffect: SpellEffect) => {
     if (spellEffect.parentNode) {
       spellEffect.parentNode.removeChild(spellEffect);
     }
@@ -20,7 +20,7 @@ describe("SpellEffectLit", () => {
     it("should create spell effect element", () => {
       const spellEffect = setup();
 
-      expect(spellEffect).toBeInstanceOf(SpellEffectLit);
+      expect(spellEffect).toBeInstanceOf(SpellEffect);
       expect(spellEffect.tagName.toLowerCase()).toBe("illthorn-spell-effect");
 
       teardown(spellEffect);
@@ -155,7 +155,7 @@ describe("SpellEffectLit", () => {
       const spellEffect = setup();
       await spellEffect.updateComplete;
 
-      const styles = SpellEffectLit.styles;
+      const styles = SpellEffect.styles;
       expect(styles).toBeTruthy();
 
       teardown(spellEffect);
