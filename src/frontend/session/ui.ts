@@ -1,5 +1,6 @@
 import { Context } from "../components/context";
-import { Prompt } from "../components/session/prompt";
+import "../components/session/prompt.lit";
+import type { Prompt } from "../components/session/prompt.lit";
 import "../components/session/compass.lit";
 import type { Compass } from "../components/session/compass.lit";
 import "../components/session/effects/effects.lit";
@@ -72,7 +73,8 @@ export function makeSessionUI(session: Session): SessionUI {
   const commandBar = div({ classes: "cli-wrapper" });
   const cli = document.createElement("illthorn-cli-lit") as CLI;
   cli.session = session;
-  const prompt = new Prompt(session);
+  const prompt = document.createElement("illthorn-prompt") as Prompt;
+  prompt.session = session;
   commandBar.append(prompt, cli);
 
   main.append(handsContainer, streams, feed, commandBar);

@@ -1,5 +1,5 @@
 import keyboardjs from "keyboardjs";
-import type { SessionButton } from "../components/session/session-button";
+import type { SessionButton } from "../components/session/session-button.lit";
 import { IllthornEvent } from "../events";
 import { Illthorn } from "../illthorn";
 import { currentSession, focusSession } from "../session/helpers";
