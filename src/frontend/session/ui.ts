@@ -6,10 +6,12 @@ import "../components/session/compass.lit";
 import type { Compass } from "../components/session/compass.lit";
 import "../components/session/effects/effects.lit";
 import type { Effects } from "../components/session/effects/effects.lit";
-import { type Hand, makeHand } from "../components/session/hand";
+import { type HandLit as Hand, makeHandLit as makeHand } from "../components/session/hand.lit";
+import "../components/session/hand.lit";
 import "../components/session/panel.lit";
 import type { Panel } from "../components/session/panel.lit";
-import { Room } from "../components/session/room";
+import type { RoomLit as Room } from "../components/session/room.lit";
+import "../components/session/room.lit";
 import { Streams } from "../components/session/streams";
 import "../components/session/vitals/vitals.lit";
 import type { Vitals } from "../components/session/vitals/vitals.lit";
@@ -38,7 +40,8 @@ export function makeSessionUI(session: Session): SessionUI {
   /** left / hud */
   const compass = document.createElement("illthorn-compass") as Compass;
   compass.session = session;
-  const room = new Room(session);
+  const room = document.createElement("illthorn-room-lit") as Room;
+  room.session = session;
   const vitals = document.createElement("illthorn-vitals-lit") as Vitals;
   vitals.session = session;
   const activeSpells = document.createElement("illthorn-effects-lit") as Effects;

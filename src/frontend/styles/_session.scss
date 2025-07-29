@@ -51,12 +51,23 @@
 
   .main {
     display: grid;
-    grid-template-rows: 3em 0 1fr 4em;
+    grid-template-rows: 2em 0 1fr 4em;
     //grid-auto-rows: 3em 0 1fr 4em;
     max-height: 100vh;
+  }
+
+  .hands {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    max-width: 90%;
+    margin: 0 auto;
+    padding: 0 2em;
+    -webkit-app-region: drag;
   }
 }
 
 .streams-on .main {
-  grid-template-rows: 3em var(--stream-height, 13em) 1fr 4em;
+  grid-template-rows: 2em var(--stream-height, 4em) 1fr 4em;
 }
