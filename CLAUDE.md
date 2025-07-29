@@ -96,13 +96,24 @@ localStorage.setItem('debug', 'illthorn:bus,illthorn:metadata');  // Specific lo
 // Then refresh the page to see debug output
 ```
 
+**Disabling Debug Logging**:
+```javascript
+localStorage.removeItem('debug');  // Remove debug setting
+// Then refresh the page to stop debug output
+```
+
+**Check Current Debug State**:
+```javascript
+localStorage.getItem('debug');  // Returns current debug setting or null
+```
+
 **Environment Variable** (for development):
 ```bash
 DEBUG=illthorn:* yarn start  # Enable all debug logging
 DEBUG=illthorn:effects,illthorn:metadata yarn start  # Specific loggers
 ```
 
-**Note**: Debug logging is disabled by default and must be explicitly enabled.
+**Note**: Debug logging is disabled by default and must be explicitly enabled. If you're seeing unexpected debug output, check `localStorage.getItem('debug')` and remove it if needed.
 
 #### Common Debug Patterns
 - **Spell Effects Issues**: `DEBUG=illthorn:effects,illthorn:metadata,illthorn:bus`
