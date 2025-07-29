@@ -2,6 +2,7 @@ import { IllthornEvent } from "../events";
 import { Illthorn } from "../illthorn";
 import { sessionsMenu } from "../layout";
 import type { GameTag } from "../parser/tag";
+import { debugMetadata, logMetadataEvent } from "../util/logger";
 import type { FrontendSession, FrontendSession as Session } from ".";
 import { SessionMap } from "./map";
 
@@ -57,8 +58,21 @@ export function dispatchMetadata(session: Session, tag: GameTag) {
   const namespace = tag.attrs.id ? [tag.name, tag.attrs.id] : [tag.name];
   namespace.unshift("metadata");
   const eventName = namespace.join("/");
-  //console.log(eventName, tag)
+
+  // Log the event dispatch with structured data
+  logMetadataEvent(eventName, tag, tag.children.length);
+  if (tag.attrs.id) {
+    debugMetadata(`  Namespaced with id: ${tag.attrs.id}`);
+  }
+
   session.bus.dispatchEvent(eventName, tag);
+
+  // Log child processing
+  const childrenToProcess = tag.children.filter((child) => ![":text", "a", "dir", "d"].includes(child.name));
+  if (childrenToProcess.length > 0) {
+    debugMetadata(`  Processing ${childrenToProcess.length} children: ${childrenToProcess.map((c) => c.name).join(", ")}`);
+  }
+
   tag.children.forEach((child) => {
     if ([":text", "a", "dir", "d"].includes(child.name)) return;
     dispatchMetadata(session, child);

@@ -4,13 +4,15 @@ import { Feed } from "../components/session/feed";
 import { Prompt } from "../components/session/prompt";
 import "../components/session/compass.lit";
 import type { Compass } from "../components/session/compass.lit";
-import { Effects } from "../components/session/effects";
+import "../components/session/effects/effects.lit";
+import type { Effects } from "../components/session/effects/effects.lit";
 import { type Hand, makeHand } from "../components/session/hand";
 import "../components/session/panel.lit";
 import type { Panel } from "../components/session/panel.lit";
 import { Room } from "../components/session/room";
 import { Streams } from "../components/session/streams";
-import { Vitals } from "../components/session/vitals";
+import "../components/session/vitals/vitals.lit";
+import type { Vitals } from "../components/session/vitals/vitals.lit";
 import type { FrontendSession as Session } from "../session";
 import { div } from "../util/dom";
 
@@ -37,20 +39,13 @@ export function makeSessionUI(session: Session): SessionUI {
   const compass = document.createElement("illthorn-compass") as Compass;
   compass.session = session;
   const room = new Room(session);
-  const vitals = new Vitals(session);
-  const activeSpells = new Effects(session, "Active Spells");
-  const buffs = new Effects(session, "Buffs");
-  const cooldowns = new Effects(session, "Cooldowns");
-  const debuffs = new Effects(session, "Debuffs");
+  const vitals = document.createElement("illthorn-vitals-lit") as Vitals;
+  vitals.session = session;
+  const activeSpells = document.createElement("illthorn-effects-lit") as Effects;
+  activeSpells.session = session;
+  activeSpells.name = "Active Spells";
 
-  hud.append(
-    createPanel("room", room, compass),
-    createPanel("vitals", vitals),
-    createPanel("active spells", activeSpells),
-    createPanel("buffs", buffs),
-    createPanel("cooldowns", cooldowns),
-    createPanel("debuffs", debuffs),
-  );
+  hud.append(createPanel("room", room, compass), createPanel("vitals", vitals), createPanel("active spells", activeSpells));
 
   /** main  **/
 
