@@ -1,4 +1,5 @@
-import { SessionButton } from "../components/session/session-button";
+import "../components/session/session-button.lit";
+import type { SessionButton } from "../components/session/session-button.lit";
 import { addHilites } from "../hilites/dom";
 import { castToHTML, createPrompt } from "../parser/dom";
 import { Parser } from "../parser/parser";
@@ -27,7 +28,8 @@ export class FrontendSession {
     this.bus = new Bus();
     // this must be done last after all the other stuff
     this.ui = makeSessionUI(this);
-    this.actionButton = new SessionButton(this);
+    this.actionButton = document.createElement("illthorn-session-button") as SessionButton;
+    this.actionButton.session = this;
     this.streams(true);
     SessionMap.set(this.name, this);
   }
