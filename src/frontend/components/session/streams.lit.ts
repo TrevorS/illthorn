@@ -5,7 +5,7 @@ import { customElement, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
 @customElement("illthorn-streams-lit")
-export class StreamsLit extends LitElement {
+export class Streams extends LitElement {
   static styles = css`
     :host {
       display: block;
@@ -186,6 +186,6 @@ export class StreamsLit extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-streams-lit": StreamsLit;
+    "illthorn-streams-lit": Streams;
   }
 }

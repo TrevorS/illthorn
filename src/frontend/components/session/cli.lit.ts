@@ -7,7 +7,7 @@ import { Illthorn } from "../../illthorn";
 import type { FrontendSession } from "../../session";
 
 @customElement("illthorn-cli-lit")
-export class CLILit extends LitElement {
+export class CLI extends LitElement {
   static styles = css`
     :host {
       display: flex;
@@ -166,6 +166,6 @@ export class CLILit extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-cli-lit": CLILit;
+    "illthorn-cli-lit": CLI;
   }
 }

@@ -1,5 +1,6 @@
 import "../components/session/session-button.lit";
 import type { SessionButton } from "../components/session/session-button.lit";
+import "./ui.lit";
 import { addHilites } from "../hilites/dom";
 import { castToHTML, createPrompt } from "../parser/dom";
 import { Parser } from "../parser/parser";
@@ -8,7 +9,7 @@ import { debugRawInput, debugSession, safeStringify } from "../util/logger";
 import { CommandHistory } from "./command-history";
 import { dispatchMetadata } from "./helpers";
 import { SessionMap } from "./map";
-import { makeSessionUI, type SessionUI } from "./ui";
+import type { SessionUI, UI } from "./ui.lit";
 
 export class FrontendSession {
   static async connect(config: Illthorn.Session.Config) {
@@ -23,15 +24,32 @@ export class FrontendSession {
   hasFocus: boolean = false;
   readonly history: CommandHistory = new CommandHistory(100);
   readonly actionButton: SessionButton;
+  readonly _sessionUIComponent: UI;
+
   constructor(readonly config: Illthorn.Session.Config) {
     this.parser = Parser.of();
     this.bus = new Bus();
-    // this must be done last after all the other stuff
-    this.ui = makeSessionUI(this);
+
+    // Create SessionUI Lit component
+    this._sessionUIComponent = document.createElement("illthorn-session-ui-lit") as UI;
+    this._sessionUIComponent.session = this;
+
+    // Get the SessionUI interface - components will be available after initialization
+    this.ui = this._sessionUIComponent.getSessionUI();
+
     this.actionButton = document.createElement("illthorn-session-button") as SessionButton;
     this.actionButton.session = this;
-    this.streams(true);
+
+    // Initialize streams in the background - this will work when components are ready
+    this._ensureInitialization();
+
     SessionMap.set(this.name, this);
+  }
+
+  private _ensureInitialization() {
+    // Use a more resilient approach that works with the existing application architecture
+    // The streams call will be deferred until components are available
+    setTimeout(() => this.streams(true), 0);
   }
 
   get name() {
@@ -43,9 +61,21 @@ export class FrontendSession {
   }
 
   streams(on: boolean) {
-    this.ui.context.classList.toggle("streams-on", on);
-    this.ui.streams.scrollToNow();
-    this.ui.feed.scrollToNow();
+    try {
+      // Check if components are available before trying to use them
+      if (this.ui.context && this.ui.streams && this.ui.feed) {
+        this.ui.context.classList.toggle("streams-on", on);
+        this.ui.streams.scrollToNow();
+        this.ui.feed.scrollToNow();
+      } else {
+        // Components not ready yet, retry after a short delay
+        setTimeout(() => this.streams(on), 10);
+      }
+    } catch (error) {
+      // If there's an error accessing components, retry later
+      console.warn("Error accessing UI components, retrying:", error);
+      setTimeout(() => this.streams(on), 50);
+    }
   }
 
   async sendCommand(command: string) {
@@ -69,15 +99,15 @@ export class FrontendSession {
 
     const streams = [...frag.querySelectorAll(".stream.thoughts")];
 
-    if (streams.length) {
+    if (streams.length && this.ui.streams) {
       streams.forEach((entry) => this.ui.streams.addEntry(entry));
     }
 
-    if (frag.hasChildNodes() && frag.textContent?.trim() !== "") {
+    if (frag.hasChildNodes() && frag.textContent?.trim() !== "" && this.ui.feed) {
       this.ui.feed.appendParsed(frag);
     }
 
-    if (!this.ui.feed.has_prompt() && prompt) {
+    if (this.ui.feed && !this.ui.feed.has_prompt() && prompt) {
       this.ui.feed.appendParsed(prompt);
     }
     if (metadata.length) {
@@ -87,8 +117,12 @@ export class FrontendSession {
   }
 
   handleMacro(macro: string) {
-    const cliInput = this.ui.cli.input;
+    if (!this.ui.cli?.input) {
+      console.warn("CLI not available for handleMacro");
+      return;
+    }
 
+    const cliInput = this.ui.cli.input;
     const replacement = macro.indexOf("?");
 
     if (!~replacement) {
@@ -105,7 +139,15 @@ export class FrontendSession {
   }
 
   async onFocus() {
-    this.ui.streams.scrollToNow();
-    this.ui.feed.scrollToNow();
+    try {
+      // Ensure components are available before trying to scroll
+      if (this.ui.streams && this.ui.feed) {
+        this.ui.streams.scrollToNow();
+        this.ui.feed.scrollToNow();
+      }
+      // If components aren't ready, that's ok - this will be called again when they are
+    } catch (error) {
+      console.warn("Error during onFocus:", error);
+    }
   }
 }

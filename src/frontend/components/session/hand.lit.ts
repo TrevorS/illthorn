@@ -6,7 +6,7 @@ import type { GameTag } from "../../parser/tag";
 import type { FrontendSession as Session } from "../../session/index";
 
 @customElement("illthorn-hand-lit")
-export class HandLit extends LitElement {
+export class Hand extends LitElement {
   static styles = css`
     :host {
       padding: 0 1em;
@@ -100,8 +100,8 @@ export class HandLit extends LitElement {
   }
 }
 
-export const makeHandLit = (session: Session, name: string): HandLit => {
-  const hand = document.createElement("illthorn-hand-lit") as HandLit;
+export const makeHandLit = (session: Session, name: string): Hand => {
+  const hand = document.createElement("illthorn-hand-lit") as Hand;
   hand.session = session;
   hand.name = name;
   return hand;
@@ -109,6 +109,6 @@ export const makeHandLit = (session: Session, name: string): HandLit => {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-hand-lit": HandLit;
+    "illthorn-hand-lit": Hand;
   }
 }

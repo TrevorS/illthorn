@@ -6,7 +6,7 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import type { FrontendSession as Session } from "../../session/index";
 
 @customElement("illthorn-feed-lit")
-export class FeedLit extends LitElement {
+export class Feed extends LitElement {
   static MIN_SCROLL_BUFFER = 300;
   static MAX_MEMORY_LENGTH = 100 * 5;
 
@@ -268,7 +268,7 @@ export class FeedLit extends LitElement {
    * Finalizer for pruned nodes - removes old entries to manage memory
    */
   flush() {
-    while (this._contentHTML.length > FeedLit.MAX_MEMORY_LENGTH) {
+    while (this._contentHTML.length > Feed.MAX_MEMORY_LENGTH) {
       this._contentHTML = this._contentHTML.slice(1);
     }
     return this;
@@ -305,6 +305,6 @@ export class FeedLit extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-feed-lit": FeedLit;
+    "illthorn-feed-lit": Feed;
   }
 }

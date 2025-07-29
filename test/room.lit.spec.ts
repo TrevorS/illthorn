@@ -1,17 +1,17 @@
 import { describe, expect, test } from "vitest";
-import { RoomLit } from "../src/frontend/components/session/room.lit";
+import { Room } from "../src/frontend/components/session/room.lit";
 import { makeTag } from "../src/frontend/parser/tag";
 import { createMockSession } from "./mocks";
 
-describe("RoomLit", () => {
+describe("Room", () => {
   const setup = () => {
-    const element = new RoomLit();
+    const element = new Room();
     const mockSession = createMockSession();
     document.body.appendChild(element);
     return { element, mockSession };
   };
 
-  const teardown = (element: RoomLit) => {
+  const teardown = (element: Room) => {
     if (element.parentNode) {
       element.parentNode.removeChild(element);
     }
