@@ -49,10 +49,6 @@ export function logEffectsEvent(componentName: string, message: string, data?: u
   }
 }
 
-// Enable all loggers by default in development mode
-if (typeof window !== "undefined" && window.location?.hostname === "localhost") {
-  // Only auto-enable if DEBUG env var is not already set
-  if (!localStorage.getItem("debug")) {
-    localStorage.setItem("debug", `${NAMESPACE}:*`);
-  }
-}
+// Debug logging is opt-in only
+// To enable: localStorage.setItem('debug', 'illthorn:*') in browser console
+// Or: DEBUG=illthorn:* yarn start for environment variable

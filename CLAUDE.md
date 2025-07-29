@@ -88,11 +88,12 @@ The project includes a structured debug logging system using the `debug` library
 - `illthorn:effects` - Effects component event processing
 - `illthorn:session` - Session-level message processing
 
-#### Enabling Debug Logging
+#### Enabling Debug Logging (Opt-in Only)
 **Browser Console** (for frontend debugging):
 ```javascript
 localStorage.setItem('debug', 'illthorn:*');  // Enable all loggers
 localStorage.setItem('debug', 'illthorn:bus,illthorn:metadata');  // Specific loggers
+// Then refresh the page to see debug output
 ```
 
 **Environment Variable** (for development):
@@ -100,6 +101,8 @@ localStorage.setItem('debug', 'illthorn:bus,illthorn:metadata');  // Specific lo
 DEBUG=illthorn:* yarn start  # Enable all debug logging
 DEBUG=illthorn:effects,illthorn:metadata yarn start  # Specific loggers
 ```
+
+**Note**: Debug logging is disabled by default and must be explicitly enabled.
 
 #### Common Debug Patterns
 - **Spell Effects Issues**: `DEBUG=illthorn:effects,illthorn:metadata,illthorn:bus`
