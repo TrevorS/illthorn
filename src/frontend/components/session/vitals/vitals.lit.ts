@@ -88,7 +88,7 @@ export class Vitals extends LitElement {
   }
 
   private attachListeners() {
-    if (!this.session) {
+    if (!this.session || !this.session.bus) {
       return;
     }
 

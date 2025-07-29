@@ -1,9 +1,7 @@
 // ABOUTME: Lit-based SessionUI component that renders complete session layout with HUD and main content areas
 // ABOUTME: Declarative replacement for makeSessionUI factory function using Lit templates and reactive properties
 import { css, html, LitElement } from "lit";
-import { customElement, property, query } from "lit/decorators.js";
-import "../components/context.lit";
-import type { Context } from "../components/context.lit";
+import { customElement, property } from "lit/decorators.js";
 import type { FrontendSession as Session } from "./index";
 import "../components/session/compass.lit";
 import "../components/session/room.lit";
@@ -23,7 +21,7 @@ import "../components/session/cli.lit";
 import type { CLI } from "../components/session/cli.lit";
 
 export type SessionUI = {
-  context: Context;
+  context: HTMLElement;
   cli: CLI;
   feed: Feed;
   prompt: Prompt;
@@ -34,52 +32,99 @@ export type SessionUI = {
 
 @customElement("illthorn-session-ui-lit")
 export class UI extends LitElement {
+  // Use Light DOM to access document-level CSS custom properties
+  createRenderRoot() {
+    return this;
+  }
   static styles = css`
-    :host {
-      display: block;
-      height: 100%;
+    illthorn-session-ui-lit {
+      display: grid !important;
+      height: 100vh;
       width: 100%;
+      grid-template-columns: var(--hud-width, 14em) 1fr;
+      overflow: hidden;
     }
 
-    .context {
-      display: block;
-      height: 100%;
-      width: 100%;
+    illthorn-session-ui-lit.no-hud {
+      grid-template-columns: 0 1fr;
+    }
+
+    illthorn-session-ui-lit.no-hud .hud {
+      visibility: hidden;
     }
 
     .hud {
-      position: fixed;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 200px;
-      overflow-y: auto;
-      z-index: 10;
+      border-right: 1px solid var(--info);
     }
 
     .main {
-      margin-left: 200px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
+      /* Main content area styling */
+    }
+
+    .hud illthorn-panel {
+      font-size: 12px;
+      position: relative;
+      resize: vertical;
+    }
+
+    .hud illthorn-panel:not(:first-child) {
+      padding-top: 1em;
+    }
+
+    .hud summary {
+      margin: 0;
+      padding: 0.5em;
+      text-transform: uppercase;
+      text-align: center;
+      background-color: var(--info);
+      font-weight: bold;
+    }
+
+    .hud summary:focus {
+      outline: 0;
+    }
+
+    .hud summary:hover {
+      cursor: pointer;
+    }
+
+    .main {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      max-height: 100vh;
+    }
+
+    :host(.streams-on) .main {
+      grid-template-rows: auto var(--stream-height, 4em) 1fr auto;
     }
 
     .hands {
       display: flex;
-      background-color: var(--info);
-      padding: 0.5em;
-      gap: 0.5em;
+      align-items: center;
+      justify-content: center;
+      min-height: 2em;
+      max-width: 90%;
+      margin: 0 auto;
+      padding: 0 2em;
+      -webkit-app-region: drag;
+    }
+
+    .streams {
+      /* Streams area - height controlled by grid-template-rows */
+    }
+
+    .feed-wrapper {
+      /* Feed takes remaining space in grid */
+      overflow: hidden;
     }
 
     .cli-wrapper {
       background-color: var(--info);
       display: grid;
       grid-template-columns: 4em 1fr 22px;
-      grid-template-rows: auto 1fr;
       grid-gap: 0 0.5em;
       padding: 1em 0.5em;
       align-items: center;
-      border-top: 1px solid var(--info);
     }
 
     .cli-wrapper illthorn-prompt {
@@ -89,6 +134,33 @@ export class UI extends LitElement {
       font-size: 1.6em;
       position: relative;
       top: -0.1em;
+    }
+
+    illthorn-cli-lit {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    illthorn-cli-lit input {
+      font-family: "MonoLisa", monospace;
+      left: 0;
+      top: 0;
+      border: none;
+      width: 100%;
+      padding: 0.5em;
+      color: #fff;
+      font-size: 1em;
+      background-color: rgba(255, 255, 255, 0.1);
+      z-index: 1;
+    }
+
+    illthorn-cli-lit input:focus {
+      outline: none;
+    }
+
+    illthorn-cli-lit input#cli-suggestions {
+      background-color: rgba(0, 0, 0, 0.2);
     }
 
     .timers {
@@ -121,17 +193,19 @@ export class UI extends LitElement {
     }
 
     button.ui-help-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      display: inline-block;
       padding: 0;
       border: 0;
+      overflow: hidden;
+      text-indent: -9999px;
       background-color: rgba(255, 255, 255, 0.33);
       width: 22px;
       height: 22px;
       cursor: pointer;
-      font-size: 14px;
-      border-radius: 3px;
+      mask: url(./svg/icon-help.svg) no-repeat 50% 50%;
+      -webkit-mask: url(./svg/icon-help.svg) no-repeat 50% 50%;
+      mask-size: contain;
+      -webkit-mask-size: contain;
     }
 
     button.ui-help-button:hover {
@@ -139,49 +213,91 @@ export class UI extends LitElement {
     }
   `;
 
+  // Manually adopt styles for Light DOM
+  private _adoptStyles() {
+    // Create a style element for this component's styles
+    if (!document.head.querySelector('style[data-lit-component="session-ui"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-lit-component", "session-ui");
+      style.textContent = UI.styles.cssText;
+      document.head.appendChild(style);
+    }
+  }
+
   @property({ type: Object })
   session!: Session;
 
-  @query("illthorn-context-lit")
-  private _context!: Context;
+  constructor() {
+    super();
+    // Set up initialization promise that will be resolved in firstUpdated()
+    this._initializationPromise = new Promise<void>((resolve) => {
+      this._resolveInitialization = resolve;
+    });
+  }
 
-  @query("illthorn-vitals-lit")
-  private _vitals!: Vitals;
+  /**
+   * Wait for component initialization to complete
+   * Returns a promise that resolves when all child components are ready to use
+   */
+  waitForInitialization(): Promise<void> {
+    return this._initializationPromise;
+  }
 
-  @query("illthorn-streams-lit")
-  private _streams!: Streams;
+  // Component references - manually assigned in _queryComponents()
+  private _vitals?: Vitals;
+  private _streams?: Streams;
+  private _feed?: Feed;
+  private _prompt?: Prompt;
+  private _cli?: CLI;
 
-  @query("illthorn-feed-lit")
-  private _feed!: Feed;
+  // Custom flag to track component initialization (more reliable than hasUpdated)
+  private _componentsInitialized = false;
 
-  @query("illthorn-prompt")
-  private _prompt!: Prompt;
-
-  @query("illthorn-cli-lit")
-  private _cli!: CLI;
+  // Promise that resolves when components are fully initialized and ready to use
+  private _initializationPromise: Promise<void>;
+  private _resolveInitialization!: () => void;
 
   private _leftHand?: Hand;
   private _rightHand?: Hand;
   private _spellHand?: Hand;
 
   firstUpdated() {
+    this._adoptStyles();
+
     if (this.session) {
-      // Set up context styling to match original implementation
-      this._context.classList.add("session");
-      this._context.id = this.session.name;
+      // Set up host styling to match original implementation - this is where CSS classes get applied
+      this.classList.add("session");
+      this.id = this.session.name;
 
-      // Create hand components imperatively since they use factory function
-      this._leftHand = makeHandLit(this.session, "left");
-      this._rightHand = makeHandLit(this.session, "right");
-      this._spellHand = makeHandLit(this.session, "spell");
+      // Query components immediately - they should be available after firstUpdated
+      this._queryComponents();
+      this._componentsInitialized = true;
 
-      // Insert hands into the hands container
-      const handsContainer = this.shadowRoot?.querySelector(".hands");
-      if (handsContainer && this._leftHand && this._rightHand && this._spellHand) {
-        handsContainer.appendChild(this._leftHand);
-        handsContainer.appendChild(this._rightHand);
-        handsContainer.appendChild(this._spellHand);
-      }
+      // Resolve the initialization promise to notify waiting sessions
+      this._resolveInitialization();
+    }
+  }
+
+  private _queryComponents() {
+    // Manually query for components since @query doesn't work with Light DOM
+    this._feed = this.querySelector("illthorn-feed-lit") as Feed;
+    this._vitals = this.querySelector("illthorn-vitals-lit") as Vitals;
+    this._streams = this.querySelector("illthorn-streams-lit") as Streams;
+    this._cli = this.querySelector("illthorn-cli-lit") as CLI;
+    this._prompt = this.querySelector("illthorn-prompt") as Prompt;
+
+    // Create hand components imperatively since they use factory function
+    this._leftHand = makeHandLit(this.session, "left");
+    this._rightHand = makeHandLit(this.session, "right");
+    this._spellHand = makeHandLit(this.session, "spell");
+
+    // Insert hands into the hands container
+    // Since we're using Light DOM, query from this element directly
+    const handsContainer = this.querySelector(".hands");
+    if (handsContainer && this._leftHand && this._rightHand && this._spellHand) {
+      handsContainer.appendChild(this._leftHand);
+      handsContainer.appendChild(this._rightHand);
+      handsContainer.appendChild(this._spellHand);
     }
   }
 
@@ -194,22 +310,35 @@ export class UI extends LitElement {
     const self = this;
     return {
       get context() {
-        return self._context || (self.renderRoot?.querySelector("illthorn-context-lit") as Context) || null;
+        // The context is now the host element itself (this component) where CSS classes are applied
+        return self as HTMLElement;
       },
       get cli() {
-        return self._cli || (self.renderRoot?.querySelector("illthorn-cli-lit") as CLI) || null;
+        return self._cli || (self.querySelector("illthorn-cli-lit") as CLI) || null;
       },
       get feed() {
-        return self._feed || (self.renderRoot?.querySelector("illthorn-feed-lit") as Feed) || null;
+        // Use cached component reference first, then query if needed
+        const feed = self._feed || (self.querySelector("illthorn-feed-lit") as Feed) || null;
+
+        if (!feed && self._componentsInitialized && !self._feed) {
+          // Components were initialized but cache is missing - re-query
+          self._queryComponents();
+          return self._feed;
+        } else if (!feed && !self._componentsInitialized) {
+          // Components not initialized yet - this is expected during startup
+          return null;
+        }
+
+        return feed;
       },
       get prompt() {
-        return self._prompt || (self.renderRoot?.querySelector("illthorn-prompt") as Prompt) || null;
+        return self._prompt || (self.querySelector("illthorn-prompt") as Prompt) || null;
       },
       get vitals() {
-        return self._vitals || (self.renderRoot?.querySelector("illthorn-vitals-lit") as Vitals) || null;
+        return self._vitals || (self.querySelector("illthorn-vitals-lit") as Vitals) || null;
       },
       get streams() {
-        return self._streams || (self.renderRoot?.querySelector("illthorn-streams-lit") as Streams) || null;
+        return self._streams || (self.querySelector("illthorn-streams-lit") as Streams) || null;
       },
       hands: {
         get left() {
@@ -230,44 +359,46 @@ export class UI extends LitElement {
       return html`<div style="color: red; background: white; padding: 20px;">No session provided</div>`;
     }
     return html`
-      <illthorn-context-lit .session=${this.session} class="context">
-        <div class="hud">
-          <illthorn-panel title="room" .open=${true}>
-            <illthorn-room-lit .session=${this.session}></illthorn-room-lit>
-            <illthorn-compass .session=${this.session}></illthorn-compass>
-          </illthorn-panel>
-          
-          <illthorn-panel title="vitals" .open=${true}>
-            <illthorn-vitals-lit .session=${this.session}></illthorn-vitals-lit>
-          </illthorn-panel>
-          
-          <illthorn-panel title="active spells" .open=${true}>
-            <illthorn-effects-lit 
-              .session=${this.session} 
-              name="Active Spells">
-            </illthorn-effects-lit>
-          </illthorn-panel>
-        </div>
+      <div class="hud">
+        <illthorn-panel title="room" .open=${true}>
+          <illthorn-room-lit .session=${this.session}></illthorn-room-lit>
+          <illthorn-compass .session=${this.session}></illthorn-compass>
+        </illthorn-panel>
+        
+        <illthorn-panel title="vitals" .open=${true}>
+          <illthorn-vitals-lit .session=${this.session}></illthorn-vitals-lit>
+        </illthorn-panel>
+        
+        <illthorn-panel title="active spells" .open=${true}>
+          <illthorn-effects-lit 
+            .session=${this.session} 
+            name="Active Spells">
+          </illthorn-effects-lit>
+        </illthorn-panel>
+      </div>
 
-        <div class="main">
-          <div class="hands">
-            <!-- Hands will be inserted here via firstUpdated -->
-          </div>
-          
-          <illthorn-streams-lit></illthorn-streams-lit>
-          
-          <illthorn-feed-lit .session=${this.session}></illthorn-feed-lit>
-          
-          <div class="cli-wrapper">
-            <div class="timers">
-              <!-- Timer bars will be managed by the CLI component -->
-            </div>
-            <illthorn-prompt .session=${this.session}></illthorn-prompt>
-            <illthorn-cli-lit .session=${this.session}></illthorn-cli-lit>
-            <button class="ui-help-button" title="Help">❓</button>
-          </div>
+      <div class="main">
+        <div class="hands">
+          <!-- Hands will be inserted here via firstUpdated -->
         </div>
-      </illthorn-context-lit>
+        
+        <div class="streams">
+          <illthorn-streams-lit .session=${this.session}></illthorn-streams-lit>
+        </div>
+        
+        <div class="feed-wrapper">
+          <illthorn-feed-lit .session=${this.session}></illthorn-feed-lit>
+        </div>
+        
+        <div class="cli-wrapper">
+          <div class="timers">
+            <!-- Timer bars will be managed by the CLI component -->
+          </div>
+          <illthorn-prompt .session=${this.session}></illthorn-prompt>
+          <illthorn-cli-lit .session=${this.session}></illthorn-cli-lit>
+          <button class="ui-help-button" title="Help">?</button>
+        </div>
+      </div>
     `;
   }
 }

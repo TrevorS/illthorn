@@ -9,30 +9,37 @@ import { focusSession } from "../../session/helpers";
 
 @customElement("illthorn-session-button")
 export class SessionButton extends LitElement {
+  // Use Light DOM to access document-level CSS custom properties
+  createRenderRoot() {
+    return this;
+  }
+
   static styles = css`
-    :host {
-      display: block;
+    illthorn-session-button {
+      display: block !important;
+      width: 100%;
     }
 
-    :host(.action) {
+    illthorn-session-button.action {
       -webkit-app-region: no-drag;
       border: 0;
       text-align: center;
-      width: 100%;
+      width: 100% !important;
       height: 4em;
       font-size: 1em;
       font-weight: bold;
       position: relative;
       border-radius: 4px;
       overflow: hidden;
-      display: grid;
+      display: grid !important;
       place-items: center;
       opacity: 0.5;
       margin: 0.8em 0;
       cursor: pointer;
+      background-color: transparent;
     }
 
-    :host(.action)::before {
+    illthorn-session-button.action::before {
       content: "";
       position: absolute;
       top: 0;
@@ -44,16 +51,16 @@ export class SessionButton extends LitElement {
       margin-top: -1.4em;
     }
 
-    :host(.action.on) {
+    illthorn-session-button.action.on {
       opacity: 1;
     }
 
-    .session-name {
+    illthorn-session-button .session-name {
       font-size: 1.5em;
       position: relative;
     }
 
-    .alt-numeric {
+    illthorn-session-button .alt-numeric {
       font-size: 0.9em;
       position: absolute;
       top: 0;
@@ -66,19 +73,40 @@ export class SessionButton extends LitElement {
     }
   `;
 
+  // Manually adopt styles for Light DOM
+  private _adoptStyles() {
+    console.log("DEBUG: SessionButton _adoptStyles() called");
+    // Create a style element for this component's styles
+    if (!document.head.querySelector('style[data-lit-component="session-button"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-lit-component", "session-button");
+      style.textContent = SessionButton.styles.cssText;
+      document.head.appendChild(style);
+      console.log("DEBUG: SessionButton styles injected into head", style.textContent.substring(0, 100));
+    } else {
+      console.log("DEBUG: SessionButton styles already exist in head");
+    }
+  }
+
   @property({ type: Object })
   session?: Session;
+
+  @property({ type: Boolean })
+  active = false;
 
   @state()
   private _isActive = false;
 
-  @state()
+  // Non-reactive property to avoid update scheduling conflicts
   private _tabNum = 0;
 
   private _eventListenerSetup = false;
+  private _parentObserver?: MutationObserver;
 
   connectedCallback() {
     super.connectedCallback();
+    console.log("DEBUG: SessionButton connectedCallback() called for session:", this.session?.name);
+    this._adoptStyles();
     this.classList.add("action");
   }
 
@@ -92,13 +120,36 @@ export class SessionButton extends LitElement {
       }
     }
 
-    // Calculate tab number based on position in parent
+    if (changedProperties.has("active")) {
+      this._isActive = this.active;
+      this.classList.toggle("on", this._isActive);
+    }
+  }
+
+  firstUpdated() {
+    // Calculate tab number when first rendered to avoid update scheduling conflicts
     this.calculateTabNumber();
+
+    // Set up observer to watch for changes in parent's children
+    if (this.parentElement) {
+      this._parentObserver = new MutationObserver(() => {
+        this.calculateTabNumber();
+      });
+      this._parentObserver.observe(this.parentElement, {
+        childList: true,
+      });
+    }
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this._eventListenerSetup = false;
+
+    // Clean up parent observer
+    if (this._parentObserver) {
+      this._parentObserver.disconnect();
+      this._parentObserver = undefined;
+    }
   }
 
   private setupEventListeners() {
@@ -109,7 +160,7 @@ export class SessionButton extends LitElement {
     Illthorn.bus.subscribeEvent<Session>(IllthornEvent.SESSION_FOCUS, ({ detail: activeSession }) => {
       this._isActive = this.session === activeSession;
       this.classList.toggle("on", this._isActive);
-      this.requestUpdate();
+      // No need for manual requestUpdate() since _isActive is a @state property
     });
   }
 
@@ -119,7 +170,16 @@ export class SessionButton extends LitElement {
       return;
     }
 
-    this._tabNum = Array.from(siblings).indexOf(this) + 1;
+    const newTabNum = Array.from(siblings).indexOf(this) + 1;
+    if (newTabNum !== this._tabNum) {
+      this._tabNum = newTabNum;
+      // Use nextTick to avoid update scheduling conflicts
+      setTimeout(() => {
+        if (this.isConnected && !this.isUpdatePending) {
+          this.requestUpdate();
+        }
+      }, 0);
+    }
   }
 
   private handleClick(_e: Event) {

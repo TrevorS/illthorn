@@ -11,15 +11,17 @@ export interface MockSession {
   hasFocus: boolean;
   history: { length: number };
   name: string;
+  port: number;
 }
 
-export const createMockSession = (name = "test-session"): MockSession => ({
+export const createMockSession = (name = "test-session", port = 4000): MockSession => ({
   bus: new Bus(),
   parser: {},
   ui: undefined,
   hasFocus: false,
   history: { length: 0 },
   name,
+  port,
 });
 
 export const createMockCompassData = (directions: string[]): GameTag => {

@@ -15,11 +15,17 @@ Backend.handle(SessionMethods.Connect, async (_event, config: Illthorn.Session.C
 });
 
 Backend.handle(SessionMethods.ListConnected, () => {
-  return Array.from(SessionMap).map(([_name, session]) => session.toJSON());
+  console.log("DEBUG: IPC handler for ListConnected called, SessionMap size:", SessionMap.size);
+  const connectedSessions = Array.from(SessionMap).map(([_name, session]) => session.toJSON());
+  console.log("DEBUG: IPC handler returning connected sessions:", connectedSessions.length, connectedSessions);
+  return connectedSessions;
 });
 
 Backend.handle(SessionMethods.ListAvailable, async () => {
-  return BackendSession.listAvailable();
+  console.log("DEBUG: IPC handler for ListAvailable called");
+  const sessions = await BackendSession.listAvailable();
+  console.log("DEBUG: IPC handler returning sessions:", sessions.length, sessions);
+  return sessions;
 });
 
 Backend.handle(SessionMethods.SendCommand, async (_event, req: { to: string; command: string }) => {

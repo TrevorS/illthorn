@@ -56,9 +56,10 @@ export class Effects extends LitElement {
   }
 
   private attachListeners() {
-    if (!this.session || !this.name) {
-      logEffectsEvent(this.constructor.name, "Cannot attach listeners - missing session or name", {
+    if (!this.session || !this.session.bus || !this.name) {
+      logEffectsEvent(this.constructor.name, "Cannot attach listeners - missing session, bus, or name", {
         hasSession: !!this.session,
+        hasBus: !!this.session?.bus,
         name: this.name,
       });
       return;

@@ -211,4 +211,50 @@ Node.js/TypeScript Electron project
 
 ### Last Updated
 
-2025-07-27
+2025-07-29
+
+## Light DOM Component Styling Pattern
+
+**IMPORTANT**: When creating Lit components that use Light DOM (`createRenderRoot() { return this; }`), special care is needed for CSS styling.
+
+### The Problem
+Light DOM components don't automatically inject their `static styles` CSS. Using `:host` selectors doesn't work properly with Light DOM.
+
+### The Solution
+1. **Change CSS selectors**: Replace `:host` with the actual component name
+   ```css
+   // ❌ Wrong (doesn't work with Light DOM)
+   static styles = css`:host { display: grid; }`;
+   
+   // ✅ Correct (works with Light DOM)  
+   static styles = css`illthorn-my-component { display: grid; }`;
+   ```
+
+2. **Add manual style adoption**:
+   ```typescript
+   private _adoptStyles() {
+     if (!document.head.querySelector('style[data-lit-component="my-component"]')) {
+       const style = document.createElement("style");
+       style.setAttribute("data-lit-component", "my-component");
+       style.textContent = MyComponent.styles.cssText;
+       document.head.appendChild(style);
+     }
+   }
+   ```
+
+3. **Call in lifecycle method**:
+   ```typescript
+   connectedCallback() {
+     super.connectedCallback();
+     this._adoptStyles();
+   }
+   ```
+
+### CSS Conflicts
+Beware of CSS specificity conflicts with old layout styles. ID selectors (`#app`) override element selectors (`illthorn-app-lit`). Use `!important` or disable conflicting old styles.
+
+### Components Using This Pattern
+- `AppRoot` (`components/app.lit.ts`)
+- `SessionsMenu` (`components/sessions-menu.lit.ts`) 
+- `SessionButton` (`components/session/session-button.lit.ts`)
+- `SessionUI` (`session/ui.lit.ts`)

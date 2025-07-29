@@ -46,7 +46,7 @@ export class Prompt extends LitElement {
   }
 
   private setupEventListeners() {
-    if (!this.session) {
+    if (!this.session || !this.session.bus) {
       return;
     }
 

@@ -94,7 +94,7 @@ export class Hand extends LitElement {
   }
 
   private setupEventListeners() {
-    if (!this.session || !this.name) {
+    if (!this.session || !this.session.bus || !this.name) {
       return;
     }
 

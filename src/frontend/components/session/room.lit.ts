@@ -54,7 +54,7 @@ export class Room extends LitElement {
   }
 
   private setupEventListeners() {
-    if (!this.session) {
+    if (!this.session || !this.session.bus) {
       return;
     }
 

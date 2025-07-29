@@ -13,13 +13,20 @@ export class Feed extends LitElement {
   static styles = css`
     :host {
       display: block;
-      overflow-y: auto;
       height: 100%;
-      font-family: inherit;
-      padding: 0 1em 1em 1em;
+      width: 100%;
+      font-family: "MonoLisa", monospace;
       box-sizing: border-box;
+      overflow: hidden;
       /* Force onto GPU for best rendering */
       transform: translate3d(0, 0, 0);
+    }
+
+    .feed-container {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0.5em;
     }
 
     :host(.feed) {
@@ -56,13 +63,16 @@ export class Feed extends LitElement {
     /* Base content styling */
     .content {
       line-height: 1.4;
+      word-wrap: break-word;
+      white-space: pre-wrap;
     }
 
     .content pre {
       margin: 0;
       line-height: 1.4;
       white-space: pre-wrap;
-      font-family: inherit;
+      word-wrap: break-word;
+      font-family: "MonoLisa", monospace;
     }
 
     .content mark {
@@ -222,6 +232,11 @@ export class Feed extends LitElement {
   @state()
   private _contentHTML: Array<string> = [];
 
+  @state()
+  private _shouldAutoScroll = true;
+
+  private _feedContainer?: HTMLElement;
+
   connectedCallback() {
     super.connectedCallback();
     this.classList.add("feed", "scroll");
@@ -236,10 +251,11 @@ export class Feed extends LitElement {
    * Check if user is manually scrolling (not at bottom)
    */
   get isScrolling(): boolean {
+    if (!this._feedContainer) return false;
     // No content scrollable
-    if (this.scrollHeight === this.clientHeight) return false;
-    // Check the relative scroll offset from the head
-    return this.scrollHeight - this.scrollTop - this.clientHeight > 1;
+    if (this._feedContainer.scrollHeight === this._feedContainer.clientHeight) return false;
+    // Check the relative scroll offset from the head with a larger buffer for precision
+    return this._feedContainer.scrollHeight - this._feedContainer.scrollTop - this._feedContainer.clientHeight > 10;
   }
 
   /**
@@ -280,9 +296,25 @@ export class Feed extends LitElement {
   }
 
   /**
+   * appendChild override for Feed-specific functionality
+   * Handles DocumentFragment appending while maintaining DOM compatibility
+   */
+  appendChild<T extends Node>(node: T): T;
+  appendChild(fragment: DocumentFragment): DocumentFragment;
+  appendChild(node: Node): Node {
+    if (node instanceof DocumentFragment || node instanceof Element) {
+      this.appendParsed(node);
+      return node;
+    }
+    // Fallback to parent implementation for other Node types
+    return super.appendChild(node);
+  }
+
+  /**
    * Appends a single parsed element to the HEAD of the message feed
    */
   appendParsed(ele: DocumentFragment | Element) {
+    console.log("🎯 FEED: appendParsed called with content:", ele);
     if (!ele.hasChildNodes() && !(ele as Element).outerHTML) {
       console.trace("{error: %o}", ele);
       return;
@@ -307,7 +339,7 @@ export class Feed extends LitElement {
     this.flush();
 
     // Schedule scroll after render if not manually scrolling
-    if (!wasScrolling) {
+    if (!wasScrolling && this._shouldAutoScroll) {
       this.updateComplete.then(() => {
         this.scrollToNow();
       });
@@ -318,7 +350,10 @@ export class Feed extends LitElement {
    * Scroll to the HEAD position (bottom)
    */
   scrollToNow() {
-    this.scrollTop = this.scrollHeight;
+    if (this._feedContainer) {
+      this._feedContainer.scrollTop = this._feedContainer.scrollHeight;
+      this._shouldAutoScroll = true;
+    }
     return this;
   }
 
@@ -330,6 +365,17 @@ export class Feed extends LitElement {
       this._contentHTML = this._contentHTML.slice(1);
     }
     return this;
+  }
+
+  /**
+   * Handle scroll events to detect manual scrolling
+   */
+  private _handleScroll(_e: Event) {
+    if (!this._feedContainer) return;
+
+    const container = this._feedContainer;
+    const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 10;
+    this._shouldAutoScroll = isAtBottom;
   }
 
   /**
@@ -352,10 +398,27 @@ export class Feed extends LitElement {
     }
   }
 
+  /**
+   * Clear all feed content
+   */
+  clear() {
+    this._contentHTML = [];
+    return this;
+  }
+
+  updated() {
+    // Cache reference to the feed container after render
+    if (!this._feedContainer) {
+      this._feedContainer = this.shadowRoot?.querySelector(".feed-container") as HTMLElement;
+    }
+  }
+
   render() {
     return html`
-      <div class="content" @click=${this._handleClick}>
-        ${this._contentHTML.map((contentHTML) => unsafeHTML(contentHTML))}
+      <div class="feed-container" @scroll=${this._handleScroll}>
+        <div class="content" @click=${this._handleClick}>
+          ${this._contentHTML.map((contentHTML) => unsafeHTML(contentHTML))}
+        </div>
       </div>
     `;
   }
