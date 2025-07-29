@@ -33,6 +33,22 @@ export class Hand extends LitElement {
       white-space: nowrap;
       min-width: 8em;
     }
+
+    /* Dark King theme hand positioning */
+    :host-context([theme='dark-king']).left .hand-icon {
+      transform: rotate(22deg) scaleX(-1);
+    }
+
+    :host-context([theme='dark-king']).right {
+      flex-direction: row-reverse;
+    }
+
+    :host-context([theme='dark-king']).right .hand-icon {
+      transform: rotate(-22deg);
+      order: 2;
+      margin-right: 0;
+      margin-left: 1em;
+    }
   `;
 
   @property({ type: Object })

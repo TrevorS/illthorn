@@ -36,14 +36,8 @@ export function focusSession(session: Session) {
 }
 
 export function renderSession(session: Session, container: HTMLElement) {
-  console.log("renderSession called for:", session.name);
-  console.log("container:", container);
-  console.log("session._sessionUIComponent:", session._sessionUIComponent);
-  console.log("session._sessionUIComponent.session:", session._sessionUIComponent.session?.name);
-
   container.innerHTML = "";
   container.append(session._sessionUIComponent);
-  console.log("Component appended, triggering onFocus");
   session.onFocus();
   return session;
 }

@@ -17,7 +17,37 @@ interface VitalData {
 export class Vitals extends LitElement {
   static styles = css`
     :host {
-      display: block;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Rogue theme - hide meters and use color coding */
+    :host-context([theme='rogue']) illthorn-vital-stat::part(meter) {
+      display: none;
+    }
+
+    :host-context([theme='rogue']) illthorn-vital-stat.high .vital-value {
+      color: var(--info);
+    }
+
+    :host-context([theme='rogue']) illthorn-vital-stat.medium .vital-value {
+      color: var(--gentle-warn);
+    }
+
+    :host-context([theme='rogue']) illthorn-vital-stat.low .vital-value {
+      color: var(--warn);
+    }
+
+    :host-context([theme='rogue']) illthorn-vital-text.inverted.high .vital-value {
+      color: var(--warn);
+    }
+
+    :host-context([theme='rogue']) illthorn-vital-text.inverted.medium .vital-value {
+      color: var(--gentle-warn);
+    }
+
+    :host-context([theme='rogue']) illthorn-vital-text.inverted.low .vital-value {
+      color: var(--info);
     }
   `;
 

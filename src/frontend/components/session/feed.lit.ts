@@ -85,6 +85,64 @@ export class Feed extends LitElement {
       color: var(--room-desc-color, var(--text-color, #fff));
     }
 
+    /* Theme-specific room styling */
+    
+    /* Rogue theme */
+    :host-context([theme='rogue']) .content .roomName {
+      color: var(--cyan);
+    }
+
+    /* Dark King theme */
+    :host-context([theme='dark-king']) .content .roomName {
+      margin: 1em 0 0 0;
+      background: linear-gradient(to right, rgba(169, 144, 239, 0.35), transparent);
+      color: white;
+      padding: 0.5em 1em;
+    }
+
+    :host-context([theme='dark-king']) .content .roomDesc {
+      margin: 0 0 1em 0;
+      padding: 0.5em 1em;
+      opacity: 0.66;
+      background: linear-gradient(to right, rgba(169, 144, 239, 0.2), transparent);
+    }
+
+    /* Discstone theme */
+    :host-context([theme='discstone']) .content .roomName {
+      background: #2e3136;
+      color: var(--purple, #a990ef);
+      padding: 0.5em;
+    }
+
+    :host-context([theme='discstone']) .content .roomDesc {
+      background: #2e3136;
+      padding: 0.5em;
+      margin-bottom: 0.5em;
+    }
+
+    /* Raging Thrak theme */
+    :host-context([theme='raging-thrak']) .content .roomName {
+      margin: 10px 0 0 0;
+      background: linear-gradient(to right, rgba(255, 165, 0, 0.35), transparent);
+      color: white;
+      padding: 0.5em 1em;
+    }
+
+    :host-context([theme='raging-thrak']) .content .roomDesc {
+      margin: 0 0 10px 0;
+      padding: 6px;
+      opacity: 0.75;
+    }
+
+    /* Icemule theme */
+    :host-context([theme='icemule']) .content .roomName {
+      color: #d08770;
+    }
+
+    :host-context([theme='icemule']) .content .roomDesc {
+      padding: 0.5rem;
+    }
+
     /* Communication styling */
     .content .thoughts {
       color: var(--thoughts-color, var(--text-color, white));

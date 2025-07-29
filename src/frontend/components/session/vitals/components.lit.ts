@@ -49,6 +49,85 @@ export class VitalStat extends LitElement {
     :host(.low) {
       font-weight: bold;
     }
+
+    /* Dark King theme styling for specific vitals */
+    :host-context([theme='dark-king']) {
+      border: 0;
+      position: relative;
+      font-size: 1.2em;
+      margin-bottom: 0;
+      padding-bottom: 0.5em;
+      border-bottom: 1px solid black;
+      box-shadow: 0 1px 1px 0 #282323;
+    }
+
+    :host-context([theme='dark-king']) .vital-label {
+      font-family: "DutchMediaeval", serif;
+    }
+
+    /* Spirit vital background */
+    :host([data-vital="spirit"]:host-context([theme='dark-king'])) {
+      background: linear-gradient(5deg, rgba(169, 144, 239, 0.2), rgba(169, 144, 239, 0));
+      margin-left: -1em;
+      width: calc(100% + 2em);
+      padding: 0.7em 1em 0.5em;
+    }
+
+    :host([data-vital="spirit"]:host-context([theme='dark-king'])) .vital-label,
+    :host([data-vital="spirit"]:host-context([theme='dark-king'])) .vital-value {
+      color: #a990ef;
+    }
+
+    /* Health vital background */
+    :host([data-vital="health"]:host-context([theme='dark-king'])) {
+      background: linear-gradient(5deg, rgba(145, 214, 134, 0.2), rgba(145, 214, 134, 0));
+      margin-left: -1em;
+      width: calc(100% + 2em);
+      padding: 0.7em 1em 0.5em;
+    }
+
+    :host([data-vital="health"]:host-context([theme='dark-king'])) .vital-label,
+    :host([data-vital="health"]:host-context([theme='dark-king'])) .vital-value {
+      color: #91d686;
+    }
+
+    /* Mana vital background */
+    :host([data-vital="mana"]:host-context([theme='dark-king'])) {
+      background: linear-gradient(5deg, rgba(108, 173, 208, 0.2), rgba(108, 173, 208, 0));
+      margin-left: -1em;
+      width: calc(100% + 2em);
+      padding: 0.7em 1em 0.5em;
+    }
+
+    :host([data-vital="mana"]:host-context([theme='dark-king'])) .vital-label,
+    :host([data-vital="mana"]:host-context([theme='dark-king'])) .vital-value {
+      color: #6cadd0;
+    }
+
+    /* Stamina vital background */
+    :host([data-vital="stamina"]:host-context([theme='dark-king'])) {
+      background: linear-gradient(5deg, rgba(251, 177, 123, 0.2), rgba(251, 177, 123, 0));
+      margin-left: -1em;
+      width: calc(100% + 2em);
+      padding: 0.7em 1em 0.5em;
+    }
+
+    :host([data-vital="stamina"]:host-context([theme='dark-king'])) .vital-label,
+    :host([data-vital="stamina"]:host-context([theme='dark-king'])) .vital-value {
+      color: #fbb17b;
+    }
+
+    /* Low vital warning styling for dark-king */
+    :host(.low:host-context([theme='dark-king'])) {
+      background: linear-gradient(5deg, rgba(var(--danger-rgb, 214, 78, 78), 0.2), rgba(var(--danger-rgb, 214, 78, 78), 0)),
+                  radial-gradient(ellipse at top right, rgba(255, 0, 0, 0.5), rgba(255, 0, 0, 0));
+    }
+
+    :host(.low:host-context([theme='dark-king']))::before {
+      content: "⚠️";
+      display: inline-block;
+      line-height: 1;
+    }
   `;
 
   @property({ type: String })
@@ -59,6 +138,12 @@ export class VitalStat extends LitElement {
 
   @property({ type: Number })
   percent = 0;
+
+  connectedCallback() {
+    super.connectedCallback();
+    // Set data-vital attribute for theme styling
+    this.setAttribute("data-vital", this.label);
+  }
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
@@ -108,6 +193,47 @@ export class VitalText extends LitElement {
       margin-left: auto;
       font-weight: bold;
     }
+
+    /* Dark King theme styling for text vitals */
+    :host-context([theme='dark-king']) {
+      margin-top: 28px;
+      padding-bottom: 0.5em;
+      border-bottom: 1px solid black;
+      box-shadow: 0 1px 1px 0 #282323;
+    }
+
+    :host([data-vital="encumbrance"]:host-context([theme='dark-king']))::before {
+      content: "ENCUMBRANCE";
+      display: block;
+      position: absolute;
+      top: -10px;
+      left: 0;
+      font-size: 0.65em;
+      text-transform: uppercase;
+      opacity: 0.6;
+    }
+
+    :host([data-vital="mind"]:host-context([theme='dark-king']))::before {
+      content: "MIND";
+      display: block;
+      position: absolute;
+      top: -10px;
+      left: 0;
+      font-size: 0.65em;
+      text-transform: uppercase;
+      opacity: 0.6;
+    }
+
+    :host([data-vital="stance"]:host-context([theme='dark-king']))::before {
+      content: "STANCE";
+      display: block;
+      position: absolute;
+      top: -10px;
+      left: 0;
+      font-size: 0.65em;
+      text-transform: uppercase;
+      opacity: 0.6;
+    }
   `;
 
   @property({ type: String })
@@ -115,6 +241,17 @@ export class VitalText extends LitElement {
 
   @property({ type: String })
   value = "";
+
+  connectedCallback() {
+    super.connectedCallback();
+    // Set data-vital attribute for theme styling
+    this.setAttribute("data-vital", this.label);
+
+    // Set inverted class for encumbrance (lower is better)
+    if (this.label === "encumbrance") {
+      this.classList.add("inverted");
+    }
+  }
 
   render() {
     return html`

@@ -72,10 +72,70 @@ export class UI extends LitElement {
     }
 
     .cli-wrapper {
-      display: flex;
+      background-color: var(--info);
+      display: grid;
+      grid-template-columns: 4em 1fr 22px;
+      grid-template-rows: auto 1fr;
+      grid-gap: 0 0.5em;
+      padding: 1em 0.5em;
       align-items: center;
-      background-color: var(--bg-color);
       border-top: 1px solid var(--info);
+    }
+
+    .cli-wrapper illthorn-prompt {
+      font-family: "MonoLisa", monospace;
+      display: inline-block;
+      text-align: right;
+      font-size: 1.6em;
+      position: relative;
+      top: -0.1em;
+    }
+
+    .timers {
+      grid-column: 1 / -1;
+      align-self: start;
+    }
+
+    .timer-bar {
+      height: 3px;
+      /* The bar maxes out, visually, at 20s timers */
+      width: calc(var(--steps) * 5%);
+    }
+
+    .timer-bar.go {
+      animation: roundtime var(--duration) steps(var(--steps)) forwards;
+    }
+
+    .round-time-current {
+      background: var(--danger, red);
+    }
+
+    .cast-time-current {
+      background: var(--gentle-warn, lightgreen);
+    }
+
+    @keyframes roundtime {
+      to {
+        transform: scaleX(0);
+      }
+    }
+
+    button.ui-help-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 0;
+      background-color: rgba(255, 255, 255, 0.33);
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 3px;
+    }
+
+    button.ui-help-button:hover {
+      background-color: rgba(255, 255, 255, 0.66);
     }
   `;
 
@@ -166,14 +226,9 @@ export class UI extends LitElement {
   }
 
   render() {
-    console.log("SessionUI render called, session:", this.session?.name || "none");
-
     if (!this.session) {
-      console.log("SessionUI: No session provided, rendering fallback");
       return html`<div style="color: red; background: white; padding: 20px;">No session provided</div>`;
     }
-
-    console.log("SessionUI: Rendering with session", this.session.name);
     return html`
       <illthorn-context-lit .session=${this.session} class="context">
         <div class="hud">
@@ -204,8 +259,12 @@ export class UI extends LitElement {
           <illthorn-feed-lit .session=${this.session}></illthorn-feed-lit>
           
           <div class="cli-wrapper">
+            <div class="timers">
+              <!-- Timer bars will be managed by the CLI component -->
+            </div>
             <illthorn-prompt .session=${this.session}></illthorn-prompt>
             <illthorn-cli-lit .session=${this.session}></illthorn-cli-lit>
+            <button class="ui-help-button" title="Help">❓</button>
           </div>
         </div>
       </illthorn-context-lit>
