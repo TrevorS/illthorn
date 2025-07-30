@@ -382,7 +382,7 @@ describe("SessionButton", () => {
       Illthorn.bus.dispatchEvent(IllthornEvent.SESSION_FOCUS, mockSession);
       await sessionButton.updateComplete;
 
-      expect(sessionButton.classList.contains("on")).toBe(true);
+      expect(sessionButton.hasAttribute("active")).toBe(true);
 
       teardown(sessionButton);
     });
@@ -395,7 +395,7 @@ describe("SessionButton", () => {
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      const container = sessionButton.querySelector("div");
+      const container = sessionButton.shadowRoot?.querySelector("div");
       expect(container).toBeTruthy();
 
       const sessionNameElement = container?.querySelector(".session-name");

@@ -54,13 +54,13 @@ describe("AppRoot", () => {
     const stylesString = AppRoot.styles.toString();
     expect(stylesString).toContain("display: grid");
     expect(stylesString).toContain("height: 100vh");
-    expect(stylesString).toContain("var(--actions-width, 6em)");
+    expect(stylesString).toContain("var(--actions-width, 7em)");
   });
 
   it("should support theme CSS custom properties in styles", () => {
     const stylesString = AppRoot.styles.toString();
-    expect(stylesString).toContain("var(--main-bg-color, black)");
-    expect(stylesString).toContain("var(--text-color, white)");
+    expect(stylesString).toContain("var(--color-background-primary, black)");
+    expect(stylesString).toContain("var(--color-text-primary, white)");
   });
 
   it("should handle session focus events", async () => {

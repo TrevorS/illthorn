@@ -2,6 +2,7 @@
 // ABOUTME: Shared components used by the main vitals container for different display types
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { classMap } from "lit/directives/class-map.js";
 
 // Type definitions for better type safety
 type VitalThresholdCategory = "low" | "medium" | "high";
@@ -67,8 +68,17 @@ export class VitalStat extends LitElement {
   @property({ type: Number })
   percent = 0;
 
-  @state()
-  private _isInitialized = false;
+  @property({ type: String, reflect: true, attribute: "data-vital" })
+  dataVital = "";
+
+  @property({ type: Boolean, reflect: true })
+  low = false;
+
+  @property({ type: Boolean, reflect: true })
+  medium = false;
+
+  @property({ type: Boolean, reflect: true })
+  high = false;
 
   /**
    * Computed property that returns the percentage threshold category
@@ -107,42 +117,18 @@ export class VitalStat extends LitElement {
   willUpdate(changedProperties: Map<string | number | symbol, unknown>) {
     super.willUpdate(changedProperties);
 
-    // Update data attribute and classes before render
-    if (changedProperties.has("label") || !this._isInitialized) {
-      this._updateDataAttribute();
+    // Update dataVital property when label changes
+    if (changedProperties.has("label")) {
+      this.dataVital = this.label;
     }
 
-    if (changedProperties.has("percent") || !this._isInitialized) {
-      this._updateHostClasses();
+    // Update threshold properties when percent changes
+    if (changedProperties.has("percent")) {
+      const category = this._thresholdCategory;
+      this.low = category === "low";
+      this.medium = category === "medium";
+      this.high = category === "high";
     }
-  }
-
-  firstUpdated() {
-    this._isInitialized = true;
-  }
-
-  /**
-   * Updates the data-vital attribute for theme-specific styling
-   */
-  private _updateDataAttribute(): void {
-    if (this.label) {
-      this.setAttribute("data-vital", this.label);
-    } else {
-      this.removeAttribute("data-vital");
-    }
-  }
-
-  /**
-   * Updates the host element CSS classes based on percentage thresholds
-   * Uses computed properties for cleaner, more predictable class management
-   */
-  private _updateHostClasses(): void {
-    const classes = this._hostClasses;
-
-    // Apply classes based on computed state
-    this.classList.toggle("low", classes.low);
-    this.classList.toggle("medium", classes.medium);
-    this.classList.toggle("high", classes.high);
   }
 
   render() {
@@ -191,8 +177,11 @@ export class VitalText extends LitElement {
   @property({ type: String })
   value = "";
 
-  @state()
-  private _isInitialized = false;
+  @property({ type: String, reflect: true, attribute: "data-vital" })
+  dataVital = "";
+
+  @property({ type: Boolean, reflect: true })
+  inverted = false;
 
   /**
    * Computed property to determine if this vital type is inverted
@@ -205,33 +194,11 @@ export class VitalText extends LitElement {
   willUpdate(changedProperties: Map<string | number | symbol, unknown>) {
     super.willUpdate(changedProperties);
 
-    // Update data attribute and classes before render
-    if (changedProperties.has("label") || !this._isInitialized) {
-      this._updateDataAttribute();
-      this._updateInvertedClass();
+    // Update dataVital property when label changes
+    if (changedProperties.has("label")) {
+      this.dataVital = this.label;
+      this.inverted = this._isInvertedVital;
     }
-  }
-
-  firstUpdated() {
-    this._isInitialized = true;
-  }
-
-  /**
-   * Updates the data-vital attribute for theme-specific styling
-   */
-  private _updateDataAttribute(): void {
-    if (this.label) {
-      this.setAttribute("data-vital", this.label);
-    } else {
-      this.removeAttribute("data-vital");
-    }
-  }
-
-  /**
-   * Updates the inverted class for vitals where lower is better
-   */
-  private _updateInvertedClass(): void {
-    this.classList.toggle("inverted", this._isInvertedVital);
   }
 
   render() {
