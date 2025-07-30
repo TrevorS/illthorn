@@ -30,6 +30,7 @@ const createMockSession = (): FrontendSession => {
     send: () => {},
     onMessage: () => {},
     disconnect: () => Promise.resolve(),
+    setUI: () => {},
   } as FrontendSession;
 };
 
@@ -254,23 +255,25 @@ describe("UI", () => {
     it("should create left, right, and spell hands with proper names", async () => {
       await setup();
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      // Wait for component initialization to complete
+      await sessionUI.waitForInitialization();
 
       const sessionUIObj = sessionUI.getSessionUI();
-      expect(sessionUIObj.hands.left.name).toBe("left");
-      expect(sessionUIObj.hands.right.name).toBe("right");
-      expect(sessionUIObj.hands.spell.name).toBe("spell");
+      expect(sessionUIObj.hands.left?.name).toBe("left");
+      expect(sessionUIObj.hands.right?.name).toBe("right");
+      expect(sessionUIObj.hands.spell?.name).toBe("spell");
     });
 
     it("should set session on hand components", async () => {
       await setup();
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      // Wait for component initialization to complete
+      await sessionUI.waitForInitialization();
 
       const sessionUIObj = sessionUI.getSessionUI();
-      expect(sessionUIObj.hands.left.session).toBe(mockSession);
-      expect(sessionUIObj.hands.right.session).toBe(mockSession);
-      expect(sessionUIObj.hands.spell.session).toBe(mockSession);
+      expect(sessionUIObj.hands.left?.session).toBe(mockSession);
+      expect(sessionUIObj.hands.right?.session).toBe(mockSession);
+      expect(sessionUIObj.hands.spell?.session).toBe(mockSession);
     });
   });
 
@@ -278,7 +281,8 @@ describe("UI", () => {
     it("should return SessionUI interface compatible object", async () => {
       await setup();
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      // Wait for component initialization to complete
+      await sessionUI.waitForInitialization();
 
       const sessionUIObj = sessionUI.getSessionUI();
 
@@ -308,19 +312,20 @@ describe("UI", () => {
     it("should return components with proper types", async () => {
       await setup();
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      // Wait for component initialization to complete
+      await sessionUI.waitForInitialization();
 
       const sessionUIObj = sessionUI.getSessionUI();
 
       expect(sessionUIObj.context.tagName.toLowerCase()).toBe("illthorn-session-ui-lit");
-      expect(sessionUIObj.cli.tagName.toLowerCase()).toBe("illthorn-cli-lit");
-      expect(sessionUIObj.feed.tagName.toLowerCase()).toBe("illthorn-feed-lit");
-      expect(sessionUIObj.prompt.tagName.toLowerCase()).toBe("illthorn-prompt");
-      expect(sessionUIObj.vitals.tagName.toLowerCase()).toBe("illthorn-vitals-lit");
-      expect(sessionUIObj.streams.tagName.toLowerCase()).toBe("illthorn-streams-lit");
-      expect(sessionUIObj.hands.left.tagName.toLowerCase()).toBe("illthorn-hand-lit");
-      expect(sessionUIObj.hands.right.tagName.toLowerCase()).toBe("illthorn-hand-lit");
-      expect(sessionUIObj.hands.spell.tagName.toLowerCase()).toBe("illthorn-hand-lit");
+      expect(sessionUIObj.cli?.tagName.toLowerCase()).toBe("illthorn-cli-lit");
+      expect(sessionUIObj.feed?.tagName.toLowerCase()).toBe("illthorn-feed-lit");
+      expect(sessionUIObj.prompt?.tagName.toLowerCase()).toBe("illthorn-prompt");
+      expect(sessionUIObj.vitals?.tagName.toLowerCase()).toBe("illthorn-vitals-lit");
+      expect(sessionUIObj.streams?.tagName.toLowerCase()).toBe("illthorn-streams-lit");
+      expect(sessionUIObj.hands.left?.tagName.toLowerCase()).toBe("illthorn-hand-lit");
+      expect(sessionUIObj.hands.right?.tagName.toLowerCase()).toBe("illthorn-hand-lit");
+      expect(sessionUIObj.hands.spell?.tagName.toLowerCase()).toBe("illthorn-hand-lit");
     });
   });
 

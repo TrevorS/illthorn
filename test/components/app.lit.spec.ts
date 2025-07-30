@@ -68,6 +68,7 @@ describe("AppRoot", () => {
       name: "TestSession",
       _sessionUIComponent: document.createElement("div"),
       onFocus: vi.fn(),
+      setUI: vi.fn(),
     } as unknown as FrontendSession;
 
     // Simulate session focus event

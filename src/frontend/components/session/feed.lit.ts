@@ -4,6 +4,7 @@ import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import type { FrontendSession as Session } from "../../session/index";
+import { debugFeed } from "../../util/logger";
 
 @customElement("illthorn-feed-lit")
 export class Feed extends LitElement {
@@ -314,9 +315,9 @@ export class Feed extends LitElement {
    * Appends a single parsed element to the HEAD of the message feed
    */
   appendParsed(ele: DocumentFragment | Element) {
-    console.log("🎯 FEED: appendParsed called with content:", ele);
+    debugFeed("appendParsed called with content: %o", ele);
+
     if (!ele.hasChildNodes() && !(ele as Element).outerHTML) {
-      console.trace("{error: %o}", ele);
       return;
     }
 
@@ -337,6 +338,9 @@ export class Feed extends LitElement {
 
     // Flush old content if we've grown too long
     this.flush();
+
+    // Trigger re-render
+    this.requestUpdate();
 
     // Schedule scroll after render if not manually scrolling
     if (!wasScrolling && this._shouldAutoScroll) {
@@ -392,8 +396,6 @@ export class Feed extends LitElement {
     switch (target.tagName.toLowerCase()) {
       case "d":
       case "a":
-        console.log("click -> %o", target);
-        console.warn("<%s> handling not implemented", target.tagName);
         break;
     }
   }

@@ -55,7 +55,6 @@ export function parseAttrs(contents: string): GemstoneTagAttrs {
               return;
             }
 
-            //console.log("Attr/pair", [pendingKey, pendingValue])
             attrs.push([pendingKey, pendingValue]);
             state = AttrState.IDLE;
             pendingKey = "";
@@ -67,7 +66,6 @@ export function parseAttrs(contents: string): GemstoneTagAttrs {
             return;
         }
       default:
-        //console.log([pendingKey, AttrState[state]])
         switch (state) {
           case AttrState.IN_ATTRIBUTE_VALUE:
             pendingValue += char;
@@ -82,6 +80,5 @@ export function parseAttrs(contents: string): GemstoneTagAttrs {
         }
     }
   });
-  //console.log("attrs/parse -> %s", contents, attrs, Object.fromEntries(attrs))
   return Object.fromEntries(attrs);
 }

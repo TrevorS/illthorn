@@ -6,6 +6,7 @@ import { IllthornEvent } from "../events";
 import { Illthorn } from "../illthorn";
 import type { FrontendSession } from "../session";
 import { SessionMap } from "../session/map";
+import { adoptLightDomStyles } from "../util/light-dom-styles";
 import "./session/session-button.lit";
 
 @customElement("illthorn-sessions-menu-lit")
@@ -49,13 +50,7 @@ export class SessionsMenu extends LitElement {
 
   // Manually adopt styles for Light DOM
   private _adoptStyles() {
-    // Create a style element for this component's styles
-    if (!document.head.querySelector('style[data-lit-component="sessions-menu"]')) {
-      const style = document.createElement("style");
-      style.setAttribute("data-lit-component", "sessions-menu");
-      style.textContent = SessionsMenu.styles.cssText;
-      document.head.appendChild(style);
-    }
+    adoptLightDomStyles("sessions-menu", SessionsMenu.styles);
   }
 
   @state()
@@ -158,7 +153,6 @@ export class SessionsMenu extends LitElement {
   }
 
   render() {
-    console.log("DEBUG: SessionsMenu render() - sessions count:", this._sessions.length);
     if (this._sessions.length === 0) {
       return html`
         <div class="no-sessions" style="background: red; color: white; padding: 10px;">

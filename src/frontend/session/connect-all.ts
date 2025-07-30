@@ -1,3 +1,4 @@
+import { debugSessionConnect } from "../util/logger";
 import { FrontendSession } from ".";
 import { focusSession, renderSessionsMenu } from "./helpers";
 
@@ -9,45 +10,53 @@ declare global {
 }
 
 window.debugSessionDetection = async () => {
-  console.log("=== MANUAL SESSION DETECTION DEBUG ===");
-  console.log("Testing session detection manually...");
   const sessions = await connectAll();
-  console.log("Manual detection result:", sessions.length, "sessions found");
-  sessions.forEach((session) => console.log("- Session:", session.name, "port:", session.port));
   renderSessionsMenu();
+
+  // Add a test function to simulate game input
+  if (sessions.length > 0) {
+    const testSession = sessions[0];
+    console.log("Adding test content to session:", testSession.name);
+
+    // Simulate some game text after a short delay
+    setTimeout(() => {
+      testSession.onMessage('You look around.<br>This is a test message.<prompt time="12345">&gt;</prompt>');
+    }, 2000);
+  }
+
   return sessions;
 };
 
 export async function connectAll(retryCount = 0): Promise<Array<FrontendSession>> {
-  console.log("DEBUG: connectAll() starting session detection, retry:", retryCount);
+  debugSessionConnect("connectAll() starting session detection, retry: %d", retryCount);
 
   try {
     const lichSessions = await window.Session.listAvailable();
-    console.log("DEBUG: listAvailable() returned:", lichSessions.length, "sessions:", lichSessions);
+    debugSessionConnect("listAvailable() returned: %d sessions %o", lichSessions.length, lichSessions);
     const oldConnections = await window.Session.listConnected();
-    console.log("DEBUG: listConnected() returned:", oldConnections.length, "sessions:", oldConnections);
+    debugSessionConnect("listConnected() returned: %d sessions %o", oldConnections.length, oldConnections);
     const allSessions: Array<Illthorn.LichSessionDescriptor | Illthorn.Session.Pojo> = [...lichSessions, ...oldConnections];
-    console.log("DEBUG: combined sessions to connect:", allSessions.length, allSessions);
+    debugSessionConnect("combined sessions to connect: %d sessions %o", allSessions.length, allSessions);
 
     // If no sessions found and this is the first attempt, retry once after a short delay
     if (allSessions.length === 0 && retryCount === 0) {
-      console.log("DEBUG: No sessions found on first attempt, retrying in 500ms");
+      debugSessionConnect("No sessions found on first attempt, retrying in 500ms");
       await new Promise((resolve) => setTimeout(resolve, 500));
       return connectAll(1);
     }
 
     const sessions = await Promise.all(allSessions.map((descriptor) => FrontendSession.connect(descriptor)));
-    console.log(
-      "DEBUG: FrontendSession.connect completed, sessions:",
+    debugSessionConnect(
+      "FrontendSession.connect completed: %d sessions %o",
       sessions.length,
       sessions.map((s) => s.name),
     );
-    console.log("sessions=%o", sessions);
+    debugSessionConnect("sessions=%o", sessions);
     return sessions;
   } catch (error) {
-    console.error("DEBUG: Error in connectAll():", error);
+    debugSessionConnect("Error in connectAll(): %o", error);
     if (retryCount === 0) {
-      console.log("DEBUG: Retrying connectAll() after error");
+      debugSessionConnect("Retrying connectAll() after error");
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return connectAll(1);
     }
@@ -56,20 +65,20 @@ export async function connectAll(retryCount = 0): Promise<Array<FrontendSession>
 }
 
 export async function renderAllSessions() {
-  console.log("DEBUG: renderAllSessions() called");
+  debugSessionConnect("renderAllSessions() called");
   const sessions = await connectAll();
-  console.log("DEBUG: connectAll() returned sessions:", sessions);
+  debugSessionConnect("connectAll() returned sessions: %o", sessions);
 
   // Ensure the sessions menu gets updated immediately after sessions are connected
   renderSessionsMenu();
 
   const firstSession = sessions[0];
-  console.log("DEBUG: firstSession:", firstSession);
+  debugSessionConnect("firstSession: %o", firstSession);
   if (firstSession) {
-    console.log("DEBUG: calling focusSession with:", firstSession.name);
+    debugSessionConnect("calling focusSession with: %s", firstSession.name);
     focusSession(firstSession);
   } else {
-    console.log("DEBUG: No sessions available");
+    debugSessionConnect("No sessions available");
   }
 
   // Update the menu again after focusing a session

@@ -52,7 +52,6 @@ export class CommandHistory extends Array<string> {
    */
   forward() {
     this.position = wrap_index(this.position - 1, this.length);
-    //console.log("history:forward", this.index, this.read(), this.toJSON())
     return this.read();
   }
   /**
@@ -61,7 +60,6 @@ export class CommandHistory extends Array<string> {
   back() {
     this.position = wrap_index(this.position + 1, this.length);
     return this.read();
-    //console.log("history:back", this.index, this.read(), this.toJSON())
   }
   /**
    * Read specified entry in the history.
@@ -104,7 +102,6 @@ export class CommandHistory extends Array<string> {
    * Sets the current index to the specified value.
    */
   seek(idx: number) {
-    // console.log("command:seek", idx)
     this.position = wrap_index(idx, this.length);
     return this;
   }

@@ -150,6 +150,9 @@ describe("SessionsMenu", () => {
       await sessionsMenu.updateComplete;
       await sessionsMenu.updateComplete; // Wait for the CSS class updates in updated()
 
+      // Wait for async class updates to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
       // Verify that the active session is identified
       const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
       const activeButton = Array.from(sessionButtons || []).find(
@@ -178,6 +181,9 @@ describe("SessionsMenu", () => {
       // Dispatch SESSION_FOCUS event
       Illthorn.bus.dispatchEvent(IllthornEvent.SESSION_FOCUS, mockSession2 as MockSession);
       await sessionsMenu.updateComplete;
+
+      // Wait for async class updates to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Verify active session is updated
       const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");

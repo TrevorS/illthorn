@@ -35,7 +35,6 @@ export async function bindMetaMacros() {
   keyboardjs.on("tab", (e) => {
     e?.preventDefault();
     // todo: tab completion
-    // console.log(e)
   });
 
   keyboardjs.on("right", (_) => {

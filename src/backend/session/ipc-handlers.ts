@@ -1,10 +1,10 @@
 import { ipcMain as Backend } from "electron";
-import { log } from "../logger";
+import { debugBackend, debugIpc } from "../logger";
 import { BackendSession } from ".";
 import { SessionMap } from "./map";
 import { SessionMethods } from "./methods";
 
-log("attaching session ipc handlers");
+debugBackend("attaching session ipc handlers");
 
 Backend.handle(SessionMethods.Connect, async (_event, config: Illthorn.Session.Config) => {
   try {
@@ -15,16 +15,16 @@ Backend.handle(SessionMethods.Connect, async (_event, config: Illthorn.Session.C
 });
 
 Backend.handle(SessionMethods.ListConnected, () => {
-  console.log("DEBUG: IPC handler for ListConnected called, SessionMap size:", SessionMap.size);
+  debugIpc("IPC handler for ListConnected called, SessionMap size: %d", SessionMap.size);
   const connectedSessions = Array.from(SessionMap).map(([_name, session]) => session.toJSON());
-  console.log("DEBUG: IPC handler returning connected sessions:", connectedSessions.length, connectedSessions);
+  debugIpc("IPC handler returning connected sessions: %d sessions %o", connectedSessions.length, connectedSessions);
   return connectedSessions;
 });
 
 Backend.handle(SessionMethods.ListAvailable, async () => {
-  console.log("DEBUG: IPC handler for ListAvailable called");
+  debugIpc("IPC handler for ListAvailable called");
   const sessions = await BackendSession.listAvailable();
-  console.log("DEBUG: IPC handler returning sessions:", sessions.length, sessions);
+  debugIpc("IPC handler returning sessions: %d sessions %o", sessions.length, sessions);
   return sessions;
 });
 

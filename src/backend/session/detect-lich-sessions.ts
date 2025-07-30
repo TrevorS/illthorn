@@ -1,43 +1,44 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { debugSession } from "../logger";
 import * as json from "../util/json";
 
 const scriptingSessionDir = path.join(os.tmpdir(), "simutronics", "sessions");
 
 export async function detectLichSessions(): Promise<Illthorn.LichSessionDescriptor[]> {
-  console.log("DEBUG: detectLichSessions() checking directory:", scriptingSessionDir);
+  debugSession("detectLichSessions() checking directory: %s", scriptingSessionDir);
 
   try {
     if (!(await json.exists(scriptingSessionDir))) {
-      console.warn("no scripting session dir exists at %s", scriptingSessionDir);
+      debugSession("no scripting session dir exists at %s", scriptingSessionDir);
       return [];
     }
 
     const files = await fs.readdir(scriptingSessionDir);
-    console.log("DEBUG: found files in sessions dir:", files);
+    debugSession("found files in sessions dir: %o", files);
 
     if (files.length === 0) {
-      console.log("DEBUG: sessions directory is empty");
+      debugSession("sessions directory is empty");
       return [];
     }
 
     const pendingSessions = files.map(async (file: string) => {
       const filePath = path.join(scriptingSessionDir, file);
-      console.log("DEBUG: reading session file:", filePath);
+      debugSession("reading session file: %s", filePath);
       try {
         const descriptor = await json.read<Illthorn.LichSessionDescriptor>(filePath);
-        console.log("DEBUG: parsed session descriptor:", descriptor);
+        debugSession("parsed session descriptor: %o", descriptor);
 
         // Validate the descriptor has required fields
         if (!descriptor.name || !descriptor.port) {
-          console.warn("DEBUG: invalid session descriptor missing name or port:", descriptor);
+          debugSession("invalid session descriptor missing name or port: %o", descriptor);
           return null;
         }
 
         return descriptor;
       } catch (error) {
-        console.error("DEBUG: failed to read session file", filePath, error);
+        debugSession("failed to read session file %s: %o", filePath, error);
         // Don't throw, just return null and filter it out later
         return null;
       }
@@ -45,11 +46,11 @@ export async function detectLichSessions(): Promise<Illthorn.LichSessionDescript
 
     const sessionsOrNull = await Promise.all(pendingSessions);
     const sessions = sessionsOrNull.filter((session): session is Illthorn.LichSessionDescriptor => session !== null);
-    console.log("DEBUG: final sessions list:", sessions.length, sessions);
+    debugSession("final sessions list: %d sessions %o", sessions.length, sessions);
 
     return sessions.sort((a, b) => a.port - b.port);
   } catch (error) {
-    console.error("DEBUG: Error in detectLichSessions():", error);
+    debugSession("Error in detectLichSessions(): %o", error);
     return [];
   }
 }

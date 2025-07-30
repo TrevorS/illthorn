@@ -5,6 +5,8 @@ import { customElement, property } from "lit/decorators.js";
 import { IllthornEvent } from "../events";
 import { Illthorn } from "../illthorn";
 import type { FrontendSession } from "../session";
+import { adoptLightDomStyles } from "../util/light-dom-styles";
+import { debugApp } from "../util/logger";
 import "./sessions-menu.lit";
 import "../session/ui.lit";
 
@@ -67,17 +69,7 @@ export class AppRoot extends LitElement {
 
   // Manually adopt styles for Light DOM
   private _adoptStyles() {
-    console.log("DEBUG: AppRoot _adoptStyles() called");
-    // Create a style element for this component's styles
-    if (!document.head.querySelector('style[data-lit-component="app-root"]')) {
-      const style = document.createElement("style");
-      style.setAttribute("data-lit-component", "app-root");
-      style.textContent = AppRoot.styles.cssText;
-      document.head.appendChild(style);
-      console.log("DEBUG: AppRoot styles injected into head", style.textContent.substring(0, 100));
-    } else {
-      console.log("DEBUG: AppRoot styles already exist in head");
-    }
+    adoptLightDomStyles("app-root", AppRoot.styles);
   }
 
   @property({ type: Object })
@@ -87,7 +79,6 @@ export class AppRoot extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    console.log("DEBUG: AppRoot connectedCallback() called");
     this._adoptStyles();
     this.setupEventListeners();
   }
@@ -104,7 +95,7 @@ export class AppRoot extends LitElement {
 
     // Subscribe to session focus events
     Illthorn.bus.subscribeEvent<FrontendSession>(IllthornEvent.SESSION_FOCUS, ({ detail: session }) => {
-      console.log("DEBUG: App received SESSION_FOCUS event for:", session.name);
+      debugApp("App received SESSION_FOCUS event for: %s", session.name);
       this.handleSessionFocus(session);
     });
 
@@ -120,16 +111,12 @@ export class AppRoot extends LitElement {
   }
 
   handleSessionFocus(session: FrontendSession) {
-    console.log("DEBUG: AppRoot handleSessionFocus called with:", session.name);
-    console.log("DEBUG: AppRoot setting currentSession from", this.currentSession?.name || "null", "to", session.name);
     this.currentSession = session;
     document.title = session.name;
-    console.log("DEBUG: AppRoot currentSession is now:", this.currentSession?.name);
     // Trigger re-render to update the template
     this.requestUpdate();
     // Call session focus after render completes
     this.updateComplete.then(() => {
-      console.log("DEBUG: AppRoot calling session.onFocus() for:", session.name);
       session.onFocus();
     });
   }

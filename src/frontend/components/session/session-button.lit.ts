@@ -6,6 +6,7 @@ import { IllthornEvent } from "../../events";
 import { Illthorn } from "../../illthorn";
 import type { FrontendSession as Session } from "../../session";
 import { focusSession } from "../../session/helpers";
+import { adoptLightDomStyles } from "../../util/light-dom-styles";
 
 @customElement("illthorn-session-button")
 export class SessionButton extends LitElement {
@@ -75,17 +76,7 @@ export class SessionButton extends LitElement {
 
   // Manually adopt styles for Light DOM
   private _adoptStyles() {
-    console.log("DEBUG: SessionButton _adoptStyles() called");
-    // Create a style element for this component's styles
-    if (!document.head.querySelector('style[data-lit-component="session-button"]')) {
-      const style = document.createElement("style");
-      style.setAttribute("data-lit-component", "session-button");
-      style.textContent = SessionButton.styles.cssText;
-      document.head.appendChild(style);
-      console.log("DEBUG: SessionButton styles injected into head", style.textContent.substring(0, 100));
-    } else {
-      console.log("DEBUG: SessionButton styles already exist in head");
-    }
+    adoptLightDomStyles("session-button", SessionButton.styles);
   }
 
   @property({ type: Object })
@@ -105,9 +96,17 @@ export class SessionButton extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    console.log("DEBUG: SessionButton connectedCallback() called for session:", this.session?.name);
     this._adoptStyles();
     this.classList.add("action");
+  }
+
+  willUpdate(changedProperties: Map<string | number | symbol, unknown>) {
+    super.willUpdate(changedProperties);
+
+    if (changedProperties.has("active")) {
+      // Update state immediately before render to avoid scheduling conflicts
+      this._isActive = this.active;
+    }
   }
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {
@@ -121,7 +120,7 @@ export class SessionButton extends LitElement {
     }
 
     if (changedProperties.has("active")) {
-      this._isActive = this.active;
+      // Apply CSS class after render completes
       this.classList.toggle("on", this._isActive);
     }
   }
@@ -158,10 +157,14 @@ export class SessionButton extends LitElement {
     }
 
     Illthorn.bus.subscribeEvent<Session>(IllthornEvent.SESSION_FOCUS, ({ detail: activeSession }) => {
-      this._isActive = this.session === activeSession;
-      this.classList.toggle("on", this._isActive);
-      // No need for manual requestUpdate() since _isActive is a @state property
+      const newActiveState = this.session === activeSession;
+      this._updateActiveState(newActiveState);
     });
+  }
+
+  private _updateActiveState(newActiveState: boolean) {
+    // Update through the active property to trigger the Lit lifecycle
+    this.active = newActiveState;
   }
 
   private calculateTabNumber() {

@@ -224,8 +224,23 @@ export class UI extends LitElement {
     }
   }
 
+  private _session?: Session;
+
   @property({ type: Object })
-  session!: Session;
+  get session(): Session {
+    return this._session as Session;
+  }
+
+  set session(value: Session) {
+    if (this._session === value) return;
+    this._session = value;
+    this.requestUpdate("session");
+
+    // Notify session that UI is now available
+    if (value) {
+      value.setUI(this.getSessionUI());
+    }
+  }
 
   constructor() {
     super();
@@ -240,6 +255,10 @@ export class UI extends LitElement {
    * Returns a promise that resolves when all child components are ready to use
    */
   waitForInitialization(): Promise<void> {
+    // If component is never attached to DOM, resolve immediately to avoid blocking
+    if (!this.isConnected) {
+      return Promise.resolve();
+    }
     return this._initializationPromise;
   }
 
@@ -249,9 +268,6 @@ export class UI extends LitElement {
   private _feed?: Feed;
   private _prompt?: Prompt;
   private _cli?: CLI;
-
-  // Custom flag to track component initialization (more reliable than hasUpdated)
-  private _componentsInitialized = false;
 
   // Promise that resolves when components are fully initialized and ready to use
   private _initializationPromise: Promise<void>;
@@ -271,11 +287,10 @@ export class UI extends LitElement {
 
       // Query components immediately - they should be available after firstUpdated
       this._queryComponents();
-      this._componentsInitialized = true;
-
-      // Resolve the initialization promise to notify waiting sessions
-      this._resolveInitialization();
     }
+
+    // Always resolve the initialization promise, even if no session yet
+    this._resolveInitialization();
   }
 
   private _queryComponents() {
@@ -314,31 +329,65 @@ export class UI extends LitElement {
         return self as HTMLElement;
       },
       get cli() {
-        return self._cli || (self.querySelector("illthorn-cli-lit") as CLI) || null;
+        if (self._cli) return self._cli;
+        if (self.isConnected) {
+          const cli = self.querySelector("illthorn-cli-lit") as CLI;
+          if (cli) {
+            self._cli = cli;
+            return cli;
+          }
+        }
+        return null;
       },
       get feed() {
-        // Use cached component reference first, then query if needed
-        const feed = self._feed || (self.querySelector("illthorn-feed-lit") as Feed) || null;
-
-        if (!feed && self._componentsInitialized && !self._feed) {
-          // Components were initialized but cache is missing - re-query
-          self._queryComponents();
+        // Try to use cached component first, then query if component is attached to DOM
+        if (self._feed) {
           return self._feed;
-        } else if (!feed && !self._componentsInitialized) {
-          // Components not initialized yet - this is expected during startup
-          return null;
         }
 
-        return feed;
+        // Only query if component is actually connected to DOM
+        if (self.isConnected) {
+          const feed = self.querySelector("illthorn-feed-lit") as Feed;
+          if (feed) {
+            self._feed = feed; // Cache for future use
+            return feed;
+          }
+        }
+
+        return null;
       },
       get prompt() {
-        return self._prompt || (self.querySelector("illthorn-prompt") as Prompt) || null;
+        if (self._prompt) return self._prompt;
+        if (self.isConnected) {
+          const prompt = self.querySelector("illthorn-prompt") as Prompt;
+          if (prompt) {
+            self._prompt = prompt;
+            return prompt;
+          }
+        }
+        return null;
       },
       get vitals() {
-        return self._vitals || (self.querySelector("illthorn-vitals-lit") as Vitals) || null;
+        if (self._vitals) return self._vitals;
+        if (self.isConnected) {
+          const vitals = self.querySelector("illthorn-vitals-lit") as Vitals;
+          if (vitals) {
+            self._vitals = vitals;
+            return vitals;
+          }
+        }
+        return null;
       },
       get streams() {
-        return self._streams || (self.querySelector("illthorn-streams-lit") as Streams) || null;
+        if (self._streams) return self._streams;
+        if (self.isConnected) {
+          const streams = self.querySelector("illthorn-streams-lit") as Streams;
+          if (streams) {
+            self._streams = streams;
+            return streams;
+          }
+        }
+        return null;
       },
       hands: {
         get left() {

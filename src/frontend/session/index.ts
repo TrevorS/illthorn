@@ -9,7 +9,7 @@ import { debugRawInput, debugSession, safeStringify } from "../util/logger";
 import { CommandHistory } from "./command-history";
 import { dispatchMetadata } from "./helpers";
 import { SessionMap } from "./map";
-import type { SessionUI, UI } from "./ui.lit";
+import type { SessionUI } from "./ui.lit";
 
 export class FrontendSession {
   static async connect(config: Illthorn.Session.Config) {
@@ -19,36 +19,51 @@ export class FrontendSession {
   }
 
   readonly parser: Parser;
-  readonly ui: SessionUI;
   readonly bus: Bus;
   hasFocus: boolean = false;
   readonly history: CommandHistory = new CommandHistory(100);
   readonly actionButton: SessionButton;
-  readonly _sessionUIComponent: UI;
+  private _ui?: SessionUI;
+  private _messageBuffer: Array<string> = [];
 
   constructor(readonly config: Illthorn.Session.Config) {
     this.parser = Parser.of();
     this.bus = new Bus();
 
-    // Create SessionUI Lit component
-    this._sessionUIComponent = document.createElement("illthorn-session-ui-lit") as UI;
-    this._sessionUIComponent.session = this;
-
-    // Get the SessionUI interface - components will be available after initialization
-    this.ui = this._sessionUIComponent.getSessionUI();
-
     this.actionButton = document.createElement("illthorn-session-button") as SessionButton;
     this.actionButton.session = this;
 
-    // Initialize streams in the background - this will work when components are ready
+    // Wait for UI initialization before allowing streams to be called
     this._ensureInitialization();
 
     SessionMap.set(this.name, this);
   }
 
+  /**
+   * Called by the UI component when it becomes available
+   */
+  setUI(ui: SessionUI) {
+    this._ui = ui;
+    // Process any buffered messages now that UI is available
+    setTimeout(() => this._processBufferedMessages(), 0);
+  }
+
+  get ui(): SessionUI {
+    return (
+      this._ui || {
+        context: document.body, // Fallback
+        cli: null,
+        feed: null,
+        prompt: null,
+        vitals: null,
+        streams: null,
+        hands: { left: null, right: null, spell: null },
+      }
+    );
+  }
+
   private _ensureInitialization() {
-    // Use a more resilient approach that works with the existing application architecture
-    // The streams call will be deferred until components are available
+    // Enable streams after a brief delay to allow component setup
     setTimeout(() => this.streams(true), 0);
   }
 
@@ -61,20 +76,11 @@ export class FrontendSession {
   }
 
   streams(on: boolean) {
-    try {
-      // Check if components are available before trying to use them
-      if (this.ui.context && this.ui.streams && this.ui.feed) {
-        this.ui.context.classList.toggle("streams-on", on);
-        this.ui.streams.scrollToNow();
-        this.ui.feed.scrollToNow();
-      } else {
-        // Components not ready yet, retry after a short delay
-        setTimeout(() => this.streams(on), 10);
-      }
-    } catch (error) {
-      // If there's an error accessing components, retry later
-      console.warn("Error accessing UI components, retrying:", error);
-      setTimeout(() => this.streams(on), 50);
+    // Components should be available since we wait for initialization
+    if (this.ui.context && this.ui.streams && this.ui.feed) {
+      this.ui.context.classList.toggle("streams-on", on);
+      this.ui.streams.scrollToNow();
+      this.ui.feed.scrollToNow();
     }
   }
 
@@ -84,6 +90,13 @@ export class FrontendSession {
 
   async onMessage(incoming: string) {
     debugRawInput(`[${this.name}] Raw input (${incoming.length} chars): ${safeStringify(incoming, 200)}`);
+
+    // If UI is not available yet, buffer the message for later processing
+    if (!this._ui) {
+      this._messageBuffer.push(incoming);
+      return;
+    }
+
     const parsed = this.parser.parse(incoming);
     debugSession(`[${this.name}] Parsed ${parsed.length} tags from input`);
     const { frag, metadata } = castToHTML(parsed);
@@ -103,8 +116,10 @@ export class FrontendSession {
       streams.forEach((entry) => this.ui.streams.addEntry(entry));
     }
 
-    if (frag.hasChildNodes() && frag.textContent?.trim() !== "" && this.ui.feed) {
-      this.ui.feed.appendParsed(frag);
+    if (frag.hasChildNodes() && frag.textContent?.trim() !== "") {
+      if (this.ui.feed) {
+        this.ui.feed.appendParsed(frag);
+      }
     }
 
     if (this.ui.feed && !this.ui.feed.has_prompt() && prompt) {
@@ -118,7 +133,6 @@ export class FrontendSession {
 
   handleMacro(macro: string) {
     if (!this.ui.cli?.input) {
-      console.warn("CLI not available for handleMacro");
       return;
     }
 
@@ -140,14 +154,23 @@ export class FrontendSession {
 
   async onFocus() {
     try {
-      // Ensure components are available before trying to scroll
       if (this.ui.streams && this.ui.feed) {
         this.ui.streams.scrollToNow();
         this.ui.feed.scrollToNow();
       }
-      // If components aren't ready, that's ok - this will be called again when they are
-    } catch (error) {
-      console.warn("Error during onFocus:", error);
+    } catch (_error) {
+      // Silently handle errors during focus
+    }
+  }
+
+  async _processBufferedMessages() {
+    if (this._messageBuffer.length === 0) return;
+
+    const messages = [...this._messageBuffer];
+    this._messageBuffer = []; // Clear buffer first to avoid recursion
+
+    for (const message of messages) {
+      await this.onMessage(message);
     }
   }
 }
