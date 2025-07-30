@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
-import { Hand } from "../src/frontend/components/session/hand.lit";
-import { makeTag } from "../src/frontend/parser/tag";
-import { createMockSession } from "./mocks";
+import { Hand } from "../../../../src/frontend/components/session/hands/hand.lit";
+import { makeTag } from "../../../../src/frontend/parser/tag";
+import { createMockSession } from "../../../mocks";
 
 describe("Hand", () => {
   const setup = () => {

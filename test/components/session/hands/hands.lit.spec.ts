@@ -1,10 +1,10 @@
 // ABOUTME: Tests for the hands container component that manages left, right, and spell hands
 // ABOUTME: Verifies component creation, session integration, and getHands API functionality
 import { afterEach, describe, expect, test } from "vitest";
-import type { Hand } from "../../../src/frontend/components/session/hand.lit";
-import { Hands } from "../../../src/frontend/components/session/hands.lit";
-import type { FrontendSession as Session } from "../../../src/frontend/session/index";
-import { createMockSession } from "../../mocks";
+import type { Hand } from "../../../../src/frontend/components/session/hands/hand.lit";
+import { Hands } from "../../../../src/frontend/components/session/hands/hands.lit";
+import type { FrontendSession as Session } from "../../../../src/frontend/session/index";
+import { createMockSession } from "../../../mocks";
 
 describe("Hands", () => {
   let handsComponent: Hands;
