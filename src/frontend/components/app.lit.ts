@@ -8,7 +8,7 @@ import type { FrontendSession } from "../session";
 import { adoptLightDomStyles } from "../util/light-dom-styles";
 import { debugApp } from "../util/logger";
 import "./sessions-menu.lit";
-import "../session/ui.lit";
+import "./session-layout.lit";
 
 @customElement("illthorn-app-lit")
 export class AppRoot extends LitElement {
@@ -60,7 +60,7 @@ export class AppRoot extends LitElement {
       overflow: hidden;
     }
 
-    illthorn-app-lit illthorn-session-ui-lit {
+    illthorn-app-lit illthorn-session-layout-lit {
       display: grid !important;
       height: 100%;
       width: 100%;
@@ -133,7 +133,7 @@ export class AppRoot extends LitElement {
           ${
             this.currentSession
               ? html`
-            <illthorn-session-ui-lit .session=${this.currentSession}></illthorn-session-ui-lit>
+            <illthorn-session-layout-lit .session=${this.currentSession}></illthorn-session-layout-lit>
           `
               : html`
             <div style="padding: 2em; color: var(--text-color, white); text-align: center;">

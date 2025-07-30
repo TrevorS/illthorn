@@ -2,23 +2,23 @@
 // ABOUTME: Declarative replacement for makeSessionUI factory function using Lit templates and reactive properties
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import type { FrontendSession as Session } from "./index";
-import "../components/session/compass.lit";
-import "../components/session/room.lit";
-import "../components/session/vitals/vitals.lit";
-import type { Vitals } from "../components/session/vitals/vitals.lit";
-import "../components/session/effects/effects.lit";
-import { type Hand, makeHandLit } from "../components/session/hand.lit";
-import "../components/session/hand.lit";
-import "../components/session/panel.lit";
-import "../components/session/streams.lit";
-import type { Streams } from "../components/session/streams.lit";
-import "../components/session/feed.lit";
-import type { Feed } from "../components/session/feed.lit";
-import "../components/session/prompt.lit";
-import type { Prompt } from "../components/session/prompt.lit";
-import "../components/session/cli.lit";
-import type { CLI } from "../components/session/cli.lit";
+import type { FrontendSession as Session } from "../session/index";
+import "./session/compass.lit";
+import "./session/room.lit";
+import "./session/vitals/vitals.lit";
+import type { Vitals } from "./session/vitals/vitals.lit";
+import "./session/effects/effects.lit";
+import { type Hand, makeHandLit } from "./session/hand.lit";
+import "./session/hand.lit";
+import "./session/panel.lit";
+import "./session/streams.lit";
+import type { Streams } from "./session/streams.lit";
+import "./session/feed.lit";
+import type { Feed } from "./session/feed.lit";
+import "./session/prompt.lit";
+import type { Prompt } from "./session/prompt.lit";
+import "./session/cli.lit";
+import type { CLI } from "./session/cli.lit";
 
 export type SessionUI = {
   context: HTMLElement;
@@ -30,14 +30,14 @@ export type SessionUI = {
   hands: { left: Hand | null; right: Hand | null; spell: Hand | null };
 };
 
-@customElement("illthorn-session-ui-lit")
-export class UI extends LitElement {
+@customElement("illthorn-session-layout-lit")
+export class SessionLayout extends LitElement {
   // Use Light DOM to access document-level CSS custom properties
   createRenderRoot() {
     return this;
   }
   static styles = css`
-    illthorn-session-ui-lit {
+    illthorn-session-layout-lit {
       display: grid !important;
       height: 100vh;
       width: 100%;
@@ -45,11 +45,11 @@ export class UI extends LitElement {
       overflow: hidden;
     }
 
-    illthorn-session-ui-lit.no-hud {
+    illthorn-session-layout-lit.no-hud {
       grid-template-columns: 0 1fr;
     }
 
-    illthorn-session-ui-lit.no-hud .hud {
+    illthorn-session-layout-lit.no-hud .hud {
       visibility: hidden;
     }
 
@@ -216,10 +216,10 @@ export class UI extends LitElement {
   // Manually adopt styles for Light DOM
   private _adoptStyles() {
     // Create a style element for this component's styles
-    if (!document.head.querySelector('style[data-lit-component="session-ui"]')) {
+    if (!document.head.querySelector('style[data-lit-component="session-layout"]')) {
       const style = document.createElement("style");
-      style.setAttribute("data-lit-component", "session-ui");
-      style.textContent = UI.styles.cssText;
+      style.setAttribute("data-lit-component", "session-layout");
+      style.textContent = SessionLayout.styles.cssText;
       document.head.appendChild(style);
     }
   }
@@ -454,6 +454,6 @@ export class UI extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-session-ui-lit": UI;
+    "illthorn-session-layout-lit": SessionLayout;
   }
 }

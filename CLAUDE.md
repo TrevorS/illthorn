@@ -257,4 +257,4 @@ Beware of CSS specificity conflicts with old layout styles. ID selectors (`#app`
 - `AppRoot` (`components/app.lit.ts`)
 - `SessionsMenu` (`components/sessions-menu.lit.ts`) 
 - `SessionButton` (`components/session/session-button.lit.ts`)
-- `SessionUI` (`session/ui.lit.ts`)
+- `SessionLayout` (`components/session-layout.lit.ts`)

@@ -8,10 +8,10 @@ import type { Prompt } from "../../src/frontend/components/session/prompt.lit";
 import type { Room } from "../../src/frontend/components/session/room.lit";
 import type { SessionButton } from "../../src/frontend/components/session/session-button.lit";
 import type { Vitals } from "../../src/frontend/components/session/vitals/vitals.lit";
+import { SessionLayout } from "../../src/frontend/components/session-layout.lit";
 import { Parser } from "../../src/frontend/parser/parser";
 import type { FrontendSession } from "../../src/frontend/session";
 import { CommandHistory } from "../../src/frontend/session/command-history";
-import { UI } from "../../src/frontend/session/ui.lit";
 import { Bus } from "../../src/frontend/util/bus";
 
 // Mock FrontendSession for testing
@@ -34,12 +34,12 @@ const createMockSession = (): FrontendSession => {
   } as FrontendSession;
 };
 
-describe("UI", () => {
-  let sessionUI: UI;
+describe("SessionLayout", () => {
+  let sessionUI: SessionLayout;
   let mockSession: FrontendSession;
 
   const setup = async () => {
-    sessionUI = document.createElement("illthorn-session-ui-lit") as UI;
+    sessionUI = document.createElement("illthorn-session-layout-lit") as SessionLayout;
     mockSession = createMockSession();
     sessionUI.session = mockSession;
     document.body.appendChild(sessionUI);
@@ -61,19 +61,19 @@ describe("UI", () => {
     it("should create session-ui element", async () => {
       await setup();
 
-      expect(sessionUI).toBeInstanceOf(UI);
-      expect(sessionUI.tagName.toLowerCase()).toBe("illthorn-session-ui-lit");
+      expect(sessionUI).toBeInstanceOf(SessionLayout);
+      expect(sessionUI.tagName.toLowerCase()).toBe("illthorn-session-layout-lit");
     });
 
     it("should render with proper host styling", async () => {
       await setup();
 
-      const styles = UI.styles;
+      const styles = SessionLayout.styles;
       expect(styles).toBeTruthy();
     });
 
     it("should render empty state when no session provided", async () => {
-      sessionUI = document.createElement("illthorn-session-ui-lit") as UI;
+      sessionUI = document.createElement("illthorn-session-layout-lit") as SessionLayout;
       document.body.appendChild(sessionUI);
       await sessionUI.updateComplete;
 
@@ -299,7 +299,7 @@ describe("UI", () => {
     });
 
     it("should return partially initialized UI if called before components are fully ready", async () => {
-      sessionUI = document.createElement("illthorn-session-ui-lit") as UI;
+      sessionUI = document.createElement("illthorn-session-layout-lit") as SessionLayout;
       document.body.appendChild(sessionUI);
       await sessionUI.updateComplete;
 
@@ -317,7 +317,7 @@ describe("UI", () => {
 
       const sessionUIObj = sessionUI.getSessionUI();
 
-      expect(sessionUIObj.context.tagName.toLowerCase()).toBe("illthorn-session-ui-lit");
+      expect(sessionUIObj.context.tagName.toLowerCase()).toBe("illthorn-session-layout-lit");
       expect(sessionUIObj.cli?.tagName.toLowerCase()).toBe("illthorn-cli-lit");
       expect(sessionUIObj.feed?.tagName.toLowerCase()).toBe("illthorn-feed-lit");
       expect(sessionUIObj.prompt?.tagName.toLowerCase()).toBe("illthorn-prompt");
@@ -334,7 +334,7 @@ describe("UI", () => {
       await setup();
 
       // Check that the component has the expected static styles
-      const styles = UI.styles;
+      const styles = SessionLayout.styles;
       expect(styles).toBeTruthy();
 
       // The host element should be rendered (using Light DOM, so no shadowRoot)
@@ -424,15 +424,15 @@ describe("UI", () => {
     });
 
     it("should be properly registered in HTMLElementTagNameMap", () => {
-      const element = document.createElement("illthorn-session-ui-lit");
+      const element = document.createElement("illthorn-session-layout-lit");
       expect(element).toBeInstanceOf(HTMLElement);
-      expect(element).toBeInstanceOf(UI);
+      expect(element).toBeInstanceOf(SessionLayout);
     });
   });
 
   describe("Error handling", () => {
     it("should handle missing session gracefully", async () => {
-      sessionUI = document.createElement("illthorn-session-ui-lit") as UI;
+      sessionUI = document.createElement("illthorn-session-layout-lit") as SessionLayout;
       document.body.appendChild(sessionUI);
       await sessionUI.updateComplete;
 
@@ -440,7 +440,7 @@ describe("UI", () => {
     });
 
     it("should handle component initialization failures gracefully", async () => {
-      sessionUI = document.createElement("illthorn-session-ui-lit") as UI;
+      sessionUI = document.createElement("illthorn-session-layout-lit") as SessionLayout;
       document.body.appendChild(sessionUI);
       await sessionUI.updateComplete;
 

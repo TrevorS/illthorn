@@ -6,8 +6,8 @@ import { Parser } from "../../src/frontend/parser/parser";
 import { CommandHistory } from "../../src/frontend/session/command-history";
 import type { FrontendSession } from "../../src/frontend/session/index";
 import { Bus } from "../../src/frontend/util/bus";
-import "../../src/frontend/session/ui.lit";
-import type { UI } from "../../src/frontend/session/ui.lit";
+import "../../src/frontend/components/session-layout.lit";
+import type { SessionLayout } from "../../src/frontend/components/session-layout.lit";
 
 const createMockSession = () => {
   const bus = new Bus();
@@ -29,12 +29,12 @@ const createMockSession = () => {
 };
 
 describe("UI Initialization Race Condition Fix", () => {
-  let sessionUI: UI;
+  let sessionUI: SessionLayout;
   let mockSession: FrontendSession;
 
   beforeEach(async () => {
     // Create session UI component
-    sessionUI = document.createElement("illthorn-session-ui-lit") as UI;
+    sessionUI = document.createElement("illthorn-session-layout-lit") as SessionLayout;
     mockSession = createMockSession();
     sessionUI.session = mockSession;
     document.body.appendChild(sessionUI);
