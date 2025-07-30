@@ -1,4 +1,4 @@
-// ABOUTME: Lit-based App Root Component that replaces the imperative layout system from layout.ts
+// ABOUTME: Lit-based App Root Component that provides the main application layout
 // ABOUTME: Manages the main grid layout with left actions pane, session display, and theme integration
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";

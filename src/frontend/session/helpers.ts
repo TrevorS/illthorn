@@ -1,6 +1,5 @@
 import { IllthornEvent } from "../events";
 import { Illthorn } from "../illthorn";
-// import { sessionsMenu } from "../layout"; // Removed - using Lit component now
 import type { GameTag } from "../parser/tag";
 import { debugMetadata, debugSession, logMetadataEvent } from "../util/logger";
 import type { FrontendSession, FrontendSession as Session } from ".";
