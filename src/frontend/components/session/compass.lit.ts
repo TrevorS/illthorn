@@ -34,7 +34,7 @@ export class Compass extends LitElement {
       padding: 0;
       line-height: 30px;
       text-align: center;
-      background: var(--info);
+      background: var(--color-surface);
       opacity: 0.2;
       text-decoration: none;
       color: inherit;
@@ -45,8 +45,8 @@ export class Compass extends LitElement {
     }
 
     a.on {
-      background: var(--ok);
-      color: var(--info, #f1f1ff);
+      background: var(--color-success);
+      color: var(--color-surface, #f1f1ff);
       opacity: 1;
     }
 

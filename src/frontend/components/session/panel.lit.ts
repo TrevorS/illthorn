@@ -24,7 +24,7 @@ export class Panel extends LitElement {
       padding: 0.5em;
       text-transform: uppercase;
       text-align: center;
-      background-color: var(--info);
+      background-color: var(--color-surface);
       font-weight: bold;
       cursor: pointer;
       user-select: none;

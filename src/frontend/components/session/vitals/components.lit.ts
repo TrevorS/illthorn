@@ -1,7 +1,10 @@
-// ABOUTME: Vital display components - VitalStat (with progress meter) and VitalText (text-only)
+// ABOUTME: Modern Lit vital display components - VitalStat (with progress meter) and VitalText (text-only)
 // ABOUTME: Shared components used by the main vitals container for different display types
 import { css, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
+
+// Type definitions for better type safety
+type VitalThresholdCategory = "low" | "medium" | "high";
 
 // Vital Stat Component (with progress meter)
 @customElement("illthorn-vital-stat")
@@ -11,6 +14,8 @@ export class VitalStat extends LitElement {
       display: block;
       padding: 0.4em 0 0.2em;
       position: relative;
+      color: var(--color-text-primary, #000);
+      background: transparent;
     }
 
     .vital-row {
@@ -22,11 +27,13 @@ export class VitalStat extends LitElement {
 
     .vital-label {
       flex: 1;
+      color: var(--color-text-primary, #ffffff);
     }
 
     .vital-value {
       margin-left: auto;
       font-weight: bold;
+      color: var(--color-text-primary, #ffffff);
     }
 
     .vital-meter {
@@ -34,99 +41,20 @@ export class VitalStat extends LitElement {
       height: 100%;
       top: 0;
       left: 0;
-      background-color: var(--ok);
+      background-color: var(--color-success, #4caf50);
       transition: width 0.2s ease;
     }
 
     :host(.medium) .vital-meter {
-      background-color: var(--warn);
+      background-color: var(--color-warning, #ff9800);
     }
 
     :host(.low) .vital-meter {
-      background-color: var(--danger);
+      background-color: var(--color-danger, #f44336);
     }
 
     :host(.low) {
       font-weight: bold;
-    }
-
-    /* Dark King theme styling for specific vitals */
-    :host-context([theme='dark-king']) {
-      border: 0;
-      position: relative;
-      font-size: 1.2em;
-      margin-bottom: 0;
-      padding-bottom: 0.5em;
-      border-bottom: 1px solid black;
-      box-shadow: 0 1px 1px 0 #282323;
-    }
-
-    :host-context([theme='dark-king']) .vital-label {
-      font-family: "DutchMediaeval", serif;
-    }
-
-    /* Spirit vital background */
-    :host([data-vital="spirit"]:host-context([theme='dark-king'])) {
-      background: linear-gradient(5deg, rgba(169, 144, 239, 0.2), rgba(169, 144, 239, 0));
-      margin-left: -1em;
-      width: calc(100% + 2em);
-      padding: 0.7em 1em 0.5em;
-    }
-
-    :host([data-vital="spirit"]:host-context([theme='dark-king'])) .vital-label,
-    :host([data-vital="spirit"]:host-context([theme='dark-king'])) .vital-value {
-      color: #a990ef;
-    }
-
-    /* Health vital background */
-    :host([data-vital="health"]:host-context([theme='dark-king'])) {
-      background: linear-gradient(5deg, rgba(145, 214, 134, 0.2), rgba(145, 214, 134, 0));
-      margin-left: -1em;
-      width: calc(100% + 2em);
-      padding: 0.7em 1em 0.5em;
-    }
-
-    :host([data-vital="health"]:host-context([theme='dark-king'])) .vital-label,
-    :host([data-vital="health"]:host-context([theme='dark-king'])) .vital-value {
-      color: #91d686;
-    }
-
-    /* Mana vital background */
-    :host([data-vital="mana"]:host-context([theme='dark-king'])) {
-      background: linear-gradient(5deg, rgba(108, 173, 208, 0.2), rgba(108, 173, 208, 0));
-      margin-left: -1em;
-      width: calc(100% + 2em);
-      padding: 0.7em 1em 0.5em;
-    }
-
-    :host([data-vital="mana"]:host-context([theme='dark-king'])) .vital-label,
-    :host([data-vital="mana"]:host-context([theme='dark-king'])) .vital-value {
-      color: #6cadd0;
-    }
-
-    /* Stamina vital background */
-    :host([data-vital="stamina"]:host-context([theme='dark-king'])) {
-      background: linear-gradient(5deg, rgba(251, 177, 123, 0.2), rgba(251, 177, 123, 0));
-      margin-left: -1em;
-      width: calc(100% + 2em);
-      padding: 0.7em 1em 0.5em;
-    }
-
-    :host([data-vital="stamina"]:host-context([theme='dark-king'])) .vital-label,
-    :host([data-vital="stamina"]:host-context([theme='dark-king'])) .vital-value {
-      color: #fbb17b;
-    }
-
-    /* Low vital warning styling for dark-king */
-    :host(.low:host-context([theme='dark-king'])) {
-      background: linear-gradient(5deg, rgba(var(--danger-rgb, 214, 78, 78), 0.2), rgba(var(--danger-rgb, 214, 78, 78), 0)),
-                  radial-gradient(ellipse at top right, rgba(255, 0, 0, 0.5), rgba(255, 0, 0, 0));
-    }
-
-    :host(.low:host-context([theme='dark-king']))::before {
-      content: "⚠️";
-      display: inline-block;
-      line-height: 1;
     }
   `;
 
@@ -139,29 +67,87 @@ export class VitalStat extends LitElement {
   @property({ type: Number })
   percent = 0;
 
-  connectedCallback() {
-    super.connectedCallback();
-    // Set data-vital attribute for theme styling
-    this.setAttribute("data-vital", this.label);
+  @state()
+  private _isInitialized = false;
+
+  /**
+   * Computed property that returns the percentage threshold category
+   * for styling the vital stat based on current percentage
+   */
+  private get _thresholdCategory(): VitalThresholdCategory {
+    if (this.percent < 33) {
+      return "low";
+    }
+    if (this.percent < 66) {
+      return "medium";
+    }
+    return "high";
   }
 
-  updated(changedProperties: Map<string | number | symbol, unknown>) {
-    super.updated(changedProperties);
+  /**
+   * Computed property that returns CSS classes to apply to the host element
+   * based on the current percentage threshold
+   */
+  private get _hostClasses(): Record<string, boolean> {
+    const category = this._thresholdCategory;
+    return {
+      low: category === "low",
+      medium: category === "medium",
+      high: category === "high",
+    };
+  }
 
-    if (changedProperties.has("percent")) {
-      this.updatePercentClasses(this.percent);
+  /**
+   * Computed property for the meter width style
+   */
+  private get _meterStyle(): string {
+    return `width: ${Math.max(0, Math.min(100, this.percent))}%`;
+  }
+
+  willUpdate(changedProperties: Map<string | number | symbol, unknown>) {
+    super.willUpdate(changedProperties);
+
+    // Update data attribute and classes before render
+    if (changedProperties.has("label") || !this._isInitialized) {
+      this._updateDataAttribute();
+    }
+
+    if (changedProperties.has("percent") || !this._isInitialized) {
+      this._updateHostClasses();
     }
   }
 
-  private updatePercentClasses(percent: number) {
-    this.classList.toggle("high", percent >= 66);
-    this.classList.toggle("medium", percent < 66 && percent >= 33);
-    this.classList.toggle("low", percent < 33);
+  firstUpdated() {
+    this._isInitialized = true;
+  }
+
+  /**
+   * Updates the data-vital attribute for theme-specific styling
+   */
+  private _updateDataAttribute(): void {
+    if (this.label) {
+      this.setAttribute("data-vital", this.label);
+    } else {
+      this.removeAttribute("data-vital");
+    }
+  }
+
+  /**
+   * Updates the host element CSS classes based on percentage thresholds
+   * Uses computed properties for cleaner, more predictable class management
+   */
+  private _updateHostClasses(): void {
+    const classes = this._hostClasses;
+
+    // Apply classes based on computed state
+    this.classList.toggle("low", classes.low);
+    this.classList.toggle("medium", classes.medium);
+    this.classList.toggle("high", classes.high);
   }
 
   render() {
     return html`
-      <div class="vital-meter" style="width: ${this.percent}%"></div>
+      <div class="vital-meter" style="${this._meterStyle}"></div>
       <div class="vital-row">
         <span class="vital-label">${this.label}</span>
         <span class="vital-value">${this.value}</span>
@@ -178,6 +164,8 @@ export class VitalText extends LitElement {
       display: block;
       padding: 0.4em 0 0.2em;
       position: relative;
+      color: var(--color-text-primary, #ffffff);
+      background: transparent;
     }
 
     .vital-row {
@@ -187,52 +175,13 @@ export class VitalText extends LitElement {
 
     .vital-label {
       flex: 1;
+      color: var(--color-text-primary, #ffffff);
     }
 
     .vital-value {
       margin-left: auto;
       font-weight: bold;
-    }
-
-    /* Dark King theme styling for text vitals */
-    :host-context([theme='dark-king']) {
-      margin-top: 28px;
-      padding-bottom: 0.5em;
-      border-bottom: 1px solid black;
-      box-shadow: 0 1px 1px 0 #282323;
-    }
-
-    :host([data-vital="encumbrance"]:host-context([theme='dark-king']))::before {
-      content: "ENCUMBRANCE";
-      display: block;
-      position: absolute;
-      top: -10px;
-      left: 0;
-      font-size: 0.65em;
-      text-transform: uppercase;
-      opacity: 0.6;
-    }
-
-    :host([data-vital="mind"]:host-context([theme='dark-king']))::before {
-      content: "MIND";
-      display: block;
-      position: absolute;
-      top: -10px;
-      left: 0;
-      font-size: 0.65em;
-      text-transform: uppercase;
-      opacity: 0.6;
-    }
-
-    :host([data-vital="stance"]:host-context([theme='dark-king']))::before {
-      content: "STANCE";
-      display: block;
-      position: absolute;
-      top: -10px;
-      left: 0;
-      font-size: 0.65em;
-      text-transform: uppercase;
-      opacity: 0.6;
+      color: var(--color-text-primary, #ffffff);
     }
   `;
 
@@ -242,15 +191,47 @@ export class VitalText extends LitElement {
   @property({ type: String })
   value = "";
 
-  connectedCallback() {
-    super.connectedCallback();
-    // Set data-vital attribute for theme styling
-    this.setAttribute("data-vital", this.label);
+  @state()
+  private _isInitialized = false;
 
-    // Set inverted class for encumbrance (lower is better)
-    if (this.label === "encumbrance") {
-      this.classList.add("inverted");
+  /**
+   * Computed property to determine if this vital type is inverted
+   * (where lower values are better, like encumbrance)
+   */
+  private get _isInvertedVital(): boolean {
+    return this.label === "encumbrance";
+  }
+
+  willUpdate(changedProperties: Map<string | number | symbol, unknown>) {
+    super.willUpdate(changedProperties);
+
+    // Update data attribute and classes before render
+    if (changedProperties.has("label") || !this._isInitialized) {
+      this._updateDataAttribute();
+      this._updateInvertedClass();
     }
+  }
+
+  firstUpdated() {
+    this._isInitialized = true;
+  }
+
+  /**
+   * Updates the data-vital attribute for theme-specific styling
+   */
+  private _updateDataAttribute(): void {
+    if (this.label) {
+      this.setAttribute("data-vital", this.label);
+    } else {
+      this.removeAttribute("data-vital");
+    }
+  }
+
+  /**
+   * Updates the inverted class for vitals where lower is better
+   */
+  private _updateInvertedClass(): void {
+    this.classList.toggle("inverted", this._isInvertedVital);
   }
 
   render() {

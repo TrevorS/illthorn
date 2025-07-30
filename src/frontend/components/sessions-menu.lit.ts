@@ -34,7 +34,7 @@ export class SessionsMenu extends LitElement {
     }
 
     illthorn-sessions-menu-lit .no-sessions {
-      color: var(--text-color, white);
+      color: var(--color-text-primary, white);
       opacity: 0.7;
       text-align: center;
       font-style: italic;

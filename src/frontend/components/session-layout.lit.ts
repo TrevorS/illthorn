@@ -54,7 +54,7 @@ export class SessionLayout extends LitElement {
     }
 
     .hud {
-      border-right: 1px solid var(--info);
+      border-right: 1px solid var(--color-border);
     }
 
     .main {
@@ -76,7 +76,7 @@ export class SessionLayout extends LitElement {
       padding: 0.5em;
       text-transform: uppercase;
       text-align: center;
-      background-color: var(--info);
+      background-color: var(--color-surface);
       font-weight: bold;
     }
 
@@ -119,7 +119,7 @@ export class SessionLayout extends LitElement {
     }
 
     .cli-wrapper {
-      background-color: var(--info);
+      background-color: var(--color-surface);
       display: grid;
       grid-template-columns: 4em 1fr 22px;
       grid-gap: 0 0.5em;
@@ -179,11 +179,11 @@ export class SessionLayout extends LitElement {
     }
 
     .round-time-current {
-      background: var(--danger, red);
+      background: var(--color-danger, red);
     }
 
     .cast-time-current {
-      background: var(--gentle-warn, lightgreen);
+      background: var(--color-warning, lightgreen);
     }
 
     @keyframes roundtime {

@@ -23,8 +23,8 @@ export class AppRoot extends LitElement {
       height: 100vh;
       grid-template-columns: var(--actions-width, 7em) 1fr;
       overflow: hidden;
-      background-color: var(--main-bg-color, black);
-      color: var(--text-color, white);
+      background-color: var(--color-background-primary, black);
+      color: var(--color-text-primary, white);
     }
 
     illthorn-app-lit #app-left-pane {
@@ -34,7 +34,7 @@ export class AppRoot extends LitElement {
 
     illthorn-app-lit #actions {
       height: 100vh;
-      background: var(--info);
+      background: var(--color-surface);
       padding: 2em 0.75em 1em;
       -webkit-app-region: drag;
       display: flex;
@@ -136,7 +136,7 @@ export class AppRoot extends LitElement {
             <illthorn-session-layout-lit .session=${this.currentSession}></illthorn-session-layout-lit>
           `
               : html`
-            <div style="padding: 2em; color: var(--text-color, white); text-align: center;">
+            <div style="padding: 2em; color: var(--color-text-primary, white); text-align: center;">
               <h2>No Active Session</h2>
               <p>Connect to a Lich session to begin.</p>
               <p>Use <code>:c</code> command or start a Lich process with --detachable-client flag.</p>

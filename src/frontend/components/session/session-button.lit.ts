@@ -32,7 +32,6 @@ export class SessionButton extends LitElement {
       opacity: 1;
     }
 
-    /* TODO: Re-add rogue theme overrides when theme context is working properly */
 
     :host::before {
       content: "";

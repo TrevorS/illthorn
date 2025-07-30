@@ -41,43 +41,22 @@ export class SpellEffect extends LitElement {
     /* Low time warning styles */
     :host(.low) .spell-name,
     :host(.low) .spell-time {
-      color: var(--danger, #ff6e6e);
+      color: var(--color-danger);
       font-weight: bold;
     }
 
     /* Medium time warning styles */
     :host(.medium) .spell-name,
     :host(.medium) .spell-time {
-      color: var(--warn, #ffa500);
+      color: var(--color-warning);
     }
 
     /* High time styles (default/good) */
     :host(.high) .spell-name,
     :host(.high) .spell-time {
-      color: var(--ok, #90ee90);
+      color: var(--color-success);
     }
 
-    /* Dark King theme styling */
-    :host-context([theme='dark-king']) .spell-item {
-      padding-bottom: 0.5em;
-      border-bottom: 1px solid black;
-      box-shadow: 0 1px 1px 0 #282323;
-    }
-
-    :host-context([theme='dark-king']) .spell-item:hover {
-      background: black;
-    }
-
-    :host-context([theme='dark-king']) .spell-item .spell-name {
-      text-align: left;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-
-    :host-context([theme='dark-king']).low .spell-name {
-      color: #ff6e6e;
-    }
   `;
 
   @property({ type: String })
