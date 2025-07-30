@@ -1,8 +1,7 @@
 // ABOUTME: Modern Lit vital display components - VitalStat (with progress meter) and VitalText (text-only)
 // ABOUTME: Shared components used by the main vitals container for different display types
 import { css, html, LitElement } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
-import { classMap } from "lit/directives/class-map.js";
+import { customElement, property } from "lit/decorators.js";
 
 // Type definitions for better type safety
 type VitalThresholdCategory = "low" | "medium" | "high";
@@ -92,19 +91,6 @@ export class VitalStat extends LitElement {
       return "medium";
     }
     return "high";
-  }
-
-  /**
-   * Computed property that returns CSS classes to apply to the host element
-   * based on the current percentage threshold
-   */
-  private get _hostClasses(): Record<string, boolean> {
-    const category = this._thresholdCategory;
-    return {
-      low: category === "low",
-      medium: category === "medium",
-      high: category === "high",
-    };
   }
 
   /**
