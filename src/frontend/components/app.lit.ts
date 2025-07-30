@@ -21,7 +21,7 @@ export class AppRoot extends LitElement {
     illthorn-app-lit {
       display: grid;
       height: 100vh;
-      grid-template-columns: var(--actions-width, 6em) 1fr;
+      grid-template-columns: var(--actions-width, 7em) 1fr;
       overflow: hidden;
       background-color: var(--main-bg-color, black);
       color: var(--text-color, white);
@@ -35,7 +35,7 @@ export class AppRoot extends LitElement {
     illthorn-app-lit #actions {
       height: 100vh;
       background: var(--info);
-      padding: 2em 1em 1em;
+      padding: 2em 0.75em 1em;
       -webkit-app-region: drag;
       display: flex;
       flex-direction: column;
