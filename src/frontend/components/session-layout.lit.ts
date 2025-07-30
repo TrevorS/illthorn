@@ -10,6 +10,7 @@ import type { Vitals } from "./session/vitals/vitals.lit";
 import "./session/effects/effects.lit";
 import "./session/hands/hands.lit";
 import type { Hands } from "./session/hands/hands.lit";
+import type { Hand } from "./session/hands/hand.lit";
 import "./session/panel.lit";
 import "./session/streams.lit";
 import type { Streams } from "./session/streams.lit";

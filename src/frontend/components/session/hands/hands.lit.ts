@@ -2,7 +2,7 @@
 // ABOUTME: Provides unified interface for hand components with session integration
 import { css, html, LitElement } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
-import type { FrontendSession as Session } from "../../session/index";
+import type { FrontendSession as Session } from "../../../session/index";
 import "./hand.lit";
 import type { Hand } from "./hand.lit";
 

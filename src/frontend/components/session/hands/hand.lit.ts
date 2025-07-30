@@ -2,8 +2,8 @@
 // ABOUTME: Shows hand contents with emoji icons based on game metadata events
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { GameTag } from "../../parser/tag";
-import type { FrontendSession as Session } from "../../session/index";
+import type { GameTag } from "../../../parser/tag";
+import type { FrontendSession as Session } from "../../../session/index";
 
 @customElement("illthorn-hand-lit")
 export class Hand extends LitElement {
