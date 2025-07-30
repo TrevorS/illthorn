@@ -8,8 +8,9 @@ import "./session/room.lit";
 import "./session/vitals/vitals.lit";
 import type { Vitals } from "./session/vitals/vitals.lit";
 import "./session/effects/effects.lit";
-import { type Hand, makeHandLit } from "./session/hand.lit";
-import "./session/hand.lit";
+import "./session/hands.lit";
+import type { Hand } from "./session/hand.lit";
+import type { Hands } from "./session/hands.lit";
 import "./session/panel.lit";
 import "./session/streams.lit";
 import type { Streams } from "./session/streams.lit";
@@ -98,16 +99,7 @@ export class SessionLayout extends LitElement {
       grid-template-rows: auto var(--stream-height, 4em) 1fr auto;
     }
 
-    .hands {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 2em;
-      max-width: 90%;
-      margin: 0 auto;
-      padding: 0 2em;
-      -webkit-app-region: drag;
-    }
+    /* Hands styling now handled by illthorn-hands-lit component */
 
     .streams {
       /* Streams area - height controlled by grid-template-rows */
@@ -273,9 +265,7 @@ export class SessionLayout extends LitElement {
   private _initializationPromise: Promise<void>;
   private _resolveInitialization!: () => void;
 
-  private _leftHand?: Hand;
-  private _rightHand?: Hand;
-  private _spellHand?: Hand;
+  private _hands?: Hands;
 
   firstUpdated() {
     this._adoptStyles();
@@ -300,20 +290,7 @@ export class SessionLayout extends LitElement {
     this._streams = this.querySelector("illthorn-streams-lit") as Streams;
     this._cli = this.querySelector("illthorn-cli-lit") as CLI;
     this._prompt = this.querySelector("illthorn-prompt") as Prompt;
-
-    // Create hand components imperatively since they use factory function
-    this._leftHand = makeHandLit(this.session, "left");
-    this._rightHand = makeHandLit(this.session, "right");
-    this._spellHand = makeHandLit(this.session, "spell");
-
-    // Insert hands into the hands container
-    // Since we're using Light DOM, query from this element directly
-    const handsContainer = this.querySelector(".hands");
-    if (handsContainer && this._leftHand && this._rightHand && this._spellHand) {
-      handsContainer.appendChild(this._leftHand);
-      handsContainer.appendChild(this._rightHand);
-      handsContainer.appendChild(this._spellHand);
-    }
+    this._hands = this.querySelector("illthorn-hands-lit") as Hands;
   }
 
   /**
@@ -389,16 +366,18 @@ export class SessionLayout extends LitElement {
         }
         return null;
       },
-      hands: {
-        get left() {
-          return self._leftHand || null;
-        },
-        get right() {
-          return self._rightHand || null;
-        },
-        get spell() {
-          return self._spellHand || null;
-        },
+      get hands() {
+        if (self._hands) {
+          return self._hands.getHands();
+        }
+        if (self.isConnected) {
+          const hands = self.querySelector("illthorn-hands-lit") as Hands;
+          if (hands) {
+            self._hands = hands;
+            return hands.getHands();
+          }
+        }
+        return { left: null, right: null, spell: null };
       },
     };
   }
@@ -427,9 +406,7 @@ export class SessionLayout extends LitElement {
       </div>
 
       <div class="main">
-        <div class="hands">
-          <!-- Hands will be inserted here via firstUpdated -->
-        </div>
+        <illthorn-hands-lit .session=${this.session}></illthorn-hands-lit>
         
         <div class="streams">
           <illthorn-streams-lit .session=${this.session}></illthorn-streams-lit>

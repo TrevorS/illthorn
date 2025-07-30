@@ -45,48 +45,67 @@ export class Hand extends LitElement {
   @state()
   private _content = "None";
 
-  private _eventListenerSetup = false;
+  private _currentEventKey?: string;
+  private _eventHandler?: (event: CustomEvent<GameTag>) => void;
+  private _currentBus?: { _ele: { removeEventListener: (type: string, listener: EventListener) => void } };
 
   connectedCallback() {
     super.connectedCallback();
+    this._updateCssClass();
+  }
 
-    // Apply the CSS class for styling compatibility
+  willUpdate(changedProperties: Map<string | number | symbol, unknown>) {
+    super.willUpdate(changedProperties);
+
+    // Handle CSS class updates when name changes
+    if (changedProperties.has("name")) {
+      this._updateCssClass(changedProperties.get("name") as string);
+    }
+
+    // Handle event subscription changes when session or name changes
+    if (changedProperties.has("session") || changedProperties.has("name")) {
+      this._updateEventSubscription();
+    }
+  }
+
+  private _updateCssClass(oldName?: string) {
+    if (oldName) {
+      this.classList.remove(oldName);
+    }
     if (this.name) {
       this.classList.add(this.name);
     }
   }
 
-  updated(changedProperties: Map<string | number | symbol, unknown>) {
-    super.updated(changedProperties);
-
-    if (changedProperties.has("session") || changedProperties.has("name")) {
-      if (this.session && this.name && !this._eventListenerSetup) {
-        this.setupEventListeners();
-        this._eventListenerSetup = true;
-      }
+  private _updateEventSubscription() {
+    // Unsubscribe from previous event if it exists (use stored bus reference)
+    if (this._currentEventKey && this._eventHandler && this._currentBus) {
+      this._currentBus._ele.removeEventListener(this._currentEventKey, this._eventHandler as EventListener);
+      this._currentEventKey = undefined;
+      this._eventHandler = undefined;
+      this._currentBus = undefined;
     }
 
-    if (changedProperties.has("name")) {
-      // Update class when name changes
-      const oldName = changedProperties.get("name") as string;
-      if (oldName) {
-        this.classList.remove(oldName);
-      }
-      if (this.name) {
-        this.classList.add(this.name);
-      }
+    // Subscribe to new event if session and name are available
+    if (this.session?.bus && this.name) {
+      this._currentEventKey = `metadata/${this.name}`;
+      this._currentBus = this.session.bus;
+      this._eventHandler = ({ detail: hand }) => {
+        this._content = hand.children?.[0]?.text || "None";
+      };
+      this.session.bus.subscribeEvent<GameTag>(this._currentEventKey, this._eventHandler);
     }
   }
 
-  private setupEventListeners() {
-    if (!this.session || !this.session.bus || !this.name) {
-      return;
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // Clean up event subscription when component is removed
+    if (this._currentEventKey && this._eventHandler && this._currentBus) {
+      this._currentBus._ele.removeEventListener(this._currentEventKey, this._eventHandler as EventListener);
+      this._currentEventKey = undefined;
+      this._eventHandler = undefined;
+      this._currentBus = undefined;
     }
-
-    this.session.bus.subscribeEvent<GameTag>(`metadata/${this.name}`, ({ detail: hand }) => {
-      this._content = hand.children?.[0]?.text || "None";
-      this.requestUpdate();
-    });
   }
 
   private getHandIcon(): string {
@@ -100,13 +119,6 @@ export class Hand extends LitElement {
     `;
   }
 }
-
-export const makeHandLit = (session: Session, name: string): Hand => {
-  const hand = document.createElement("illthorn-hand-lit") as Hand;
-  hand.session = session;
-  hand.name = name;
-  return hand;
-};
 
 declare global {
   interface HTMLElementTagNameMap {

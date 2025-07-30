@@ -188,7 +188,7 @@ describe("SessionLayout", () => {
       const main = sessionUI.querySelector(".main");
       expect(main).toBeTruthy();
 
-      const hands = main?.querySelector(".hands");
+      const hands = main?.querySelector("illthorn-hands-lit");
       const streams = main?.querySelector("illthorn-streams-lit");
       const feed = main?.querySelector("illthorn-feed-lit");
       const cliWrapper = main?.querySelector(".cli-wrapper");
@@ -202,7 +202,7 @@ describe("SessionLayout", () => {
     it("should render hands container", async () => {
       await setup();
 
-      const handsContainer = sessionUI.querySelector(".hands");
+      const handsContainer = sessionUI.querySelector("illthorn-hands-lit");
       expect(handsContainer).toBeTruthy();
     });
 
@@ -238,18 +238,21 @@ describe("SessionLayout", () => {
   });
 
   describe("Hand components creation", () => {
-    it("should create hand components via makeHand factory", async () => {
+    it("should create hand components via hands container", async () => {
       await setup();
 
-      const handsContainer = sessionUI.querySelector(".hands");
+      const handsContainer = sessionUI.querySelector("illthorn-hands-lit");
       expect(handsContainer).toBeTruthy();
 
-      // Wait for firstUpdated to complete
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      // Wait for component initialization to complete
+      await sessionUI.waitForInitialization();
 
-      // Check that hand components were added to the container
-      const handElements = handsContainer?.querySelectorAll("illthorn-hand-lit");
-      expect(handElements?.length).toBe(3);
+      // Check that hands are accessible via the SessionUI interface
+      const sessionUIObj = sessionUI.getSessionUI();
+      const hands = sessionUIObj.hands;
+      expect(hands.left).toBeTruthy();
+      expect(hands.right).toBeTruthy();
+      expect(hands.spell).toBeTruthy();
     });
 
     it("should create left, right, and spell hands with proper names", async () => {
@@ -357,12 +360,12 @@ describe("SessionLayout", () => {
       expect(main?.classList.contains("main")).toBe(true);
     });
 
-    it("should have hands container with proper class", async () => {
+    it("should have hands container component", async () => {
       await setup();
 
-      const hands = sessionUI.querySelector(".hands");
+      const hands = sessionUI.querySelector("illthorn-hands-lit");
       expect(hands).toBeTruthy();
-      expect(hands?.classList.contains("hands")).toBe(true);
+      expect(hands?.tagName.toLowerCase()).toBe("illthorn-hands-lit");
     });
   });
 

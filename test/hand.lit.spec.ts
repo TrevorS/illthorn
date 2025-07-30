@@ -1,5 +1,5 @@
-import { describe, expect, test } from "vitest";
-import { Hand, makeHandLit } from "../src/frontend/components/session/hand.lit";
+import { describe, expect, test, vi } from "vitest";
+import { Hand } from "../src/frontend/components/session/hand.lit";
 import { makeTag } from "../src/frontend/parser/tag";
 import { createMockSession } from "./mocks";
 
@@ -226,6 +226,60 @@ describe("Hand", () => {
     teardown(element);
   });
 
+  test("should clean up event subscription on disconnect", async () => {
+    const { element, mockSession } = setup();
+    const removeEventListenerSpy = vi.spyOn(mockSession.bus._ele, "removeEventListener");
+
+    element.session = mockSession;
+    element.name = "left";
+    await element.updateComplete;
+
+    // Remove element to trigger disconnectedCallback
+    teardown(element);
+
+    // Verify removeEventListener was called for cleanup
+    expect(removeEventListenerSpy).toHaveBeenCalledWith("metadata/left", expect.any(Function));
+  });
+
+  test("should update event subscription when session changes", async () => {
+    const { element, mockSession } = setup();
+    const newMockSession = createMockSession();
+    const removeEventListenerSpy = vi.spyOn(mockSession.bus._ele, "removeEventListener");
+
+    // Set initial session and name
+    element.session = mockSession;
+    element.name = "left";
+    await element.updateComplete;
+
+    // Change session
+    element.session = newMockSession;
+    await element.updateComplete;
+
+    // Verify old subscription was cleaned up
+    expect(removeEventListenerSpy).toHaveBeenCalledWith("metadata/left", expect.any(Function));
+
+    teardown(element);
+  });
+
+  test("should update event subscription when name changes", async () => {
+    const { element, mockSession } = setup();
+    const removeEventListenerSpy = vi.spyOn(mockSession.bus._ele, "removeEventListener");
+
+    // Set initial session and name
+    element.session = mockSession;
+    element.name = "left";
+    await element.updateComplete;
+
+    // Change name
+    element.name = "right";
+    await element.updateComplete;
+
+    // Verify old subscription was cleaned up
+    expect(removeEventListenerSpy).toHaveBeenCalledWith("metadata/left", expect.any(Function));
+
+    teardown(element);
+  });
+
   test("should handle session and name property changes", async () => {
     const { element } = setup();
 
@@ -253,10 +307,12 @@ describe("Hand", () => {
   });
 });
 
-describe("makeHandLit factory function", () => {
+describe("Hand component instantiation", () => {
   test("should create HandLit element with correct properties", () => {
     const mockSession = createMockSession();
-    const hand = makeHandLit(mockSession, "left");
+    const hand = document.createElement("illthorn-hand-lit") as Hand;
+    hand.session = mockSession;
+    hand.name = "left";
 
     expect(hand).toBeInstanceOf(HTMLElement);
     expect(hand.tagName.toLowerCase()).toBe("illthorn-hand-lit");
@@ -266,9 +322,16 @@ describe("makeHandLit factory function", () => {
 
   test("should create different hand types", () => {
     const mockSession = createMockSession();
-    const leftHand = makeHandLit(mockSession, "left");
-    const rightHand = makeHandLit(mockSession, "right");
-    const spellHand = makeHandLit(mockSession, "spell");
+    const leftHand = document.createElement("illthorn-hand-lit") as Hand;
+    const rightHand = document.createElement("illthorn-hand-lit") as Hand;
+    const spellHand = document.createElement("illthorn-hand-lit") as Hand;
+
+    leftHand.session = mockSession;
+    leftHand.name = "left";
+    rightHand.session = mockSession;
+    rightHand.name = "right";
+    spellHand.session = mockSession;
+    spellHand.name = "spell";
 
     expect(leftHand.name).toBe("left");
     expect(rightHand.name).toBe("right");
@@ -277,7 +340,9 @@ describe("makeHandLit factory function", () => {
 
   test("should create elements with proper session reference", () => {
     const mockSession = createMockSession();
-    const hand = makeHandLit(mockSession, "spell");
+    const hand = document.createElement("illthorn-hand-lit") as Hand;
+    hand.session = mockSession;
+    hand.name = "spell";
     expect(hand.session).toBe(mockSession);
   });
 });
