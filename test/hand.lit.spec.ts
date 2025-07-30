@@ -1,17 +1,17 @@
 import { describe, expect, test } from "vitest";
-import { HandLit, makeHandLit } from "../src/frontend/components/session/hand.lit";
+import { Hand, makeHandLit } from "../src/frontend/components/session/hand.lit";
 import { makeTag } from "../src/frontend/parser/tag";
 import { createMockSession } from "./mocks";
 
-describe("HandLit", () => {
+describe("Hand", () => {
   const setup = () => {
-    const element = new HandLit();
+    const element = new Hand();
     const mockSession = createMockSession();
     document.body.appendChild(element);
     return { element, mockSession };
   };
 
-  const teardown = (element: HandLit) => {
+  const teardown = (element: Hand) => {
     if (element.parentNode) {
       element.parentNode.removeChild(element);
     }

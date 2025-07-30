@@ -5,7 +5,7 @@ import { customElement, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
 @customElement("illthorn-streams-lit")
-export class StreamsLit extends LitElement {
+export class Streams extends LitElement {
   static styles = css`
     :host {
       display: block;
@@ -52,8 +52,28 @@ export class StreamsLit extends LitElement {
     pre {
       margin: 0.2em 0;
       white-space: pre-wrap;
-      font-family: inherit;
-      line-height: 1.4;
+    }
+
+    .stream-channel {
+      font-weight: bold;
+      text-transform: uppercase;
+      color: var(--stream-channel-color, #91d686);
+    }
+
+    .stream-channel.death {
+      color: var(--danger, #ff3b00);
+    }
+
+    .stream-channel[data-stream-channel="[PrivateTo]"],
+    .stream-channel[data-stream-channel="[Private]"] {
+      background: var(--danger, #ff3b00);
+      color: white;
+    }
+
+    pre.loaded-from-storage-message {
+      opacity: 0.5;
+      margin: 1.5em 0;
+      text-align: center;
     }
 
     /* Stream channel styling */
@@ -186,6 +206,6 @@ export class StreamsLit extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-streams-lit": StreamsLit;
+    "illthorn-streams-lit": Streams;
   }
 }

@@ -1,7 +1,7 @@
 import { IllthornEvent } from "./events";
 import type { FrontendSession } from "./session";
 import { renderAllSessions } from "./session/connect-all";
-import { currentSession, endSession, renderSession } from "./session/helpers";
+import { currentSession, endSession } from "./session/helpers";
 import { SessionMap } from "./session/map";
 import { Bus } from "./util/bus";
 
@@ -36,7 +36,10 @@ class IIllthorn {
   }
 
   renderSession(session: FrontendSession) {
-    renderSession(session, document.getElementById("current-context"));
+    // The app root component now handles session rendering via bus events
+    // This method is kept for API compatibility but delegates to the component
+    const appRoot = document.querySelector("illthorn-app-lit") as HTMLElement & { renderSession?: (session: FrontendSession) => void };
+    appRoot?.renderSession?.(session);
   }
 
   async handleCommand(command: string) {

@@ -4,22 +4,30 @@ import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import type { FrontendSession as Session } from "../../session/index";
+import { debugFeed } from "../../util/logger";
 
 @customElement("illthorn-feed-lit")
-export class FeedLit extends LitElement {
+export class Feed extends LitElement {
   static MIN_SCROLL_BUFFER = 300;
   static MAX_MEMORY_LENGTH = 100 * 5;
 
   static styles = css`
     :host {
       display: block;
-      overflow-y: auto;
       height: 100%;
-      font-family: inherit;
-      padding: 0 1em 1em 1em;
+      width: 100%;
+      font-family: "MonoLisa", monospace;
       box-sizing: border-box;
+      overflow: hidden;
       /* Force onto GPU for best rendering */
       transform: translate3d(0, 0, 0);
+    }
+
+    .feed-container {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0.5em;
     }
 
     :host(.feed) {
@@ -56,13 +64,16 @@ export class FeedLit extends LitElement {
     /* Base content styling */
     .content {
       line-height: 1.4;
+      word-wrap: break-word;
+      white-space: pre-wrap;
     }
 
     .content pre {
       margin: 0;
       line-height: 1.4;
       white-space: pre-wrap;
-      font-family: inherit;
+      word-wrap: break-word;
+      font-family: "MonoLisa", monospace;
     }
 
     .content mark {
@@ -83,6 +94,64 @@ export class FeedLit extends LitElement {
 
     .content .roomDesc {
       color: var(--room-desc-color, var(--text-color, #fff));
+    }
+
+    /* Theme-specific room styling */
+    
+    /* Rogue theme */
+    :host-context([theme='rogue']) .content .roomName {
+      color: var(--cyan);
+    }
+
+    /* Dark King theme */
+    :host-context([theme='dark-king']) .content .roomName {
+      margin: 1em 0 0 0;
+      background: linear-gradient(to right, rgba(169, 144, 239, 0.35), transparent);
+      color: white;
+      padding: 0.5em 1em;
+    }
+
+    :host-context([theme='dark-king']) .content .roomDesc {
+      margin: 0 0 1em 0;
+      padding: 0.5em 1em;
+      opacity: 0.66;
+      background: linear-gradient(to right, rgba(169, 144, 239, 0.2), transparent);
+    }
+
+    /* Discstone theme */
+    :host-context([theme='discstone']) .content .roomName {
+      background: #2e3136;
+      color: var(--purple, #a990ef);
+      padding: 0.5em;
+    }
+
+    :host-context([theme='discstone']) .content .roomDesc {
+      background: #2e3136;
+      padding: 0.5em;
+      margin-bottom: 0.5em;
+    }
+
+    /* Raging Thrak theme */
+    :host-context([theme='raging-thrak']) .content .roomName {
+      margin: 10px 0 0 0;
+      background: linear-gradient(to right, rgba(255, 165, 0, 0.35), transparent);
+      color: white;
+      padding: 0.5em 1em;
+    }
+
+    :host-context([theme='raging-thrak']) .content .roomDesc {
+      margin: 0 0 10px 0;
+      padding: 6px;
+      opacity: 0.75;
+    }
+
+    /* Icemule theme */
+    :host-context([theme='icemule']) .content .roomName {
+      color: #d08770;
+    }
+
+    :host-context([theme='icemule']) .content .roomDesc {
+      padding: 0.5rem;
     }
 
     /* Communication styling */
@@ -164,6 +233,11 @@ export class FeedLit extends LitElement {
   @state()
   private _contentHTML: Array<string> = [];
 
+  @state()
+  private _shouldAutoScroll = true;
+
+  private _feedContainer?: HTMLElement;
+
   connectedCallback() {
     super.connectedCallback();
     this.classList.add("feed", "scroll");
@@ -178,10 +252,11 @@ export class FeedLit extends LitElement {
    * Check if user is manually scrolling (not at bottom)
    */
   get isScrolling(): boolean {
+    if (!this._feedContainer) return false;
     // No content scrollable
-    if (this.scrollHeight === this.clientHeight) return false;
-    // Check the relative scroll offset from the head
-    return this.scrollHeight - this.scrollTop - this.clientHeight > 1;
+    if (this._feedContainer.scrollHeight === this._feedContainer.clientHeight) return false;
+    // Check the relative scroll offset from the head with a larger buffer for precision
+    return this._feedContainer.scrollHeight - this._feedContainer.scrollTop - this._feedContainer.clientHeight > 10;
   }
 
   /**
@@ -222,11 +297,27 @@ export class FeedLit extends LitElement {
   }
 
   /**
+   * appendChild override for Feed-specific functionality
+   * Handles DocumentFragment appending while maintaining DOM compatibility
+   */
+  appendChild<T extends Node>(node: T): T;
+  appendChild(fragment: DocumentFragment): DocumentFragment;
+  appendChild(node: Node): Node {
+    if (node instanceof DocumentFragment || node instanceof Element) {
+      this.appendParsed(node);
+      return node;
+    }
+    // Fallback to parent implementation for other Node types
+    return super.appendChild(node);
+  }
+
+  /**
    * Appends a single parsed element to the HEAD of the message feed
    */
   appendParsed(ele: DocumentFragment | Element) {
+    debugFeed("appendParsed called with content: %o", ele);
+
     if (!ele.hasChildNodes() && !(ele as Element).outerHTML) {
-      console.trace("{error: %o}", ele);
       return;
     }
 
@@ -248,8 +339,11 @@ export class FeedLit extends LitElement {
     // Flush old content if we've grown too long
     this.flush();
 
+    // Trigger re-render
+    this.requestUpdate();
+
     // Schedule scroll after render if not manually scrolling
-    if (!wasScrolling) {
+    if (!wasScrolling && this._shouldAutoScroll) {
       this.updateComplete.then(() => {
         this.scrollToNow();
       });
@@ -260,7 +354,10 @@ export class FeedLit extends LitElement {
    * Scroll to the HEAD position (bottom)
    */
   scrollToNow() {
-    this.scrollTop = this.scrollHeight;
+    if (this._feedContainer) {
+      this._feedContainer.scrollTop = this._feedContainer.scrollHeight;
+      this._shouldAutoScroll = true;
+    }
     return this;
   }
 
@@ -268,10 +365,21 @@ export class FeedLit extends LitElement {
    * Finalizer for pruned nodes - removes old entries to manage memory
    */
   flush() {
-    while (this._contentHTML.length > FeedLit.MAX_MEMORY_LENGTH) {
+    while (this._contentHTML.length > Feed.MAX_MEMORY_LENGTH) {
       this._contentHTML = this._contentHTML.slice(1);
     }
     return this;
+  }
+
+  /**
+   * Handle scroll events to detect manual scrolling
+   */
+  private _handleScroll(_e: Event) {
+    if (!this._feedContainer) return;
+
+    const container = this._feedContainer;
+    const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 10;
+    this._shouldAutoScroll = isAtBottom;
   }
 
   /**
@@ -288,16 +396,31 @@ export class FeedLit extends LitElement {
     switch (target.tagName.toLowerCase()) {
       case "d":
       case "a":
-        console.log("click -> %o", target);
-        console.warn("<%s> handling not implemented", target.tagName);
         break;
+    }
+  }
+
+  /**
+   * Clear all feed content
+   */
+  clear() {
+    this._contentHTML = [];
+    return this;
+  }
+
+  updated() {
+    // Cache reference to the feed container after render
+    if (!this._feedContainer) {
+      this._feedContainer = this.shadowRoot?.querySelector(".feed-container") as HTMLElement;
     }
   }
 
   render() {
     return html`
-      <div class="content" @click=${this._handleClick}>
-        ${this._contentHTML.map((contentHTML) => unsafeHTML(contentHTML))}
+      <div class="feed-container" @scroll=${this._handleScroll}>
+        <div class="content" @click=${this._handleClick}>
+          ${this._contentHTML.map((contentHTML) => unsafeHTML(contentHTML))}
+        </div>
       </div>
     `;
   }
@@ -305,6 +428,6 @@ export class FeedLit extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-feed-lit": FeedLit;
+    "illthorn-feed-lit": Feed;
   }
 }

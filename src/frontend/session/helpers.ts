@@ -1,8 +1,7 @@
 import { IllthornEvent } from "../events";
 import { Illthorn } from "../illthorn";
-import { sessionsMenu } from "../layout";
 import type { GameTag } from "../parser/tag";
-import { debugMetadata, logMetadataEvent } from "../util/logger";
+import { debugMetadata, debugSession, logMetadataEvent } from "../util/logger";
 import type { FrontendSession, FrontendSession as Session } from ".";
 import { SessionMap } from "./map";
 
@@ -26,18 +25,22 @@ export function currentSession(): FrontendSession | undefined {
 }
 
 export function focusSession(session: Session) {
+  debugSession("focusSession called with: %s hasFocus: %s", session.name, session.hasFocus);
   if (session.hasFocus) return session; // noop
   Array.from(SessionMap).forEach(([_, otherSession]) => {
     otherSession.hasFocus = otherSession === session;
   });
 
+  debugSession("dispatching SESSION_FOCUS event for: %s", session.name);
   Illthorn.bus.dispatchEvent(IllthornEvent.SESSION_FOCUS, session);
   return session;
 }
 
-export function renderSession(session: Session, container: HTMLElement) {
-  container.innerHTML = "";
-  container.append(session.ui.context);
+export function renderSession(session: Session, _container: HTMLElement) {
+  // Legacy function - session rendering is now handled by AppRoot component
+  // This is kept for API compatibility but session rendering happens automatically
+  // via the SESSION_FOCUS event and AppRoot's handleSessionFocus method
+  debugSession("renderSession() is deprecated - session rendering happens automatically via AppRoot");
   session.onFocus();
   return session;
 }
@@ -45,7 +48,6 @@ export function renderSession(session: Session, container: HTMLElement) {
 export function sendCommandToGame(session: Session, cmd: string, _id = "cli") {
   cmd = cmd.toString().trim();
   if (cmd.length === 0) return;
-  //console.log("command=%s", cmd)
   const prompt = session.ui.feed.querySelector("prompt:last-child");
   if (prompt) prompt.textContent += cmd;
   session.sendCommand(cmd);
@@ -90,10 +92,8 @@ export function handleNotification(session: Session, tag: GameTag) {
 }
 
 export function renderSessionsMenu() {
-  sessionsMenu.innerHTML = "";
-
-  Array.from(SessionMap)
-    .map(([_name, session]) => session)
-    .sort((a, b) => a.port - b.port)
-    .forEach((sess) => sessionsMenu.append(sess.actionButton));
+  // The app root component now handles session menu rendering
+  // This function is kept for API compatibility and triggers component updates
+  const appRoot = document.querySelector("illthorn-app-lit") as HTMLElement & { updateSessionsList?: () => void };
+  appRoot?.updateSessionsList?.();
 }

@@ -62,7 +62,6 @@ export class Parser {
     if (~closeIdx) cursor.idx = opts.inclusive ? closeIdx + 1 : closeIdx;
     // dangling text
     if (!~closeIdx) cursor.idx = text.length;
-    //console.log("consume(range=%s..%s)", startIdx, cursor.idx)
     return text.slice(startIdx, ~closeIdx ? cursor.idx : text.length);
   }
 
@@ -77,7 +76,6 @@ export class Parser {
           return void this.done.push(tag);
         }
 
-        //console.log("adding child(%s) to %s", tag.name, this.lastPendingTag.name)
         return void this.lastPendingTag.children.push(tag);
 
       case TagState.OPEN:
@@ -89,14 +87,11 @@ export class Parser {
 
   handleTagStart(cursor: ParserCursor, text: string) {
     const tagInfo = this.consumeToChar(cursor, text, { delimiter: ">", inclusive: true });
-    //console.log("tag/start -> ", tagInfo)
     this.parseTag(tagInfo.slice(1, tagInfo.length - 1));
   }
 
   handleTextNode(cursor: ParserCursor, text: string) {
     const textContent = this.consumeToChar(cursor, text, { delimiter: "<", inclusive: false });
-    //console.log("tag/text -> ", textContent, cursor)
-    // console.log("parser/text", textContent)
     const tag = makeTag(":text");
     tag.text = textContent;
     tag.state = TagState.CLOSED;
@@ -139,7 +134,6 @@ export class Parser {
     if (tagName.length < tagInfo.length) {
       tag.attrs = parseAttrs(tagInfo.slice(cursor.idx));
     }
-    //console.log("parser/open/tag", tag)
     this.appendTag(tag);
   }
 

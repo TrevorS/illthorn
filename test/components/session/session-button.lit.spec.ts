@@ -44,8 +44,8 @@ describe("SessionButton", () => {
       const { sessionButton } = setup();
       await sessionButton.updateComplete;
 
-      // Check that rendered content (excluding styles) is empty
-      const contentNodes = Array.from(sessionButton.shadowRoot?.childNodes || []).filter((node) => node.nodeType === Node.ELEMENT_NODE && node.nodeName !== "STYLE");
+      // Check that rendered content (excluding styles) is empty - Light DOM has no content when no session
+      const contentNodes = Array.from(sessionButton.childNodes || []).filter((node) => node.nodeType === Node.ELEMENT_NODE && node.nodeName !== "STYLE");
       expect(contentNodes.length).toBe(0);
 
       teardown(sessionButton);
@@ -79,13 +79,13 @@ describe("SessionButton", () => {
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      // Check that session name first character is displayed
-      const sessionNameElement = sessionButton.shadowRoot?.querySelector(".session-name");
+      // Check that session name first character is displayed (Light DOM)
+      const sessionNameElement = sessionButton.querySelector(".session-name");
       expect(sessionNameElement?.textContent?.trim()).toBe("t"); // First char of "test-session"
       expect(sessionNameElement?.getAttribute("title")).toBe("test-session");
 
       // Check that tab number is displayed (depends on position in parent)
-      const altNumericElement = sessionButton.shadowRoot?.querySelector(".alt-numeric");
+      const altNumericElement = sessionButton.querySelector(".alt-numeric");
       const tabNumber = altNumericElement?.textContent?.trim();
       expect(tabNumber).toMatch(/^\d+$/); // Should be a number
 
@@ -160,20 +160,27 @@ describe("SessionButton", () => {
       const session2 = createMockSession("session2");
       const session3 = createMockSession("session3");
 
-      sessionButton1.session = session1;
-      sessionButton2.session = session2;
-      sessionButton3.session = session3;
-
+      // Add to DOM first, then set session to trigger firstUpdated
       container.appendChild(sessionButton1);
       container.appendChild(sessionButton2);
       container.appendChild(sessionButton3);
 
+      // Set sessions after DOM connection
+      sessionButton1.session = session1;
+      sessionButton2.session = session2;
+      sessionButton3.session = session3;
+
+      // Wait for initial connection and render
       await Promise.all([sessionButton1.updateComplete, sessionButton2.updateComplete, sessionButton3.updateComplete]);
 
-      // Check tab numbers
-      const tab1 = sessionButton1.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
-      const tab2 = sessionButton2.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
-      const tab3 = sessionButton3.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
+      // Wait for tab number calculation (uses setTimeout) and mutation observer
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      await Promise.all([sessionButton1.updateComplete, sessionButton2.updateComplete, sessionButton3.updateComplete]);
+
+      // Check tab numbers (using Light DOM)
+      const tab1 = sessionButton1.querySelector(".alt-numeric")?.textContent?.trim();
+      const tab2 = sessionButton2.querySelector(".alt-numeric")?.textContent?.trim();
+      const tab3 = sessionButton3.querySelector(".alt-numeric")?.textContent?.trim();
 
       expect(tab1).toBe("1");
       expect(tab2).toBe("2");
@@ -192,7 +199,7 @@ describe("SessionButton", () => {
       await sessionButton.updateComplete;
 
       // Should not throw error and default to 0
-      const tabNumber = sessionButton.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
+      const tabNumber = sessionButton.querySelector(".alt-numeric")?.textContent?.trim();
       expect(tabNumber).toBe("0");
     });
   });
@@ -209,7 +216,7 @@ describe("SessionButton", () => {
       await sessionButton.updateComplete;
 
       // Click the button
-      const clickableDiv = sessionButton.shadowRoot?.querySelector("div");
+      const clickableDiv = sessionButton.querySelector("div");
       expect(clickableDiv).toBeTruthy();
 
       clickableDiv?.dispatchEvent(new MouseEvent("click"));
@@ -231,7 +238,7 @@ describe("SessionButton", () => {
       await sessionButton.updateComplete;
 
       // Click the button
-      const clickableDiv = sessionButton.shadowRoot?.querySelector("div");
+      const clickableDiv = sessionButton.querySelector("div");
       clickableDiv?.dispatchEvent(new MouseEvent("click"));
       await sessionButton.updateComplete;
 
@@ -249,7 +256,7 @@ describe("SessionButton", () => {
       await sessionButton.updateComplete;
 
       // Click the button (no session set)
-      const clickableDiv = sessionButton.shadowRoot?.querySelector("div");
+      const clickableDiv = sessionButton.querySelector("div");
       clickableDiv?.dispatchEvent(new MouseEvent("click"));
       await sessionButton.updateComplete;
 
@@ -268,9 +275,10 @@ describe("SessionButton", () => {
 
       expect(sessionButton.classList.contains("action")).toBe(true);
 
-      // Check that CSS styles are defined
-      const styleElement = sessionButton.shadowRoot?.querySelector("style");
-      expect(styleElement?.textContent).toContain(":host(.action)");
+      // Check that CSS styles are defined (Light DOM uses static styles)
+      const styles = SessionButton.styles;
+      const stylesText = styles.toString();
+      expect(stylesText).toContain("illthorn-session-button.action");
 
       teardown(sessionButton);
     });
@@ -297,7 +305,7 @@ describe("SessionButton", () => {
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      const sessionNameElement = sessionButton.shadowRoot?.querySelector(".session-name");
+      const sessionNameElement = sessionButton.querySelector(".session-name");
       expect(sessionNameElement).toBeTruthy();
 
       teardown(sessionButton);
@@ -309,7 +317,7 @@ describe("SessionButton", () => {
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      const altNumericElement = sessionButton.shadowRoot?.querySelector(".alt-numeric");
+      const altNumericElement = sessionButton.querySelector(".alt-numeric");
       expect(altNumericElement).toBeTruthy();
 
       teardown(sessionButton);
@@ -338,7 +346,7 @@ describe("SessionButton", () => {
       expect(sessionButton.session).toBe(newMockSession);
 
       // Check that new session name is rendered
-      const sessionNameElement = sessionButton.shadowRoot?.querySelector(".session-name");
+      const sessionNameElement = sessionButton.querySelector(".session-name");
       expect(sessionNameElement?.textContent?.trim()).toBe("n"); // First char of "new-session"
 
       teardown(sessionButton);
@@ -384,7 +392,7 @@ describe("SessionButton", () => {
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      const container = sessionButton.shadowRoot?.querySelector("div");
+      const container = sessionButton.querySelector("div");
       expect(container).toBeTruthy();
 
       const sessionNameElement = container?.querySelector(".session-name");

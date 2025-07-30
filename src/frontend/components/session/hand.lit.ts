@@ -6,7 +6,7 @@ import type { GameTag } from "../../parser/tag";
 import type { FrontendSession as Session } from "../../session/index";
 
 @customElement("illthorn-hand-lit")
-export class HandLit extends LitElement {
+export class Hand extends LitElement {
   static styles = css`
     :host {
       padding: 0 1em;
@@ -32,6 +32,22 @@ export class HandLit extends LitElement {
       text-overflow: ellipsis;
       white-space: nowrap;
       min-width: 8em;
+    }
+
+    /* Dark King theme hand positioning */
+    :host-context([theme='dark-king']).left .hand-icon {
+      transform: rotate(22deg) scaleX(-1);
+    }
+
+    :host-context([theme='dark-king']).right {
+      flex-direction: row-reverse;
+    }
+
+    :host-context([theme='dark-king']).right .hand-icon {
+      transform: rotate(-22deg);
+      order: 2;
+      margin-right: 0;
+      margin-left: 1em;
     }
   `;
 
@@ -78,7 +94,7 @@ export class HandLit extends LitElement {
   }
 
   private setupEventListeners() {
-    if (!this.session || !this.name) {
+    if (!this.session || !this.session.bus || !this.name) {
       return;
     }
 
@@ -100,8 +116,8 @@ export class HandLit extends LitElement {
   }
 }
 
-export const makeHandLit = (session: Session, name: string): HandLit => {
-  const hand = document.createElement("illthorn-hand-lit") as HandLit;
+export const makeHandLit = (session: Session, name: string): Hand => {
+  const hand = document.createElement("illthorn-hand-lit") as Hand;
   hand.session = session;
   hand.name = name;
   return hand;
@@ -109,6 +125,6 @@ export const makeHandLit = (session: Session, name: string): HandLit => {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-hand-lit": HandLit;
+    "illthorn-hand-lit": Hand;
   }
 }

@@ -6,7 +6,7 @@ import type { GameTag } from "../../parser/tag";
 import type { FrontendSession as Session } from "../../session/index";
 
 @customElement("illthorn-room-lit")
-export class RoomLit extends LitElement {
+export class Room extends LitElement {
   static styles = css`
     :host {
       display: flex;
@@ -54,7 +54,7 @@ export class RoomLit extends LitElement {
   }
 
   private setupEventListeners() {
-    if (!this.session) {
+    if (!this.session || !this.session.bus) {
       return;
     }
 
@@ -80,6 +80,6 @@ export class RoomLit extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-room-lit": RoomLit;
+    "illthorn-room-lit": Room;
   }
 }
