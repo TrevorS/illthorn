@@ -179,9 +179,9 @@ describe("VitalStat Component", () => {
     document.body.appendChild(vitalStat);
     await vitalStat.updateComplete;
 
-    expect(vitalStat.classList.contains("low")).toBe(true);
-    expect(vitalStat.classList.contains("medium")).toBe(false);
-    expect(vitalStat.classList.contains("high")).toBe(false);
+    expect(vitalStat.hasAttribute("low")).toBe(true);
+    expect(vitalStat.hasAttribute("medium")).toBe(false);
+    expect(vitalStat.hasAttribute("high")).toBe(false);
 
     vitalStat.remove();
   });

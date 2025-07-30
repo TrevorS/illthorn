@@ -51,11 +51,13 @@ describe("SessionButton", () => {
       teardown(sessionButton);
     });
 
-    it("should add action class on connection", async () => {
+    it("should have proper styling on initial render", async () => {
       const { sessionButton } = setup();
       await sessionButton.updateComplete;
 
-      expect(sessionButton.classList.contains("action")).toBe(true);
+      // The component uses CSS attributes and internal styling rather than external classes
+      expect(sessionButton.tagName.toLowerCase()).toBe("illthorn-session-button");
+      expect(sessionButton.getAttribute("active")).toBe(null); // Should be null when no session/not active
 
       teardown(sessionButton);
     });
@@ -79,13 +81,13 @@ describe("SessionButton", () => {
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      // Check that session name first character is displayed (Light DOM)
-      const sessionNameElement = sessionButton.querySelector(".session-name");
+      // Check that session name first character is displayed (Shadow DOM)
+      const sessionNameElement = sessionButton.shadowRoot?.querySelector(".session-name");
       expect(sessionNameElement?.textContent?.trim()).toBe("t"); // First char of "test-session"
       expect(sessionNameElement?.getAttribute("title")).toBe("test-session");
 
       // Check that tab number is displayed (depends on position in parent)
-      const altNumericElement = sessionButton.querySelector(".alt-numeric");
+      const altNumericElement = sessionButton.shadowRoot?.querySelector(".alt-numeric");
       const tabNumber = altNumericElement?.textContent?.trim();
       expect(tabNumber).toMatch(/^\d+$/); // Should be a number
 
@@ -113,13 +115,13 @@ describe("SessionButton", () => {
       await sessionButton.updateComplete;
 
       // Initially not active
-      expect(sessionButton.classList.contains("on")).toBe(false);
+      expect(sessionButton.hasAttribute("active")).toBe(false);
 
       // Dispatch SESSION_FOCUS event for this session
       Illthorn.bus.dispatchEvent(IllthornEvent.SESSION_FOCUS, mockSession);
       await sessionButton.updateComplete;
 
-      expect(sessionButton.classList.contains("on")).toBe(true);
+      expect(sessionButton.hasAttribute("active")).toBe(true);
 
       teardown(sessionButton);
     });
@@ -133,14 +135,14 @@ describe("SessionButton", () => {
       // Make this session active first
       Illthorn.bus.dispatchEvent(IllthornEvent.SESSION_FOCUS, mockSession);
       await sessionButton.updateComplete;
-      expect(sessionButton.classList.contains("on")).toBe(true);
+      expect(sessionButton.hasAttribute("active")).toBe(true);
 
       // Focus different session
       const otherSession = createMockSession("other-session");
       Illthorn.bus.dispatchEvent(IllthornEvent.SESSION_FOCUS, otherSession);
       await sessionButton.updateComplete;
 
-      expect(sessionButton.classList.contains("on")).toBe(false);
+      expect(sessionButton.hasAttribute("active")).toBe(false);
 
       teardown(sessionButton);
     });
@@ -177,10 +179,10 @@ describe("SessionButton", () => {
       await new Promise((resolve) => setTimeout(resolve, 50));
       await Promise.all([sessionButton1.updateComplete, sessionButton2.updateComplete, sessionButton3.updateComplete]);
 
-      // Check tab numbers (using Light DOM)
-      const tab1 = sessionButton1.querySelector(".alt-numeric")?.textContent?.trim();
-      const tab2 = sessionButton2.querySelector(".alt-numeric")?.textContent?.trim();
-      const tab3 = sessionButton3.querySelector(".alt-numeric")?.textContent?.trim();
+      // Check tab numbers (using Shadow DOM)
+      const tab1 = sessionButton1.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
+      const tab2 = sessionButton2.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
+      const tab3 = sessionButton3.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
 
       expect(tab1).toBe("1");
       expect(tab2).toBe("2");
@@ -199,7 +201,7 @@ describe("SessionButton", () => {
       await sessionButton.updateComplete;
 
       // Should not throw error and default to 0
-      const tabNumber = sessionButton.querySelector(".alt-numeric")?.textContent?.trim();
+      const tabNumber = sessionButton.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
       expect(tabNumber).toBe("0");
     });
   });
@@ -216,7 +218,7 @@ describe("SessionButton", () => {
       await sessionButton.updateComplete;
 
       // Click the button
-      const clickableDiv = sessionButton.querySelector("div");
+      const clickableDiv = sessionButton.shadowRoot?.querySelector("div");
       expect(clickableDiv).toBeTruthy();
 
       clickableDiv?.dispatchEvent(new MouseEvent("click"));
@@ -267,23 +269,24 @@ describe("SessionButton", () => {
   });
 
   describe("CSS Styling", () => {
-    it("should have proper action class styling", async () => {
+    it("should have proper CSS styling defined", async () => {
       const { sessionButton, mockSession } = setup();
 
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      expect(sessionButton.classList.contains("action")).toBe(true);
+      // Check that the component has proper CSS structure
+      expect(sessionButton.tagName.toLowerCase()).toBe("illthorn-session-button");
 
-      // Check that CSS styles are defined (Light DOM uses static styles)
+      // Check that CSS styles are defined (Shadow DOM uses static styles)
       const styles = SessionButton.styles;
       const stylesText = styles.toString();
-      expect(stylesText).toContain("illthorn-session-button.action");
+      expect(stylesText).toContain(":host");
 
       teardown(sessionButton);
     });
 
-    it("should apply active styling when on class is present", async () => {
+    it("should apply active styling when session is focused", async () => {
       const { sessionButton, mockSession } = setup();
 
       sessionButton.session = mockSession;
@@ -293,8 +296,8 @@ describe("SessionButton", () => {
       Illthorn.bus.dispatchEvent(IllthornEvent.SESSION_FOCUS, mockSession);
       await sessionButton.updateComplete;
 
-      expect(sessionButton.classList.contains("on")).toBe(true);
-      expect(sessionButton.classList.contains("action")).toBe(true);
+      expect(sessionButton.hasAttribute("active")).toBe(true);
+      expect(sessionButton.active).toBe(true);
 
       teardown(sessionButton);
     });
@@ -305,7 +308,7 @@ describe("SessionButton", () => {
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      const sessionNameElement = sessionButton.querySelector(".session-name");
+      const sessionNameElement = sessionButton.shadowRoot?.querySelector(".session-name");
       expect(sessionNameElement).toBeTruthy();
 
       teardown(sessionButton);
@@ -317,7 +320,7 @@ describe("SessionButton", () => {
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      const altNumericElement = sessionButton.querySelector(".alt-numeric");
+      const altNumericElement = sessionButton.shadowRoot?.querySelector(".alt-numeric");
       expect(altNumericElement).toBeTruthy();
 
       teardown(sessionButton);
@@ -346,7 +349,7 @@ describe("SessionButton", () => {
       expect(sessionButton.session).toBe(newMockSession);
 
       // Check that new session name is rendered
-      const sessionNameElement = sessionButton.querySelector(".session-name");
+      const sessionNameElement = sessionButton.shadowRoot?.querySelector(".session-name");
       expect(sessionNameElement?.textContent?.trim()).toBe("n"); // First char of "new-session"
 
       teardown(sessionButton);
@@ -379,7 +382,7 @@ describe("SessionButton", () => {
       Illthorn.bus.dispatchEvent(IllthornEvent.SESSION_FOCUS, mockSession);
       await sessionButton.updateComplete;
 
-      expect(sessionButton.classList.contains("on")).toBe(true);
+      expect(sessionButton.hasAttribute("active")).toBe(true);
 
       teardown(sessionButton);
     });
@@ -392,7 +395,7 @@ describe("SessionButton", () => {
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      const container = sessionButton.querySelector("div");
+      const container = sessionButton.shadowRoot?.querySelector("div");
       expect(container).toBeTruthy();
 
       const sessionNameElement = container?.querySelector(".session-name");

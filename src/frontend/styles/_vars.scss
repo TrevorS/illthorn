@@ -1,3 +1,49 @@
+// Semantic CSS custom properties for consistent theming
+:root {
+  // Background colors
+  --color-background-primary: #000000;     // Main app background
+  --color-background-secondary: #1a1a1a;   // Panel/surface backgrounds
+  
+  // Text colors
+  --color-text-primary: #ffffff;           // Main text
+  --color-text-secondary: #cccccc;         // Dimmed/secondary text
+  
+  // UI colors
+  --color-border: #444444;                 // Borders and dividers
+  --color-surface: #2a2a2a;               // Elevated surfaces
+  
+  // Status colors
+  --color-success: #4caf50;                // Success/good states (vitals high)
+  --color-warning: #ff9800;                // Warning states (vitals medium)
+  --color-danger: #f44336;                 // Error/danger states (vitals low)
+  --color-info: #2196f3;                   // Neutral info states
+  
+  // Interactive colors
+  --color-link: #27a4fd;                   // Hyperlinks
+  --color-focus: #0a84ff;                  // Focus indicators
+  
+  // Game-specific colors
+  --color-room-name: var(--color-text-primary);
+  --color-room-description: var(--color-text-secondary);
+  --color-speech: #1ce21c;
+  --color-whisper: #00921f;
+  --color-monster: #fb5d2d;
+  --color-macro: #de5aff;
+  
+  // Legacy color mappings for backward compatibility (deprecated)
+  --main-bg-color: var(--color-background-primary);
+  --text-color: var(--color-text-primary);
+  --info: var(--color-border);
+  --ok: var(--color-success);
+  --warn: var(--color-danger);
+  --gentle-warn: var(--color-warning);
+  
+  // Layout dimensions
+  --actions-width: 7em;            // Left pane width
+  --stream-height: 4em;            // Streams height
+  --hud-width: 14em;               // Right HUD width
+}
+
 $boxes: "box", "chest", "coffer", "strongbox", "trunk";
 
 $directions: "north", "south", "east", "west", "northwest",

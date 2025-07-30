@@ -8,7 +8,7 @@ import type { FrontendSession } from "../session";
 import { adoptLightDomStyles } from "../util/light-dom-styles";
 import { debugApp } from "../util/logger";
 import "./sessions-menu.lit";
-import "../session/ui.lit";
+import "./session-layout.lit";
 
 @customElement("illthorn-app-lit")
 export class AppRoot extends LitElement {
@@ -21,10 +21,10 @@ export class AppRoot extends LitElement {
     illthorn-app-lit {
       display: grid;
       height: 100vh;
-      grid-template-columns: var(--actions-width, 6em) 1fr;
+      grid-template-columns: var(--actions-width, 7em) 1fr;
       overflow: hidden;
-      background-color: var(--main-bg-color, black);
-      color: var(--text-color, white);
+      background-color: var(--color-background-primary, black);
+      color: var(--color-text-primary, white);
     }
 
     illthorn-app-lit #app-left-pane {
@@ -34,8 +34,8 @@ export class AppRoot extends LitElement {
 
     illthorn-app-lit #actions {
       height: 100vh;
-      background: var(--info);
-      padding: 2em 1em 1em;
+      background: var(--color-surface);
+      padding: 2em 0.75em 1em;
       -webkit-app-region: drag;
       display: flex;
       flex-direction: column;
@@ -60,7 +60,7 @@ export class AppRoot extends LitElement {
       overflow: hidden;
     }
 
-    illthorn-app-lit illthorn-session-ui-lit {
+    illthorn-app-lit illthorn-session-layout-lit {
       display: grid !important;
       height: 100%;
       width: 100%;
@@ -133,10 +133,10 @@ export class AppRoot extends LitElement {
           ${
             this.currentSession
               ? html`
-            <illthorn-session-ui-lit .session=${this.currentSession}></illthorn-session-ui-lit>
+            <illthorn-session-layout-lit .session=${this.currentSession}></illthorn-session-layout-lit>
           `
               : html`
-            <div style="padding: 2em; color: var(--text-color, white); text-align: center;">
+            <div style="padding: 2em; color: var(--color-text-primary, white); text-align: center;">
               <h2>No Active Session</h2>
               <p>Connect to a Lich session to begin.</p>
               <p>Use <code>:c</code> command or start a Lich process with --detachable-client flag.</p>

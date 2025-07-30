@@ -1,6 +1,7 @@
 import "../components/session/session-button.lit";
 import type { SessionButton } from "../components/session/session-button.lit";
-import "./ui.lit";
+import "../components/session-layout.lit";
+import type { SessionUI } from "../components/session-layout.lit";
 import { addHilites } from "../hilites/dom";
 import { castToHTML, createPrompt } from "../parser/dom";
 import { Parser } from "../parser/parser";
@@ -9,7 +10,6 @@ import { debugRawInput, debugSession, safeStringify } from "../util/logger";
 import { CommandHistory } from "./command-history";
 import { dispatchMetadata } from "./helpers";
 import { SessionMap } from "./map";
-import type { SessionUI } from "./ui.lit";
 
 export class FrontendSession {
   static async connect(config: Illthorn.Session.Config) {

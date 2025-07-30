@@ -157,10 +157,10 @@ describe("SessionsMenu", () => {
       const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
       const activeButton = Array.from(sessionButtons || []).find(
         (button: Element) => (button as HTMLElement & { session?: MockSession }).session?.name === "session2",
-      ) as HTMLElement;
+      ) as HTMLElement & { active?: boolean };
 
       expect(activeButton).toBeTruthy();
-      expect(activeButton?.classList.contains("on")).toBe(true);
+      expect(activeButton?.hasAttribute("active")).toBe(true);
     });
   });
 
@@ -192,7 +192,7 @@ describe("SessionsMenu", () => {
       ) as HTMLElement;
 
       expect(activeButton).toBeTruthy();
-      expect(activeButton?.classList.contains("on")).toBe(true);
+      expect(activeButton?.hasAttribute("active")).toBe(true);
     });
 
     it("should handle SESSION_NEW events", async () => {
@@ -344,8 +344,8 @@ describe("SessionsMenu", () => {
       const button1 = Array.from(sessionButtons || []).find((button: Element) => (button as HTMLElement & { session?: MockSession }).session?.name === "session1") as HTMLElement;
       const button2 = Array.from(sessionButtons || []).find((button: Element) => (button as HTMLElement & { session?: MockSession }).session?.name === "session2") as HTMLElement;
 
-      expect(button1?.classList.contains("on")).toBe(false);
-      expect(button2?.classList.contains("on")).toBe(true);
+      expect(button1?.hasAttribute("active")).toBe(false);
+      expect(button2?.hasAttribute("active")).toBe(true);
     });
 
     it("should maintain session button CSS classes for styling", async () => {
@@ -364,7 +364,7 @@ describe("SessionsMenu", () => {
       // Allow time for the updated() method to set CSS classes
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(sessionButton.classList.contains("on")).toBe(true);
+      expect(sessionButton.hasAttribute("active")).toBe(true);
     });
   });
 

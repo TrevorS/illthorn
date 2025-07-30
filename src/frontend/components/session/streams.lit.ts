@@ -19,12 +19,12 @@ export class Streams extends LitElement {
 
     /* Streams-on border styling (applied externally but needs to work with Shadow DOM) */
     :host(.streams-border) {
-      border-bottom: var(--border-width, 3px) solid var(--border-color, var(--info));
+      border-bottom: var(--border-width, 3px) solid var(--border-color, var(--color-border));
     }
 
     :host(.scroll) {
       scrollbar-width: thin;
-      scrollbar-color: var(--info, #666) transparent;
+      scrollbar-color: var(--color-border, #666) transparent;
     }
 
     :host(.scroll)::-webkit-scrollbar {
@@ -36,12 +36,12 @@ export class Streams extends LitElement {
     }
 
     :host(.scroll)::-webkit-scrollbar-thumb {
-      background-color: var(--info, #666);
+      background-color: var(--color-border, #666);
       border-radius: 4px;
     }
 
     :host(.scroll)::-webkit-scrollbar-thumb:hover {
-      background-color: var(--ok, #888);
+      background-color: var(--color-success, #888);
     }
 
     /* Stream content styling */
@@ -61,12 +61,12 @@ export class Streams extends LitElement {
     }
 
     .stream-channel.death {
-      color: var(--danger, #ff3b00);
+      color: var(--color-danger, #ff3b00);
     }
 
     .stream-channel[data-stream-channel="[PrivateTo]"],
     .stream-channel[data-stream-channel="[Private]"] {
-      background: var(--danger, #ff3b00);
+      background: var(--color-danger, #ff3b00);
       color: white;
     }
 
@@ -84,13 +84,13 @@ export class Streams extends LitElement {
     }
 
     .stream-channel.death {
-      color: var(--danger, #ff3b00);
+      color: var(--color-danger, #ff3b00);
     }
 
     /* Private message styling */
     .stream-channel[data-stream-channel="[PrivateTo]"],
     .stream-channel[data-stream-channel="[Private]"] {
-      background: var(--danger, #ff3b00);
+      background: var(--color-danger, #ff3b00);
       color: white;
       padding: 0.1em 0.3em;
       border-radius: 2px;
@@ -99,7 +99,7 @@ export class Streams extends LitElement {
     /* Merchant and special channel styling */
     .stream-channel[data-stream-channel="[Merchant]"],
     .stream-channel[data-stream-channel="[Dreavening]"] {
-      color: var(--gentle-warn, #efca6a);
+      color: var(--color-warning, #efca6a);
     }
 
     /* Loaded from storage message */
@@ -112,7 +112,7 @@ export class Streams extends LitElement {
 
     /* Stream-specific content styling */
     pre.thoughts.stream {
-      color: var(--thoughts-color, var(--text-color, white));
+      color: var(--thoughts-color, var(--color-text-primary, white));
     }
 
     pre.speech {

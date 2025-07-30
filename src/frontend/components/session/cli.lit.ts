@@ -75,11 +75,11 @@ export class CLI extends LitElement {
     }
 
     .timer-bar.round-time-current {
-      background: var(--danger, red);
+      background: var(--color-danger, red);
     }
 
     .timer-bar.cast-time-current {
-      background: var(--gentle-warn, lightgreen);
+      background: var(--color-warning, lightgreen);
     }
 
     .timer-bar:not(.visible) {

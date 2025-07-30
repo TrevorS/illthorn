@@ -31,13 +31,13 @@ export class Feed extends LitElement {
     }
 
     :host(.feed) {
-      background: var(--main-bg-color, #000);
-      color: var(--text-color, #fff);
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
     }
 
     :host(.scroll) {
       scrollbar-width: thin;
-      scrollbar-color: var(--info, #666) transparent;
+      scrollbar-color: var(--color-border) transparent;
     }
 
     :host(.scroll)::-webkit-scrollbar {
@@ -49,16 +49,16 @@ export class Feed extends LitElement {
     }
 
     :host(.scroll)::-webkit-scrollbar-thumb {
-      background-color: var(--info, #666);
+      background-color: var(--color-border);
       border-radius: 4px;
     }
 
     :host(.scroll)::-webkit-scrollbar-thumb:hover {
-      background-color: var(--ok, #888);
+      background-color: var(--color-success);
     }
 
     :host([focused]) {
-      border: 1px solid var(--ok, #0a84ff);
+      border: 1px solid var(--color-focus);
     }
 
     /* Base content styling */
@@ -88,83 +88,26 @@ export class Feed extends LitElement {
 
     /* Room styling */
     .content .roomName {
-      color: var(--room-name-color, var(--text-color, #fff));
+      color: var(--color-room-name);
       font-weight: bold;
     }
 
     .content .roomDesc {
-      color: var(--room-desc-color, var(--text-color, #fff));
+      color: var(--color-room-description);
     }
 
-    /* Theme-specific room styling */
-    
-    /* Rogue theme */
-    :host-context([theme='rogue']) .content .roomName {
-      color: var(--cyan);
-    }
-
-    /* Dark King theme */
-    :host-context([theme='dark-king']) .content .roomName {
-      margin: 1em 0 0 0;
-      background: linear-gradient(to right, rgba(169, 144, 239, 0.35), transparent);
-      color: white;
-      padding: 0.5em 1em;
-    }
-
-    :host-context([theme='dark-king']) .content .roomDesc {
-      margin: 0 0 1em 0;
-      padding: 0.5em 1em;
-      opacity: 0.66;
-      background: linear-gradient(to right, rgba(169, 144, 239, 0.2), transparent);
-    }
-
-    /* Discstone theme */
-    :host-context([theme='discstone']) .content .roomName {
-      background: #2e3136;
-      color: var(--purple, #a990ef);
-      padding: 0.5em;
-    }
-
-    :host-context([theme='discstone']) .content .roomDesc {
-      background: #2e3136;
-      padding: 0.5em;
-      margin-bottom: 0.5em;
-    }
-
-    /* Raging Thrak theme */
-    :host-context([theme='raging-thrak']) .content .roomName {
-      margin: 10px 0 0 0;
-      background: linear-gradient(to right, rgba(255, 165, 0, 0.35), transparent);
-      color: white;
-      padding: 0.5em 1em;
-    }
-
-    :host-context([theme='raging-thrak']) .content .roomDesc {
-      margin: 0 0 10px 0;
-      padding: 6px;
-      opacity: 0.75;
-    }
-
-    /* Icemule theme */
-    :host-context([theme='icemule']) .content .roomName {
-      color: #d08770;
-    }
-
-    :host-context([theme='icemule']) .content .roomDesc {
-      padding: 0.5rem;
-    }
 
     /* Communication styling */
     .content .thoughts {
-      color: var(--thoughts-color, var(--text-color, white));
+      color: var(--color-text-primary);
     }
 
     .content .speech {
-      color: var(--speech-color, #1ce21c);
+      color: var(--color-speech);
     }
 
     .content .whisper {
-      color: var(--whisper-color, var(--speech-color, #00921f));
+      color: var(--color-whisper);
     }
 
     /* Item and monster highlighting */
@@ -175,29 +118,29 @@ export class Feed extends LitElement {
 
     .content b,
     .content b a[exist] {
-      color: var(--monster-color, var(--warn, #fb5d2d));
+      color: var(--color-monster);
     }
 
     /* Links and interactive elements */
     .content .external-link,
     .content a {
       cursor: pointer;
-      color: var(--link-color, #27a4fd);
+      color: var(--color-link);
       text-decoration: underline;
     }
 
     .content a:hover {
-      background-color: var(--info, #333);
+      background-color: var(--color-surface);
     }
 
     .content .clickable d[cmd] {
-      border-bottom: 2px solid var(--link-color, #27a4fd);
+      border-bottom: 2px solid var(--color-link);
       cursor: pointer;
     }
 
     .content .clickable d[cmd]:hover {
       cursor: pointer;
-      background-color: var(--info, #333);
+      background-color: var(--color-surface);
     }
 
     .content d {
@@ -205,12 +148,12 @@ export class Feed extends LitElement {
     }
 
     .content d:hover {
-      background-color: var(--info, #333);
+      background-color: var(--color-surface);
     }
 
     /* Macro highlighting */
     .content .macro {
-      background: var(--macro-color, #de5aff);
+      background: var(--color-macro);
     }
 
     /* Text formatting */
