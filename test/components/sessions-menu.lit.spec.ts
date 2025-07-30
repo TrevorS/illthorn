@@ -52,7 +52,7 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      const noSessionsElement = sessionsMenu.querySelector(".no-sessions");
+      const noSessionsElement = sessionsMenu.shadowRoot?.querySelector(".no-sessions");
       expect(noSessionsElement).toBeTruthy();
       expect(noSessionsElement?.textContent?.trim()).toContain("No active sessions");
       expect(noSessionsElement?.textContent?.trim()).toContain("Use :c to connect");
@@ -65,8 +65,8 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      const sessionsContainer = sessionsMenu.querySelector(".sessions-container");
-      const noSessionsElement = sessionsMenu.querySelector(".no-sessions");
+      const sessionsContainer = sessionsMenu.shadowRoot?.querySelector(".sessions-container");
+      const noSessionsElement = sessionsMenu.shadowRoot?.querySelector(".no-sessions");
 
       expect(sessionsContainer).toBeTruthy();
       expect(noSessionsElement).toBeFalsy();
@@ -84,7 +84,7 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      const sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(2);
     });
 
@@ -100,7 +100,7 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      const sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(3);
 
       // Verify order by checking session property
@@ -118,7 +118,7 @@ describe("SessionsMenu", () => {
       await sessionsMenu.updateComplete;
 
       // Initially no sessions
-      let sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      let sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(0);
 
       // Add a session to SessionMap
@@ -130,7 +130,7 @@ describe("SessionsMenu", () => {
       sessionsMenu.refreshSessions();
       await sessionsMenu.updateComplete;
 
-      sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(1);
     });
 
@@ -154,7 +154,7 @@ describe("SessionsMenu", () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Verify that the active session is identified
-      const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      const sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       const activeButton = Array.from(sessionButtons || []).find(
         (button: Element) => (button as HTMLElement & { session?: MockSession }).session?.name === "session2",
       ) as HTMLElement & { active?: boolean };
@@ -186,7 +186,7 @@ describe("SessionsMenu", () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Verify active session is updated
-      const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      const sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       const activeButton = Array.from(sessionButtons || []).find(
         (button: Element) => (button as HTMLElement & { session?: MockSession }).session?.name === "session2",
       ) as HTMLElement;
@@ -200,7 +200,7 @@ describe("SessionsMenu", () => {
       await sessionsMenu.updateComplete;
 
       // Initially no sessions
-      let sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      let sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(0);
 
       // Add session to SessionMap and dispatch event
@@ -211,7 +211,7 @@ describe("SessionsMenu", () => {
       Illthorn.bus.dispatchEvent(IllthornEvent.SESSION_NEW, mockSession as MockSession);
       await sessionsMenu.updateComplete;
 
-      sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(1);
     });
 
@@ -232,7 +232,7 @@ describe("SessionsMenu", () => {
       Illthorn.bus.dispatchEvent(IllthornEvent.SESSION_NEW, mockSession as MockSession);
       await sessionsMenu.updateComplete;
 
-      const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      const sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(1);
     });
   });
@@ -243,7 +243,7 @@ describe("SessionsMenu", () => {
       await sessionsMenu.updateComplete;
 
       // Initially no sessions
-      let sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      let sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(0);
 
       // Add session to SessionMap
@@ -255,7 +255,7 @@ describe("SessionsMenu", () => {
       await new Promise((resolve) => setTimeout(resolve, 150));
       await sessionsMenu.updateComplete;
 
-      sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(1);
     });
 
@@ -268,7 +268,7 @@ describe("SessionsMenu", () => {
       await sessionsMenu.updateComplete;
 
       // Initially one session
-      let sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      let sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(1);
 
       // Remove session from SessionMap
@@ -278,7 +278,7 @@ describe("SessionsMenu", () => {
       await new Promise((resolve) => setTimeout(resolve, 150));
       await sessionsMenu.updateComplete;
 
-      sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(0);
     });
 
@@ -298,7 +298,7 @@ describe("SessionsMenu", () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Should not have updated since component is disconnected
-      const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      const sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(0);
     });
   });
@@ -314,7 +314,7 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      const sessionButton = sessionsMenu.querySelector("illthorn-session-button") as MockSession;
+      const sessionButton = sessionsMenu.shadowRoot?.querySelector("illthorn-session-button") as MockSession;
       expect(sessionButton).toBeTruthy();
       expect(sessionButton.session).toBe(mockSession);
       expect(sessionButton.active).toBe(true);
@@ -340,7 +340,7 @@ describe("SessionsMenu", () => {
       sessionsMenu.handleSessionFocus(mockSession2 as MockSession);
       await sessionsMenu.updateComplete;
 
-      const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      const sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       const button1 = Array.from(sessionButtons || []).find((button: Element) => (button as HTMLElement & { session?: MockSession }).session?.name === "session1") as HTMLElement;
       const button2 = Array.from(sessionButtons || []).find((button: Element) => (button as HTMLElement & { session?: MockSession }).session?.name === "session2") as HTMLElement;
 
@@ -358,7 +358,7 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      const sessionButton = sessionsMenu.querySelector("illthorn-session-button") as MockSession;
+      const sessionButton = sessionsMenu.shadowRoot?.querySelector("illthorn-session-button") as MockSession;
       expect(sessionButton).toBeTruthy();
 
       // Allow time for the updated() method to set CSS classes
@@ -373,11 +373,11 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      // Since we're using Light DOM, check the static styles property instead
+      // Using Shadow DOM, check the static styles for :host patterns
       const styles = SessionsMenu.styles;
       expect(styles).toBeTruthy();
       const stylesText = styles.toString();
-      expect(stylesText).toContain("illthorn-sessions-menu-lit");
+      expect(stylesText).toContain(":host");
       expect(stylesText).toContain("display: flex");
       expect(stylesText).toContain("flex-direction: column");
     });
@@ -390,10 +390,10 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      const sessionsContainer = sessionsMenu.querySelector(".sessions-container");
+      const sessionsContainer = sessionsMenu.shadowRoot?.querySelector(".sessions-container");
       expect(sessionsContainer).toBeTruthy();
 
-      // Check static styles for Light DOM components
+      // Check static styles for Shadow DOM components
       const styles = SessionsMenu.styles;
       const stylesText = styles.toString();
       expect(stylesText).toContain(".sessions-container");
@@ -403,10 +403,10 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      const noSessionsElement = sessionsMenu.querySelector(".no-sessions");
+      const noSessionsElement = sessionsMenu.shadowRoot?.querySelector(".no-sessions");
       expect(noSessionsElement).toBeTruthy();
 
-      // Check static styles for Light DOM components
+      // Check static styles for Shadow DOM components
       const styles = SessionsMenu.styles;
       const stylesText = styles.toString();
       expect(stylesText).toContain(".no-sessions");
@@ -416,7 +416,7 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      // Check static styles for Light DOM components
+      // Check static styles for Shadow DOM components
       const styles = SessionsMenu.styles;
       const stylesText = styles.toString();
       expect(stylesText).toContain("illthorn-session-button");
@@ -434,7 +434,7 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      const sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(1);
     });
 
@@ -471,7 +471,7 @@ describe("SessionsMenu", () => {
       sessionsMenu.refreshSessions();
       await sessionsMenu.updateComplete;
 
-      const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      const sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(1);
     });
   });
@@ -487,7 +487,7 @@ describe("SessionsMenu", () => {
       await sessionsMenu.updateComplete;
 
       // Should not crash and should still render the session
-      const sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      const sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(1);
     });
 
@@ -497,7 +497,7 @@ describe("SessionsMenu", () => {
       setup();
       await sessionsMenu.updateComplete;
 
-      const noSessionsElement = sessionsMenu.querySelector(".no-sessions");
+      const noSessionsElement = sessionsMenu.shadowRoot?.querySelector(".no-sessions");
       expect(noSessionsElement).toBeTruthy();
       expect(noSessionsElement?.textContent?.trim()).toContain("No active sessions");
       expect(noSessionsElement?.textContent?.trim()).toContain("Use :c to connect");
@@ -518,7 +518,7 @@ describe("SessionsMenu", () => {
       await new Promise((resolve) => setTimeout(resolve, 150));
       await sessionsMenu.updateComplete;
 
-      let sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      let sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(5);
 
       // Remove all sessions
@@ -528,7 +528,7 @@ describe("SessionsMenu", () => {
       await new Promise((resolve) => setTimeout(resolve, 150));
       await sessionsMenu.updateComplete;
 
-      sessionButtons = sessionsMenu.querySelectorAll("illthorn-session-button");
+      sessionButtons = sessionsMenu.shadowRoot?.querySelectorAll("illthorn-session-button");
       expect(sessionButtons?.length).toBe(0);
     });
   });

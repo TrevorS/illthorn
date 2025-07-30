@@ -6,19 +6,15 @@ import { IllthornEvent } from "../events";
 import { Illthorn } from "../illthorn";
 import type { FrontendSession } from "../session";
 import { SessionMap } from "../session/map";
-import { adoptLightDomStyles } from "../util/light-dom-styles";
 import "./session/session-button.lit";
 
 @customElement("illthorn-sessions-menu-lit")
 export class SessionsMenu extends LitElement {
-  // Use Light DOM to access document-level CSS custom properties
-  createRenderRoot() {
-    return this;
-  }
+  // Use Shadow DOM for proper encapsulation
 
   static styles = css`
-    illthorn-sessions-menu-lit {
-      display: flex !important;
+    :host {
+      display: flex;
       flex-direction: column;
       gap: 0.5em;
       padding: 0.5em;
@@ -26,14 +22,14 @@ export class SessionsMenu extends LitElement {
       width: 100%;
     }
 
-    illthorn-sessions-menu-lit .sessions-container {
+    .sessions-container {
       display: flex;
       flex-direction: column;
       gap: 0.5em;
       width: 100%;
     }
 
-    illthorn-sessions-menu-lit .no-sessions {
+    .no-sessions {
       color: var(--color-text-primary, white);
       opacity: 0.7;
       text-align: center;
@@ -42,16 +38,11 @@ export class SessionsMenu extends LitElement {
       font-size: 0.8em;
     }
 
-    illthorn-sessions-menu-lit illthorn-session-button {
-      display: block !important;
+    illthorn-session-button {
+      display: block;
       width: 100%;
     }
   `;
-
-  // Manually adopt styles for Light DOM
-  private _adoptStyles() {
-    adoptLightDomStyles("sessions-menu", SessionsMenu.styles);
-  }
 
   @state()
   private _sessions: Array<FrontendSession> = [];
@@ -64,7 +55,6 @@ export class SessionsMenu extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this._adoptStyles();
     this.setupEventListeners();
     this.initializeSessions();
     this.setupSessionMapWatcher();
