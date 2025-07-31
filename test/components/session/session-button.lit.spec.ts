@@ -84,7 +84,7 @@ describe("SessionButton", () => {
       // Check that session name first character is displayed (Shadow DOM)
       const sessionInitialElement = sessionButton.shadowRoot?.querySelector(".session-initial");
       expect(sessionInitialElement?.textContent?.trim()).toBe("t"); // First char of "test-session"
-      
+
       // Check that the button has the proper title
       const buttonElement = sessionButton.shadowRoot?.querySelector(".session-button");
       expect(buttonElement?.getAttribute("title")).toBe("test-session");
