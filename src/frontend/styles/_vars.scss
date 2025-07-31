@@ -18,6 +18,14 @@
   --color-danger: #f44336;                 // Error/danger states (vitals low)
   --color-info: #2196f3;                   // Neutral info states
   
+  // Vital-specific colors for thematic progress bars
+  --color-vital-health: #4caf50;           // Health - life/nature (green)
+  --color-vital-mana: #2196f3;             // Mana - magical energy (blue)
+  --color-vital-stamina: #ff9800;          // Stamina - physical energy (orange)
+  --color-vital-spirit: #e0e0e0;           // Spirit - ethereal/spiritual (light gray)
+  --color-vital-mind: #9c27b0;             // Mind - mental/psychic (purple)
+  --color-vital-critical: #f44336;         // Critical state override (red)
+  
   // Interactive colors
   --color-link: #27a4fd;                   // Hyperlinks
   --color-focus: #0a84ff;                  // Focus indicators
