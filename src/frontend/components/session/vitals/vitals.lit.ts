@@ -8,8 +8,8 @@ import "./components.lit";
 
 interface VitalData {
   label: string;
-  value: string;
-  percent: number;
+  value?: string; // Optional - undefined means indeterminate state
+  percent?: number; // Optional - undefined means indeterminate state
 }
 
 // Main Vitals Container
@@ -27,25 +27,25 @@ export class Vitals extends LitElement {
   session: Session | null = null;
 
   @state()
-  private _health: VitalData = { label: "health", value: "", percent: 0 };
+  private _health: VitalData = { label: "health" };
 
   @state()
-  private _mana: VitalData = { label: "mana", value: "", percent: 0 };
+  private _mana: VitalData = { label: "mana" };
 
   @state()
-  private _stamina: VitalData = { label: "stamina", value: "", percent: 0 };
+  private _stamina: VitalData = { label: "stamina" };
 
   @state()
-  private _spirit: VitalData = { label: "spirit", value: "", percent: 0 };
+  private _spirit: VitalData = { label: "spirit" };
 
   @state()
-  private _mind: VitalData = { label: "mind", value: "", percent: 0 };
+  private _mind: VitalData = { label: "mind" };
 
   @state()
-  private _stance: VitalData = { label: "stance", value: "", percent: 0 };
+  private _stance: VitalData = { label: "stance", value: "offensive", percent: 0 };
 
   @state()
-  private _encumbrance: VitalData = { label: "encumbrance", value: "", percent: 0 };
+  private _encumbrance: VitalData = { label: "encumbrance", value: "none", percent: 0 };
 
   constructor(session?: Session) {
     super();
@@ -116,12 +116,23 @@ export class Vitals extends LitElement {
   private processStandardVital(feedInfo: GameTag): VitalData {
     const { attrs } = feedInfo;
     const [userText, value] = (attrs.text || ":unknown").toString().split(" ");
-    const percent = parseInt((attrs.value as string) || "0");
+    const percentString = (attrs.value as string) || "100";
+    let percent = parseInt(percentString);
+
+    // Game server bug: vitals send value="0" despite showing full fractions like "74/74"
+    // Other progressBar tags (stance, encumbrance) send correct percentages
+    // We calculate percentage from the fraction as a workaround
+    if ((percent <= 1 || Number.isNaN(percent)) && value && value.includes("/")) {
+      const [current, max] = value.split("/").map((n) => parseInt(n.trim()));
+      if (!Number.isNaN(current) && !Number.isNaN(max) && max > 0) {
+        percent = Math.round((current / max) * 100);
+      }
+    }
 
     return {
       label: userText as string,
-      value: value || "",
-      percent: percent,
+      value: value || undefined,
+      percent: Number.isNaN(percent) ? undefined : percent, // undefined for indeterminate state
     };
   }
 
@@ -134,32 +145,32 @@ export class Vitals extends LitElement {
       <!-- Progress meter vitals -->
       <illthorn-vital-stat 
         label="${this._health.label}" 
-        value="${this._health.value}" 
-        percent="${this._health.percent}">
+        value="${this._health.value ?? ""}" 
+        percent="${this._health.percent ?? ""}">
       </illthorn-vital-stat>
       
       <illthorn-vital-stat 
         label="${this._stamina.label}" 
-        value="${this._stamina.value}" 
-        percent="${this._stamina.percent}">
+        value="${this._stamina.value ?? ""}" 
+        percent="${this._stamina.percent ?? ""}">
       </illthorn-vital-stat>
       
       <illthorn-vital-stat 
         label="${this._spirit.label}" 
-        value="${this._spirit.value}" 
-        percent="${this._spirit.percent}">
+        value="${this._spirit.value ?? ""}" 
+        percent="${this._spirit.percent ?? ""}">
       </illthorn-vital-stat>
       
       <illthorn-vital-stat 
         label="${this._mana.label}" 
-        value="${this._mana.value}" 
-        percent="${this._mana.percent}">
+        value="${this._mana.value ?? ""}" 
+        percent="${this._mana.percent ?? ""}">
       </illthorn-vital-stat>
       
       <illthorn-vital-stat 
         label="${this._mind.label}" 
-        value="${this._mind.value}" 
-        percent="${this._mind.percent}">
+        value="${this._mind.value ?? ""}" 
+        percent="${this._mind.percent ?? ""}">
       </illthorn-vital-stat>
       
       <!-- Text-only vitals -->

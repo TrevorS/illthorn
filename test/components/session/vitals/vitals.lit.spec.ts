@@ -31,6 +31,25 @@ describe("Vitals", () => {
       vitals.remove();
     });
 
+    it("should initialize vitals with indeterminate default values", async () => {
+      const vitals = new Vitals(mockSession);
+      document.body.appendChild(vitals);
+      await vitals.updateComplete;
+
+      const shadowRoot = vitals.shadowRoot;
+      const vitalStats = shadowRoot?.querySelectorAll("illthorn-vital-stat");
+
+      // Check that vital stats show indeterminate state by default
+      expect(vitalStats?.length).toBe(5); // health, stamina, spirit, mana, mind
+
+      // Health should show empty value with no percent (indeterminate)
+      const healthStat = Array.from(vitalStats || []).find((stat) => stat.getAttribute("label") === "health");
+      expect(healthStat?.getAttribute("value")).toBe(""); // Empty string for undefined value
+      expect(healthStat?.getAttribute("percent")).toBe(""); // Empty string for indeterminate
+
+      vitals.remove();
+    });
+
     it("should render all vital components when session is provided", async () => {
       const vitals = new Vitals(mockSession);
       document.body.appendChild(vitals);
@@ -81,6 +100,25 @@ describe("Vitals", () => {
       expect(healthStat?.getAttribute("label")).toBe("health");
       expect(healthStat?.getAttribute("value")).toBe("45/60");
       expect(healthStat?.getAttribute("percent")).toBe("75");
+
+      vitals.remove();
+    });
+
+    it("should handle zero percent vitals correctly (not default to 100%)", async () => {
+      const vitals = new Vitals(mockSession);
+      document.body.appendChild(vitals);
+      await vitals.updateComplete;
+
+      // Trigger health update with 0% (critically low)
+      const healthTag = makeTag("progressBar");
+      healthTag.attrs = { id: "health", value: "0", text: "health 0/60" };
+      mockSession.bus.dispatchEvent("metadata/progressBar/health", healthTag);
+      await vitals.updateComplete;
+
+      const healthStat = vitals.shadowRoot?.querySelector("illthorn-vital-stat");
+      expect(healthStat?.getAttribute("label")).toBe("health");
+      expect(healthStat?.getAttribute("value")).toBe("0/60");
+      expect(healthStat?.getAttribute("percent")).toBe("0");
 
       vitals.remove();
     });
@@ -167,7 +205,11 @@ describe("VitalStat Component", () => {
     const shadowRoot = vitalStat.shadowRoot;
     expect(shadowRoot?.querySelector(".vital-label")?.textContent).toBe("health");
     expect(shadowRoot?.querySelector(".vital-value")?.textContent).toBe("50/60");
-    expect(shadowRoot?.querySelector(".vital-meter")?.getAttribute("style")).toContain("width: 83%");
+
+    // Check for Shoelace progress bar instead of custom vital-meter
+    const progressBar = shadowRoot?.querySelector("sl-progress-bar");
+    expect(progressBar).toBeTruthy();
+    expect(progressBar?.getAttribute("value")).toBe("83");
 
     vitalStat.remove();
   });
@@ -182,6 +224,118 @@ describe("VitalStat Component", () => {
     expect(vitalStat.hasAttribute("low")).toBe(true);
     expect(vitalStat.hasAttribute("medium")).toBe(false);
     expect(vitalStat.hasAttribute("high")).toBe(false);
+
+    vitalStat.remove();
+  });
+
+  it("should apply correct threshold class to progress bar", async () => {
+    const vitalStat = new VitalStat();
+    vitalStat.percent = 25; // Low threshold
+
+    document.body.appendChild(vitalStat);
+    await vitalStat.updateComplete;
+
+    const progressBar = vitalStat.shadowRoot?.querySelector("sl-progress-bar");
+    expect(progressBar?.classList.contains("vital-low")).toBe(true);
+
+    vitalStat.remove();
+  });
+
+  it("should have accessible label for screen readers", async () => {
+    const vitalStat = new VitalStat();
+    vitalStat.label = "health";
+    vitalStat.value = "50/60";
+    vitalStat.percent = 83;
+
+    document.body.appendChild(vitalStat);
+    await vitalStat.updateComplete;
+
+    const progressBar = vitalStat.shadowRoot?.querySelector("sl-progress-bar");
+    expect(progressBar?.getAttribute("label")).toBe("health: 50/60");
+
+    vitalStat.remove();
+  });
+
+  it("should render progress bar with full percentage for 100% vitals", async () => {
+    const vitalStat = new VitalStat();
+    vitalStat.label = "health";
+    vitalStat.value = "74/74";
+    vitalStat.percent = 100; // Full health like in screenshot
+
+    document.body.appendChild(vitalStat);
+    await vitalStat.updateComplete;
+
+    const progressBar = vitalStat.shadowRoot?.querySelector("sl-progress-bar");
+    expect(progressBar?.getAttribute("value")).toBe("100");
+    expect(progressBar?.classList.contains("vital-high")).toBe(true);
+
+    vitalStat.remove();
+  });
+
+  it("should apply stat-specific color classes", async () => {
+    const testCases = [
+      { label: "health", expectedClass: "vital-type-health" },
+      { label: "mana", expectedClass: "vital-type-mana" },
+      { label: "stamina", expectedClass: "vital-type-stamina" },
+      { label: "spirit", expectedClass: "vital-type-spirit" },
+      { label: "mind", expectedClass: "vital-type-mind" },
+    ];
+
+    for (const testCase of testCases) {
+      const vitalStat = new VitalStat();
+      vitalStat.label = testCase.label;
+      vitalStat.value = "100/100";
+      vitalStat.percent = 100;
+
+      document.body.appendChild(vitalStat);
+      await vitalStat.updateComplete;
+
+      const progressBar = vitalStat.shadowRoot?.querySelector("sl-progress-bar");
+      expect(progressBar?.classList.contains(testCase.expectedClass)).toBe(true);
+      expect(progressBar?.classList.contains("vital-high")).toBe(true);
+
+      vitalStat.remove();
+    }
+  });
+
+  it("should apply inline theme variable styles for different vital types", async () => {
+    const testCases = [
+      { label: "health", expectedVar: "var(--color-vital-health)" },
+      { label: "mana", expectedVar: "var(--color-vital-mana)" },
+      { label: "stamina", expectedVar: "var(--color-vital-stamina)" },
+      { label: "spirit", expectedVar: "var(--color-vital-spirit)" },
+      { label: "mind", expectedVar: "var(--color-vital-mind)" },
+    ];
+
+    for (const testCase of testCases) {
+      const vitalStat = new VitalStat();
+      vitalStat.label = testCase.label;
+      vitalStat.value = "100/100";
+      vitalStat.percent = 100;
+
+      document.body.appendChild(vitalStat);
+      await vitalStat.updateComplete;
+
+      const progressBar = vitalStat.shadowRoot?.querySelector("sl-progress-bar");
+      const style = progressBar?.getAttribute("style");
+      expect(style).toContain(`--indicator-color: ${testCase.expectedVar}`);
+
+      vitalStat.remove();
+    }
+  });
+
+  it("should use critical theme variable for low vitals", async () => {
+    const vitalStat = new VitalStat();
+    vitalStat.label = "health";
+    vitalStat.value = "5/100";
+    vitalStat.percent = 5; // Low threshold
+
+    document.body.appendChild(vitalStat);
+    await vitalStat.updateComplete;
+
+    const progressBar = vitalStat.shadowRoot?.querySelector("sl-progress-bar");
+    const style = progressBar?.getAttribute("style");
+    expect(style).toContain("--indicator-color: var(--color-vital-critical)");
 
     vitalStat.remove();
   });

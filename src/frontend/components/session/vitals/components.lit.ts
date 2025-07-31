@@ -1,7 +1,8 @@
-// ABOUTME: Modern Lit vital display components - VitalStat (with progress meter) and VitalText (text-only)
+// ABOUTME: Modern Lit vital display components - VitalStat (with Shoelace progress bar) and VitalText (text-only)
 // ABOUTME: Shared components used by the main vitals container for different display types
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import "@shoelace-style/shoelace/dist/components/progress-bar/progress-bar.js";
 
 // Type definitions for better type safety
 type VitalThresholdCategory = "low" | "medium" | "high";
@@ -18,39 +19,84 @@ export class VitalStat extends LitElement {
       background: transparent;
     }
 
+    .vital-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
     .vital-row {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       z-index: 1;
       position: relative;
     }
 
     .vital-label {
-      flex: 1;
       color: var(--color-text-primary, #ffffff);
+      font-size: 0.9rem;
     }
 
     .vital-value {
-      margin-left: auto;
       font-weight: bold;
       color: var(--color-text-primary, #ffffff);
+      font-size: 0.9rem;
     }
 
-    .vital-meter {
-      position: absolute;
-      height: 100%;
-      top: 0;
-      left: 0;
-      background-color: var(--color-success, #4caf50);
-      transition: width 0.2s ease;
+    .vital-value.indeterminate {
+      opacity: 0.6;
+      font-style: italic;
     }
 
-    :host(.medium) .vital-meter {
-      background-color: var(--color-warning, #ff9800);
+    sl-progress-bar {
+      --height: 0.8rem;
+      --track-color: rgba(255, 255, 255, 0.2);
+      --indicator-color: #4caf50;
+      width: 100%;
+      margin-top: 0.125rem;
+      display: block;
+      
+      /* Force override any inherited styles */
+      --sl-color-primary-600: #4caf50;
+      background: transparent;
+      
+      /* Force visible track background */
+      --track-width: 100%;
+      --track-border-color: rgba(255, 255, 255, 0.3);
+      min-height: 0.8rem;
     }
 
-    :host(.low) .vital-meter {
-      background-color: var(--color-danger, #f44336);
+
+    /* Threshold-based color overrides for critical states */
+    sl-progress-bar.vital-low {
+      --indicator-color: var(--color-vital-critical) !important;
+      --sl-color-primary-600: var(--color-vital-critical) !important;
+    }
+
+    sl-progress-bar.vital-medium {
+      opacity: 0.8;
+    }
+
+    sl-progress-bar.vital-high {
+      opacity: 1.0;
+    }
+
+    /* Ensure the progress bar parts are visible with explicit colors */
+    sl-progress-bar::part(base) {
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 0.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    sl-progress-bar::part(indicator) {
+      background-color: var(--indicator-color, #4caf50);
+      border-radius: 0.25rem;
+    }
+
+    /* Critical state override */
+    sl-progress-bar.vital-low::part(indicator) {
+      background-color: var(--color-vital-critical) !important;
     }
 
     :host(.low) {
@@ -62,10 +108,10 @@ export class VitalStat extends LitElement {
   label = "";
 
   @property({ type: String })
-  value = "";
+  value: string | undefined = undefined; // Optional - undefined means indeterminate state
 
   @property({ type: Number })
-  percent = 0;
+  percent: number | undefined = undefined; // Optional - undefined means indeterminate state
 
   @property({ type: String, reflect: true, attribute: "data-vital" })
   dataVital = "";
@@ -84,6 +130,9 @@ export class VitalStat extends LitElement {
    * for styling the vital stat based on current percentage
    */
   private get _thresholdCategory(): VitalThresholdCategory {
+    if (this.percent === undefined || this.percent === null) {
+      return "high"; // Default category for indeterminate state
+    }
     if (this.percent < 33) {
       return "low";
     }
@@ -94,10 +143,18 @@ export class VitalStat extends LitElement {
   }
 
   /**
-   * Computed property for the meter width style
+   * Computed property for the progress bar class based on threshold and vital type
    */
-  private get _meterStyle(): string {
-    return `width: ${Math.max(0, Math.min(100, this.percent))}%`;
+  private get _progressBarClass(): string {
+    const vitalType = this.label.toLowerCase();
+    return `vital-${this._thresholdCategory} vital-type-${vitalType}`;
+  }
+
+  /**
+   * Computed property for accessible label combining label and value
+   */
+  private get _accessibleLabel(): string {
+    return `${this.label}: ${this.value}`;
   }
 
   willUpdate(changedProperties: Map<string | number | symbol, unknown>) {
@@ -117,12 +174,83 @@ export class VitalStat extends LitElement {
     }
   }
 
+  /**
+   * Get inline style for progress bar color based on vital type
+   */
+  private get _progressBarStyle(): string {
+    const vitalType = this.label.toLowerCase();
+    let colorVar = "var(--color-vital-health)";
+
+    // For indeterminate state, use default vital color (no critical override)
+    if (this.percent === undefined || this.percent === null) {
+      switch (vitalType) {
+        case "health":
+          colorVar = "var(--color-vital-health)";
+          break;
+        case "mana":
+          colorVar = "var(--color-vital-mana)";
+          break;
+        case "stamina":
+          colorVar = "var(--color-vital-stamina)";
+          break;
+        case "spirit":
+          colorVar = "var(--color-vital-spirit)";
+          break;
+        case "mind":
+          colorVar = "var(--color-vital-mind)";
+          break;
+      }
+    } else {
+      // Override with critical red if low
+      if (this._thresholdCategory === "low") {
+        colorVar = "var(--color-vital-critical)";
+      } else {
+        // Use stat-specific theme colors
+        switch (vitalType) {
+          case "health":
+            colorVar = "var(--color-vital-health)";
+            break;
+          case "mana":
+            colorVar = "var(--color-vital-mana)";
+            break;
+          case "stamina":
+            colorVar = "var(--color-vital-stamina)";
+            break;
+          case "spirit":
+            colorVar = "var(--color-vital-spirit)";
+            break;
+          case "mind":
+            colorVar = "var(--color-vital-mind)";
+            break;
+        }
+      }
+    }
+
+    return `--indicator-color: ${colorVar};`;
+  }
+
   render() {
+    // Handle display value for indeterminate state
+    const displayValue = this.value ?? "...";
+    const valueClass = this.value === undefined ? "vital-value indeterminate" : "vital-value";
+
+    // For indeterminate state, we still set a value but also add indeterminate attribute
+    const isIndeterminate = this.percent === undefined;
+    const progressValue = isIndeterminate ? 0 : (this.percent ?? 0);
+
     return html`
-      <div class="vital-meter" style="${this._meterStyle}"></div>
-      <div class="vital-row">
-        <span class="vital-label">${this.label}</span>
-        <span class="vital-value">${this.value}</span>
+      <div class="vital-container">
+        <div class="vital-row">
+          <span class="vital-label">${this.label}</span>
+          <span class="${valueClass}">${displayValue}</span>
+        </div>
+        <sl-progress-bar 
+          value=${progressValue}
+          ?indeterminate=${isIndeterminate}
+          class=${this._progressBarClass}
+          label=${this._accessibleLabel}
+          style=${this._progressBarStyle}>
+        </sl-progress-bar>
       </div>
     `;
   }

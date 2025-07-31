@@ -53,6 +53,7 @@
     "vitest": "2.1.9"
   },
   "dependencies": {
+    "@shoelace-style/shoelace": "^2.20.1",
     "@types/keyboardjs": "^2.5.0",
     "debug": "^4.3.4",
     "electron-squirrel-startup": "^1.0.0",
