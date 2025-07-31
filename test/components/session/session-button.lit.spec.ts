@@ -82,13 +82,16 @@ describe("SessionButton", () => {
       await sessionButton.updateComplete;
 
       // Check that session name first character is displayed (Shadow DOM)
-      const sessionNameElement = sessionButton.shadowRoot?.querySelector(".session-name");
-      expect(sessionNameElement?.textContent?.trim()).toBe("t"); // First char of "test-session"
-      expect(sessionNameElement?.getAttribute("title")).toBe("test-session");
+      const sessionInitialElement = sessionButton.shadowRoot?.querySelector(".session-initial");
+      expect(sessionInitialElement?.textContent?.trim()).toBe("t"); // First char of "test-session"
+      
+      // Check that the button has the proper title
+      const buttonElement = sessionButton.shadowRoot?.querySelector(".session-button");
+      expect(buttonElement?.getAttribute("title")).toBe("test-session");
 
       // Check that tab number is displayed (depends on position in parent)
-      const altNumericElement = sessionButton.shadowRoot?.querySelector(".alt-numeric");
-      const tabNumber = altNumericElement?.textContent?.trim();
+      const sessionNumberElement = sessionButton.shadowRoot?.querySelector(".session-number");
+      const tabNumber = sessionNumberElement?.textContent?.trim();
       expect(tabNumber).toMatch(/^\d+$/); // Should be a number
 
       teardown(sessionButton);
@@ -180,9 +183,9 @@ describe("SessionButton", () => {
       await Promise.all([sessionButton1.updateComplete, sessionButton2.updateComplete, sessionButton3.updateComplete]);
 
       // Check tab numbers (using Shadow DOM)
-      const tab1 = sessionButton1.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
-      const tab2 = sessionButton2.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
-      const tab3 = sessionButton3.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
+      const tab1 = sessionButton1.shadowRoot?.querySelector(".session-number")?.textContent?.trim();
+      const tab2 = sessionButton2.shadowRoot?.querySelector(".session-number")?.textContent?.trim();
+      const tab3 = sessionButton3.shadowRoot?.querySelector(".session-number")?.textContent?.trim();
 
       expect(tab1).toBe("1");
       expect(tab2).toBe("2");
@@ -201,7 +204,7 @@ describe("SessionButton", () => {
       await sessionButton.updateComplete;
 
       // Should not throw error and default to 0
-      const tabNumber = sessionButton.shadowRoot?.querySelector(".alt-numeric")?.textContent?.trim();
+      const tabNumber = sessionButton.shadowRoot?.querySelector(".session-number")?.textContent?.trim();
       expect(tabNumber).toBe("0");
     });
   });
@@ -218,10 +221,10 @@ describe("SessionButton", () => {
       await sessionButton.updateComplete;
 
       // Click the button
-      const clickableDiv = sessionButton.shadowRoot?.querySelector("div");
-      expect(clickableDiv).toBeTruthy();
+      const clickableButton = sessionButton.shadowRoot?.querySelector(".session-button");
+      expect(clickableButton).toBeTruthy();
 
-      clickableDiv?.dispatchEvent(new MouseEvent("click"));
+      clickableButton?.dispatchEvent(new MouseEvent("click"));
       await sessionButton.updateComplete;
 
       expect(focusSession).toHaveBeenCalledWith(mockSession);
@@ -308,8 +311,8 @@ describe("SessionButton", () => {
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      const sessionNameElement = sessionButton.shadowRoot?.querySelector(".session-name");
-      expect(sessionNameElement).toBeTruthy();
+      const sessionInitialElement = sessionButton.shadowRoot?.querySelector(".session-initial");
+      expect(sessionInitialElement).toBeTruthy();
 
       teardown(sessionButton);
     });
@@ -320,8 +323,8 @@ describe("SessionButton", () => {
       sessionButton.session = mockSession;
       await sessionButton.updateComplete;
 
-      const altNumericElement = sessionButton.shadowRoot?.querySelector(".alt-numeric");
-      expect(altNumericElement).toBeTruthy();
+      const sessionNumberElement = sessionButton.shadowRoot?.querySelector(".session-number");
+      expect(sessionNumberElement).toBeTruthy();
 
       teardown(sessionButton);
     });
@@ -349,8 +352,8 @@ describe("SessionButton", () => {
       expect(sessionButton.session).toBe(newMockSession);
 
       // Check that new session name is rendered
-      const sessionNameElement = sessionButton.shadowRoot?.querySelector(".session-name");
-      expect(sessionNameElement?.textContent?.trim()).toBe("n"); // First char of "new-session"
+      const sessionInitialElement = sessionButton.shadowRoot?.querySelector(".session-initial");
+      expect(sessionInitialElement?.textContent?.trim()).toBe("n"); // First char of "new-session"
 
       teardown(sessionButton);
     });
@@ -398,12 +401,12 @@ describe("SessionButton", () => {
       const container = sessionButton.shadowRoot?.querySelector("div");
       expect(container).toBeTruthy();
 
-      const sessionNameElement = container?.querySelector(".session-name");
-      const altNumericElement = container?.querySelector(".alt-numeric");
+      const sessionInitialElement = container?.querySelector(".session-initial");
+      const sessionNumberElement = container?.querySelector(".session-number");
 
-      expect(sessionNameElement).toBeTruthy();
-      expect(altNumericElement).toBeTruthy();
-      expect(sessionNameElement?.getAttribute("title")).toBe("test-session");
+      expect(sessionInitialElement).toBeTruthy();
+      expect(sessionNumberElement).toBeTruthy();
+      expect(sessionInitialElement?.textContent?.trim()).toBe("t"); // First char of test-session
 
       teardown(sessionButton);
     });

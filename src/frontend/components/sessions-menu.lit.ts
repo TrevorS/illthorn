@@ -150,6 +150,7 @@ export class SessionsMenu extends LitElement {
           style="background: red; color: white; padding: 10px;"
         >
           No active sessions<br />
+          Use :c to connect
         </div>
       `;
     }
