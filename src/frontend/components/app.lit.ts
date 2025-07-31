@@ -5,72 +5,67 @@ import { customElement, property } from "lit/decorators.js";
 import { IllthornEvent } from "../events";
 import { Illthorn } from "../illthorn";
 import type { FrontendSession } from "../session";
-import { adoptLightDomStyles } from "../util/light-dom-styles";
 import { debugApp } from "../util/logger";
 import "./sessions-menu.lit";
 import "./session-layout.lit";
 
 @customElement("illthorn-app-lit")
 export class AppRoot extends LitElement {
-  // Use Light DOM to access document-level CSS custom properties
-  createRenderRoot() {
-    return this;
-  }
-
   static styles = css`
-    illthorn-app-lit {
+    :host {
       display: grid;
       height: 100vh;
-      grid-template-columns: var(--actions-width, 7em) 1fr;
+      width: 100vw;
+      max-width: 100vw;
+      grid-template-columns: var(--actions-width, 5em) 1fr;
       overflow: hidden;
       background-color: var(--color-background-primary, black);
       color: var(--color-text-primary, white);
     }
 
-    illthorn-app-lit #app-left-pane {
+    #app-left-pane {
       display: block;
       height: 100vh;
     }
 
-    illthorn-app-lit #actions {
+    #actions {
       height: 100vh;
       background: var(--color-surface);
-      padding: 2em 0.75em 1em;
+      padding: 1em 0.5em 1em;
       -webkit-app-region: drag;
       display: flex;
       flex-direction: column;
-      width: 100%;
     }
 
-    illthorn-app-lit illthorn-sessions-menu-lit {
+    illthorn-sessions-menu-lit {
       display: flex !important;
       flex-direction: column;
       flex: 1;
     }
 
-    illthorn-app-lit #app-right-pane {
+    #app-right-pane {
       display: block;
       height: 100vh;
+      width: 100%;
+      min-width: 0;
       overflow: hidden;
     }
 
-    illthorn-app-lit #current-context {
+    #current-context {
       display: block;
       height: 100%;
+      width: 100%;
+      min-width: 0;
       overflow: hidden;
     }
 
-    illthorn-app-lit illthorn-session-layout-lit {
+    illthorn-session-layout-lit {
       display: grid !important;
       height: 100%;
       width: 100%;
+      min-width: 0;
     }
   `;
-
-  // Manually adopt styles for Light DOM
-  private _adoptStyles() {
-    adoptLightDomStyles("app-root", AppRoot.styles);
-  }
 
   @property({ type: Object })
   currentSession: FrontendSession | null = null;
@@ -79,7 +74,6 @@ export class AppRoot extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this._adoptStyles();
     this.setupEventListeners();
   }
 
@@ -105,8 +99,7 @@ export class AppRoot extends LitElement {
   updateSessionsList() {
     // Compatibility method for existing renderSessionsMenu() calls
     // The SessionsMenu component handles its own updates now
-    // Since we're using Light DOM, use querySelector instead of shadowRoot
-    const sessionsMenu = this.querySelector("illthorn-sessions-menu-lit") as HTMLElement & { refreshSessions?: () => void };
+    const sessionsMenu = this.shadowRoot?.querySelector("illthorn-sessions-menu-lit") as HTMLElement & { refreshSessions?: () => void };
     sessionsMenu?.refreshSessions?.();
   }
 

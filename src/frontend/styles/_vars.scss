@@ -39,9 +39,13 @@
   --gentle-warn: var(--color-warning);
   
   // Layout dimensions
-  --actions-width: 7em;            // Left pane width
-  --stream-height: 4em;            // Streams height
+  --actions-width: 5em;            // Left pane width
+  --stream-height: 8em;            // Streams height (doubled)
   --hud-width: 14em;               // Right HUD width
+
+  // Streams-specific colors
+  --streams-background: #000000;                     // Streams panel background (black)
+  --streams-text: var(--color-text-secondary);       // Streams panel text
 }
 
 $boxes: "box", "chest", "coffer", "strongbox", "trunk";

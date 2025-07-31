@@ -11,62 +11,72 @@ import { focusSession } from "../../session/helpers";
 export class SessionButton extends LitElement {
   static styles = css`
     :host {
-      display: block;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       width: 100%;
+      margin: 0.4em 0;
       -webkit-app-region: no-drag;
-      border: 0;
-      text-align: center;
-      height: 4em;
-      font-size: 1em;
-      font-weight: bold;
+    }
+
+    .session-button-container {
       position: relative;
-      border-radius: 12px;
-      overflow: hidden;
-      opacity: 0.5;
-      margin: 0.8em 0;
-      cursor: pointer;
+      width: 48px;
+      height: 48px;
+      border: 2px solid var(--color-border, #444444);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background-color: transparent;
     }
 
-    :host([active]) {
+    .session-button {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: none;
+      background-color: rgba(0, 0, 0, 0.4);
+      color: var(--color-text-primary, white);
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.5;
+      transition: opacity 0.2s ease;
+    }
+
+    :host([active]) .session-button {
       opacity: 1;
     }
 
-
-    :host::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      padding: 20px;
-      box-shadow: 0 0 0 85em rgba(0, 0, 0, 0.4);
-      border-radius: 50px;
-      margin-left: -1.3em;
-      margin-top: -1.4em;
+    .session-button:hover {
+      opacity: 0.8;
     }
 
-    .container {
-      display: grid;
-      place-items: center;
-      width: 100%;
-      height: 100%;
-    }
-
-    .session-name {
-      font-size: 1.5em;
+    .session-initial {
       position: relative;
+      z-index: 2;
     }
 
-    .alt-numeric {
-      font-size: 0.9em;
+    .session-number {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 2em;
-      height: 2em;
-      line-height: 2em;
-      text-align: center;
-      margin: -0.45em 0 0 -0.45em;
+      top: 4px;
+      left: 4px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: var(--color-text-secondary, #cccccc);
+      color: var(--color-background-primary, black);
+      font-size: 0.6em;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
     }
   `;
 
@@ -178,11 +188,17 @@ export class SessionButton extends LitElement {
     }
 
     return html`
-      <div class="container" @click=${this._handleClick}>
-        <span class="session-name" title="${this._sessionTitle}">
-          ${this._sessionInitial}
-        </span>
-        <span class="alt-numeric">
+      <div class="session-button-container">
+        <button 
+          class="session-button" 
+          @click=${this._handleClick}
+          title="${this._sessionTitle}"
+        >
+          <span class="session-initial">
+            ${this._sessionInitial}
+          </span>
+        </button>
+        <span class="session-number">
           ${this._tabNumber}
         </span>
       </div>

@@ -77,8 +77,8 @@ describe("SessionLayout", () => {
       document.body.appendChild(sessionUI);
       await sessionUI.updateComplete;
 
-      // Component uses Light DOM for theme integration
-      expect(sessionUI.textContent).toContain("No session provided");
+      // Component now uses Shadow DOM, check shadowRoot content
+      expect(sessionUI.shadowRoot?.textContent).toContain("No session provided");
     });
   });
 
@@ -127,14 +127,14 @@ describe("SessionLayout", () => {
     it("should render hud container", async () => {
       await setup();
 
-      const hud = sessionUI.querySelector(".hud");
+      const hud = sessionUI.shadowRoot?.querySelector(".hud");
       expect(hud).toBeTruthy();
     });
 
     it("should render room panel with room and compass components", async () => {
       await setup();
 
-      const roomPanel = sessionUI.querySelector('illthorn-panel[title="room"]');
+      const roomPanel = sessionUI.shadowRoot?.querySelector('illthorn-panel[title="room"]');
       expect(roomPanel).toBeTruthy();
 
       const room = roomPanel?.querySelector("illthorn-room-lit") as Room;
@@ -149,7 +149,7 @@ describe("SessionLayout", () => {
     it("should render vitals panel with vitals component", async () => {
       await setup();
 
-      const vitalsPanel = sessionUI.querySelector('illthorn-panel[title="vitals"]');
+      const vitalsPanel = sessionUI.shadowRoot?.querySelector('illthorn-panel[title="vitals"]');
       expect(vitalsPanel).toBeTruthy();
 
       const vitals = vitalsPanel?.querySelector("illthorn-vitals-lit") as Vitals;
@@ -160,7 +160,7 @@ describe("SessionLayout", () => {
     it("should render active spells panel with effects component", async () => {
       await setup();
 
-      const spellsPanel = sessionUI.querySelector('illthorn-panel[title="active spells"]');
+      const spellsPanel = sessionUI.shadowRoot?.querySelector('illthorn-panel[title="active spells"]');
       expect(spellsPanel).toBeTruthy();
 
       const effects = spellsPanel?.querySelector("illthorn-effects-lit") as EffectsLit;
@@ -172,7 +172,7 @@ describe("SessionLayout", () => {
     it("should render all panels as open by default", async () => {
       await setup();
 
-      const panels = sessionUI.querySelectorAll("illthorn-panel");
+      const panels = sessionUI.shadowRoot?.querySelectorAll("illthorn-panel");
       expect(panels?.length).toBe(3);
 
       panels?.forEach((panel) => {
@@ -185,10 +185,10 @@ describe("SessionLayout", () => {
     it("should render main container with proper structure", async () => {
       await setup();
 
-      const main = sessionUI.querySelector(".main");
+      const main = sessionUI.shadowRoot?.querySelector(".main");
       expect(main).toBeTruthy();
 
-      const hands = main?.querySelector(".hands");
+      const hands = main?.querySelector("illthorn-hands-lit");
       const streams = main?.querySelector("illthorn-streams-lit");
       const feed = main?.querySelector("illthorn-feed-lit");
       const cliWrapper = main?.querySelector(".cli-wrapper");
@@ -202,21 +202,21 @@ describe("SessionLayout", () => {
     it("should render hands container", async () => {
       await setup();
 
-      const handsContainer = sessionUI.querySelector(".hands");
+      const handsContainer = sessionUI.shadowRoot?.querySelector("illthorn-hands-lit");
       expect(handsContainer).toBeTruthy();
     });
 
     it("should render streams component", async () => {
       await setup();
 
-      const streams = sessionUI.querySelector("illthorn-streams-lit");
+      const streams = sessionUI.shadowRoot?.querySelector("illthorn-streams-lit");
       expect(streams).toBeTruthy();
     });
 
     it("should render feed component with session", async () => {
       await setup();
 
-      const feed = sessionUI.querySelector("illthorn-feed-lit") as Feed;
+      const feed = sessionUI.shadowRoot?.querySelector("illthorn-feed-lit") as Feed;
       expect(feed).toBeTruthy();
       expect(feed.session).toBe(mockSession);
     });
@@ -224,7 +224,7 @@ describe("SessionLayout", () => {
     it("should render cli wrapper with prompt and cli components", async () => {
       await setup();
 
-      const cliWrapper = sessionUI.querySelector(".cli-wrapper");
+      const cliWrapper = sessionUI.shadowRoot?.querySelector(".cli-wrapper");
       expect(cliWrapper).toBeTruthy();
 
       const prompt = cliWrapper?.querySelector("illthorn-prompt") as Prompt;
@@ -238,18 +238,21 @@ describe("SessionLayout", () => {
   });
 
   describe("Hand components creation", () => {
-    it("should create hand components via makeHand factory", async () => {
+    it("should create hand components via hands container", async () => {
       await setup();
 
-      const handsContainer = sessionUI.querySelector(".hands");
+      const handsContainer = sessionUI.shadowRoot?.querySelector("illthorn-hands-lit");
       expect(handsContainer).toBeTruthy();
 
-      // Wait for firstUpdated to complete
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      // Wait for component initialization to complete
+      await sessionUI.waitForInitialization();
 
-      // Check that hand components were added to the container
-      const handElements = handsContainer?.querySelectorAll("illthorn-hand-lit");
-      expect(handElements?.length).toBe(3);
+      // Check that hands are accessible via the SessionUI interface
+      const sessionUIObj = sessionUI.getSessionUI();
+      const hands = sessionUIObj.hands;
+      expect(hands.left).toBeTruthy();
+      expect(hands.right).toBeTruthy();
+      expect(hands.spell).toBeTruthy();
     });
 
     it("should create left, right, and spell hands with proper names", async () => {
@@ -337,14 +340,14 @@ describe("SessionLayout", () => {
       const styles = SessionLayout.styles;
       expect(styles).toBeTruthy();
 
-      // The host element should be rendered (using Light DOM, so no shadowRoot)
-      expect(sessionUI.renderRoot).toBe(sessionUI); // Light DOM uses host element as renderRoot
+      // The component now uses Shadow DOM, so renderRoot should be shadowRoot
+      expect(sessionUI.renderRoot).toBe(sessionUI.shadowRoot); // Shadow DOM uses shadowRoot as renderRoot
     });
 
     it("should have hud positioned as fixed sidebar", async () => {
       await setup();
 
-      const hud = sessionUI.querySelector(".hud");
+      const hud = sessionUI.shadowRoot?.querySelector(".hud");
       expect(hud).toBeTruthy();
       expect(hud?.classList.contains("hud")).toBe(true);
     });
@@ -352,17 +355,17 @@ describe("SessionLayout", () => {
     it("should have main area with proper structure", async () => {
       await setup();
 
-      const main = sessionUI.querySelector(".main");
+      const main = sessionUI.shadowRoot?.querySelector(".main");
       expect(main).toBeTruthy();
       expect(main?.classList.contains("main")).toBe(true);
     });
 
-    it("should have hands container with proper class", async () => {
+    it("should have hands container component", async () => {
       await setup();
 
-      const hands = sessionUI.querySelector(".hands");
+      const hands = sessionUI.shadowRoot?.querySelector("illthorn-hands-lit");
       expect(hands).toBeTruthy();
-      expect(hands?.classList.contains("hands")).toBe(true);
+      expect(hands?.tagName.toLowerCase()).toBe("illthorn-hands-lit");
     });
   });
 
@@ -375,22 +378,22 @@ describe("SessionLayout", () => {
       expect(sessionUI.id).toBe("test-session");
 
       // HUD structure
-      const hud = sessionUI.querySelector(".hud");
+      const hud = sessionUI.shadowRoot?.querySelector(".hud");
       expect(hud).toBeTruthy();
 
       // Main structure
-      const main = sessionUI.querySelector(".main");
+      const main = sessionUI.shadowRoot?.querySelector(".main");
       expect(main).toBeTruthy();
 
       // All required components present
-      expect(sessionUI.querySelector("illthorn-compass")).toBeTruthy();
-      expect(sessionUI.querySelector("illthorn-room-lit")).toBeTruthy();
-      expect(sessionUI.querySelector("illthorn-vitals-lit")).toBeTruthy();
-      expect(sessionUI.querySelector("illthorn-effects-lit")).toBeTruthy();
-      expect(sessionUI.querySelector("illthorn-streams-lit")).toBeTruthy();
-      expect(sessionUI.querySelector("illthorn-feed-lit")).toBeTruthy();
-      expect(sessionUI.querySelector("illthorn-prompt")).toBeTruthy();
-      expect(sessionUI.querySelector("illthorn-cli-lit")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-compass")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-room-lit")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-vitals-lit")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-effects-lit")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-streams-lit")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-feed-lit")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-prompt")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-cli-lit")).toBeTruthy();
     });
 
     it("should provide same component references as original factory", async () => {
@@ -436,7 +439,7 @@ describe("SessionLayout", () => {
       document.body.appendChild(sessionUI);
       await sessionUI.updateComplete;
 
-      expect(sessionUI.textContent).toContain("No session provided");
+      expect(sessionUI.shadowRoot?.textContent).toContain("No session provided");
     });
 
     it("should handle component initialization failures gracefully", async () => {
