@@ -16,8 +16,8 @@ export class SessionsMenu extends LitElement {
     :host {
       display: flex;
       flex-direction: column;
-      gap: 0.5em;
-      padding: 0.5em;
+      gap: 0.25em;
+      padding: 0.25em;
       min-height: 4em;
       width: 100%;
     }
@@ -25,7 +25,7 @@ export class SessionsMenu extends LitElement {
     .sessions-container {
       display: flex;
       flex-direction: column;
-      gap: 0.5em;
+      gap: 0.25em;
       width: 100%;
     }
 
@@ -75,21 +75,30 @@ export class SessionsMenu extends LitElement {
     }
 
     // Subscribe to session focus events
-    Illthorn.bus.subscribeEvent<FrontendSession>(IllthornEvent.SESSION_FOCUS, ({ detail: session }) => {
-      this.handleSessionFocus(session);
-    });
+    Illthorn.bus.subscribeEvent<FrontendSession>(
+      IllthornEvent.SESSION_FOCUS,
+      ({ detail: session }) => {
+        this.handleSessionFocus(session);
+      },
+    );
 
     // Subscribe to new session events
-    Illthorn.bus.subscribeEvent<FrontendSession>(IllthornEvent.SESSION_NEW, () => {
-      this.refreshSessions();
-    });
+    Illthorn.bus.subscribeEvent<FrontendSession>(
+      IllthornEvent.SESSION_NEW,
+      () => {
+        this.refreshSessions();
+      },
+    );
 
     this._eventListenerSetup = true;
   }
 
   private initializeSessions() {
-    this._sessions = Array.from(SessionMap.values()).sort((a, b) => a.port - b.port);
-    this._activeSession = this._sessions.find((session) => session.hasFocus) || null;
+    this._sessions = Array.from(SessionMap.values()).sort(
+      (a, b) => a.port - b.port,
+    );
+    this._activeSession =
+      this._sessions.find((session) => session.hasFocus) || null;
   }
 
   private setupSessionMapWatcher() {
@@ -125,8 +134,11 @@ export class SessionsMenu extends LitElement {
   }
 
   refreshSessions() {
-    this._sessions = Array.from(SessionMap.values()).sort((a, b) => a.port - b.port);
-    this._activeSession = this._sessions.find((session) => session.hasFocus) || null;
+    this._sessions = Array.from(SessionMap.values()).sort(
+      (a, b) => a.port - b.port,
+    );
+    this._activeSession =
+      this._sessions.find((session) => session.hasFocus) || null;
     this.requestUpdate();
   }
 
@@ -145,9 +157,11 @@ export class SessionsMenu extends LitElement {
   render() {
     if (this._sessions.length === 0) {
       return html`
-        <div class="no-sessions" style="background: red; color: white; padding: 10px;">
-          No active sessions<br/>
-          <small>Use :c to connect</small>
+        <div
+          class="no-sessions"
+          style="background: red; color: white; padding: 10px;"
+        >
+          No active sessions<br />
         </div>
       `;
     }
@@ -156,11 +170,11 @@ export class SessionsMenu extends LitElement {
       <div class="sessions-container">
         ${this._sessions.map(
           (session) => html`
-          <illthorn-session-button
-            .session=${session}
-            .active=${session === this._activeSession}
-          ></illthorn-session-button>
-        `,
+            <illthorn-session-button
+              .session=${session}
+              .active=${session === this._activeSession}
+            ></illthorn-session-button>
+          `,
         )}
       </div>
     `;

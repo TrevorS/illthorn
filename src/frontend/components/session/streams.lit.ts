@@ -11,10 +11,14 @@ export class Streams extends LitElement {
       display: block;
       overflow-y: auto;
       height: 100%;
+      width: 100%;
       font-family: inherit;
       font-size: var(--stream-font-size, var(--base-font-size, 15px));
-      padding: 0 1em;
+      padding: 0.5em 1em;
       box-sizing: border-box;
+      background-color: var(--streams-background, var(--color-surface, #2a2a2a));
+      flex: 1;
+      position: relative;
     }
 
     /* Streams-on border styling (applied externally but needs to work with Shadow DOM) */
@@ -142,6 +146,19 @@ export class Streams extends LitElement {
     d[cmd]:hover {
       text-decoration: underline;
     }
+
+    /* Empty state styling */
+    .streams-empty {
+      color: var(--streams-text, var(--color-text-secondary, #cccccc));
+      font-style: italic;
+      text-align: left;
+      padding: 0.5em;
+      opacity: 0.6;
+      font-size: 0.85em;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
   `;
 
   @state()
@@ -198,6 +215,12 @@ export class Streams extends LitElement {
   }
 
   render() {
+    if (this._entries.length === 0) {
+      return html`
+        <div class="streams-empty">Streams Panel</div>
+      `;
+    }
+
     return html`
       ${this._entries.map((entryHTML) => unsafeHTML(entryHTML))}
     `;

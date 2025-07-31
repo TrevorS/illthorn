@@ -1,7 +1,7 @@
 // ABOUTME: Lit-based SessionUI component that renders complete session layout with HUD and main content areas
 // ABOUTME: Declarative replacement for makeSessionUI factory function using Lit templates and reactive properties
 import { css, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, query } from "lit/decorators.js";
 import type { FrontendSession as Session } from "../session/index";
 import "./session/compass.lit";
 import "./session/room.lit";
@@ -33,29 +33,28 @@ export type SessionUI = {
 
 @customElement("illthorn-session-layout-lit")
 export class SessionLayout extends LitElement {
-  // Use Light DOM to access document-level CSS custom properties
-  createRenderRoot() {
-    return this;
-  }
+  // Use Shadow DOM with CSS custom property inheritance
   static styles = css`
-    illthorn-session-layout-lit {
+    :host {
       display: grid !important;
       height: 100vh;
       width: 100%;
+      max-width: 100%;
       grid-template-columns: var(--hud-width, 14em) 1fr;
       overflow: hidden;
     }
 
-    illthorn-session-layout-lit.no-hud {
+    :host(.no-hud) {
       grid-template-columns: 0 1fr;
     }
 
-    illthorn-session-layout-lit.no-hud .hud {
+    :host(.no-hud) .hud {
       visibility: hidden;
     }
 
     .hud {
       border-right: 1px solid var(--color-border);
+      overflow: hidden;
     }
 
     .main {
@@ -93,21 +92,30 @@ export class SessionLayout extends LitElement {
       display: grid;
       grid-template-rows: auto auto 1fr auto;
       max-height: 100vh;
+      width: 100%;
+      min-width: 0;
+      overflow: hidden;
     }
 
     :host(.streams-on) .main {
-      grid-template-rows: auto var(--stream-height, 4em) 1fr auto;
+      grid-template-rows: auto var(--stream-height, 8em) 1fr auto;
     }
 
-    /* Hands styling now handled by illthorn-hands-lit component */
-
     .streams {
-      /* Streams area - height controlled by grid-template-rows */
+      overflow: hidden;
+      width: 100%;
+      background-color: var(--streams-background, var(--color-surface, #2a2a2a));
+      border-top: 1px solid var(--color-border, #444444);
+      border-bottom: 1px solid var(--color-border, #444444);
+      min-height: var(--stream-height, 8em);
+      display: flex;
+      align-items: stretch;
     }
 
     .feed-wrapper {
-      /* Feed takes remaining space in grid */
       overflow: hidden;
+      width: 100%;
+      min-width: 0;
     }
 
     .cli-wrapper {
@@ -205,17 +213,6 @@ export class SessionLayout extends LitElement {
     }
   `;
 
-  // Manually adopt styles for Light DOM
-  private _adoptStyles() {
-    // Create a style element for this component's styles
-    if (!document.head.querySelector('style[data-lit-component="session-layout"]')) {
-      const style = document.createElement("style");
-      style.setAttribute("data-lit-component", "session-layout");
-      style.textContent = SessionLayout.styles.cssText;
-      document.head.appendChild(style);
-    }
-  }
-
   private _session?: Session;
 
   @property({ type: Object })
@@ -254,43 +251,38 @@ export class SessionLayout extends LitElement {
     return this._initializationPromise;
   }
 
-  // Component references - manually assigned in _queryComponents()
+  // Component references using @query decorators
+  @query("illthorn-vitals-lit")
   private _vitals?: Vitals;
+
+  @query("illthorn-streams-lit")
   private _streams?: Streams;
+
+  @query("illthorn-feed-lit")
   private _feed?: Feed;
+
+  @query("illthorn-prompt")
   private _prompt?: Prompt;
+
+  @query("illthorn-cli-lit")
   private _cli?: CLI;
+
+  @query("illthorn-hands-lit")
+  private _hands?: Hands;
 
   // Promise that resolves when components are fully initialized and ready to use
   private _initializationPromise: Promise<void>;
   private _resolveInitialization!: () => void;
 
-  private _hands?: Hands;
-
   firstUpdated() {
-    this._adoptStyles();
-
     if (this.session) {
       // Set up host styling to match original implementation - this is where CSS classes get applied
       this.classList.add("session");
       this.id = this.session.name;
-
-      // Query components immediately - they should be available after firstUpdated
-      this._queryComponents();
     }
 
     // Always resolve the initialization promise, even if no session yet
     this._resolveInitialization();
-  }
-
-  private _queryComponents() {
-    // Manually query for components since @query doesn't work with Light DOM
-    this._feed = this.querySelector("illthorn-feed-lit") as Feed;
-    this._vitals = this.querySelector("illthorn-vitals-lit") as Vitals;
-    this._streams = this.querySelector("illthorn-streams-lit") as Streams;
-    this._cli = this.querySelector("illthorn-cli-lit") as CLI;
-    this._prompt = this.querySelector("illthorn-prompt") as Prompt;
-    this._hands = this.querySelector("illthorn-hands-lit") as Hands;
   }
 
   /**
@@ -306,76 +298,23 @@ export class SessionLayout extends LitElement {
         return self as HTMLElement;
       },
       get cli() {
-        if (self._cli) return self._cli;
-        if (self.isConnected) {
-          const cli = self.querySelector("illthorn-cli-lit") as CLI;
-          if (cli) {
-            self._cli = cli;
-            return cli;
-          }
-        }
-        return null;
+        return self._cli || null;
       },
       get feed() {
-        // Try to use cached component first, then query if component is attached to DOM
-        if (self._feed) {
-          return self._feed;
-        }
-
-        // Only query if component is actually connected to DOM
-        if (self.isConnected) {
-          const feed = self.querySelector("illthorn-feed-lit") as Feed;
-          if (feed) {
-            self._feed = feed; // Cache for future use
-            return feed;
-          }
-        }
-
-        return null;
+        return self._feed || null;
       },
       get prompt() {
-        if (self._prompt) return self._prompt;
-        if (self.isConnected) {
-          const prompt = self.querySelector("illthorn-prompt") as Prompt;
-          if (prompt) {
-            self._prompt = prompt;
-            return prompt;
-          }
-        }
-        return null;
+        return self._prompt || null;
       },
       get vitals() {
-        if (self._vitals) return self._vitals;
-        if (self.isConnected) {
-          const vitals = self.querySelector("illthorn-vitals-lit") as Vitals;
-          if (vitals) {
-            self._vitals = vitals;
-            return vitals;
-          }
-        }
-        return null;
+        return self._vitals || null;
       },
       get streams() {
-        if (self._streams) return self._streams;
-        if (self.isConnected) {
-          const streams = self.querySelector("illthorn-streams-lit") as Streams;
-          if (streams) {
-            self._streams = streams;
-            return streams;
-          }
-        }
-        return null;
+        return self._streams || null;
       },
       get hands() {
         if (self._hands) {
           return self._hands.getHands();
-        }
-        if (self.isConnected) {
-          const hands = self.querySelector("illthorn-hands-lit") as Hands;
-          if (hands) {
-            self._hands = hands;
-            return hands.getHands();
-          }
         }
         return { left: null, right: null, spell: null };
       },
@@ -384,7 +323,9 @@ export class SessionLayout extends LitElement {
 
   render() {
     if (!this.session) {
-      return html`<div style="color: red; background: white; padding: 20px;">No session provided</div>`;
+      return html`<div style="color: red; background: white; padding: 20px;">
+        No session provided
+      </div>`;
     }
     return html`
       <div class="hud">
@@ -392,30 +333,28 @@ export class SessionLayout extends LitElement {
           <illthorn-room-lit .session=${this.session}></illthorn-room-lit>
           <illthorn-compass .session=${this.session}></illthorn-compass>
         </illthorn-panel>
-        
+
         <illthorn-panel title="vitals" .open=${true}>
           <illthorn-vitals-lit .session=${this.session}></illthorn-vitals-lit>
         </illthorn-panel>
-        
+
         <illthorn-panel title="active spells" .open=${true}>
-          <illthorn-effects-lit 
-            .session=${this.session} 
-            name="Active Spells">
+          <illthorn-effects-lit .session=${this.session} name="Active Spells">
           </illthorn-effects-lit>
         </illthorn-panel>
       </div>
 
       <div class="main">
         <illthorn-hands-lit .session=${this.session}></illthorn-hands-lit>
-        
+
         <div class="streams">
           <illthorn-streams-lit .session=${this.session}></illthorn-streams-lit>
         </div>
-        
+
         <div class="feed-wrapper">
           <illthorn-feed-lit .session=${this.session}></illthorn-feed-lit>
         </div>
-        
+
         <div class="cli-wrapper">
           <div class="timers">
             <!-- Timer bars will be managed by the CLI component -->
