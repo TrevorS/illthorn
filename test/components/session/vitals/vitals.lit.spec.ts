@@ -31,7 +31,7 @@ describe("Vitals", () => {
       vitals.remove();
     });
 
-    it("should initialize vitals with full default values", async () => {
+    it("should initialize vitals with indeterminate default values", async () => {
       const vitals = new Vitals(mockSession);
       document.body.appendChild(vitals);
       await vitals.updateComplete;
@@ -39,13 +39,13 @@ describe("Vitals", () => {
       const shadowRoot = vitals.shadowRoot;
       const vitalStats = shadowRoot?.querySelectorAll("illthorn-vital-stat");
 
-      // Check that vital stats show full by default (100%)
+      // Check that vital stats show indeterminate state by default
       expect(vitalStats?.length).toBe(5); // health, stamina, spirit, mana, mind
 
-      // Health should show 100/100 at 100%
+      // Health should show empty value with no percent (indeterminate)
       const healthStat = Array.from(vitalStats || []).find((stat) => stat.getAttribute("label") === "health");
-      expect(healthStat?.getAttribute("value")).toBe("100/100");
-      expect(healthStat?.getAttribute("percent")).toBe("100");
+      expect(healthStat?.getAttribute("value")).toBe(""); // Empty string for undefined value
+      expect(healthStat?.getAttribute("percent")).toBe(""); // Empty string for indeterminate
 
       vitals.remove();
     });

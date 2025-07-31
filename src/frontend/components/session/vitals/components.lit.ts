@@ -44,6 +44,11 @@ export class VitalStat extends LitElement {
       font-size: 0.9rem;
     }
 
+    .vital-value.indeterminate {
+      opacity: 0.6;
+      font-style: italic;
+    }
+
     sl-progress-bar {
       --height: 0.8rem;
       --track-color: rgba(255, 255, 255, 0.2);
@@ -103,10 +108,10 @@ export class VitalStat extends LitElement {
   label = "";
 
   @property({ type: String })
-  value = "";
+  value: string | undefined = undefined; // Optional - undefined means indeterminate state
 
   @property({ type: Number })
-  percent = 0;
+  percent: number | undefined = undefined; // Optional - undefined means indeterminate state
 
   @property({ type: String, reflect: true, attribute: "data-vital" })
   dataVital = "";
@@ -125,6 +130,9 @@ export class VitalStat extends LitElement {
    * for styling the vital stat based on current percentage
    */
   private get _thresholdCategory(): VitalThresholdCategory {
+    if (this.percent === undefined || this.percent === null) {
+      return "high"; // Default category for indeterminate state
+    }
     if (this.percent < 33) {
       return "low";
     }
@@ -173,11 +181,8 @@ export class VitalStat extends LitElement {
     const vitalType = this.label.toLowerCase();
     let colorVar = "var(--color-vital-health)";
 
-    // Override with critical red if low
-    if (this._thresholdCategory === "low") {
-      colorVar = "var(--color-vital-critical)";
-    } else {
-      // Use stat-specific theme colors
+    // For indeterminate state, use default vital color (no critical override)
+    if (this.percent === undefined || this.percent === null) {
       switch (vitalType) {
         case "health":
           colorVar = "var(--color-vital-health)";
@@ -195,20 +200,53 @@ export class VitalStat extends LitElement {
           colorVar = "var(--color-vital-mind)";
           break;
       }
+    } else {
+      // Override with critical red if low
+      if (this._thresholdCategory === "low") {
+        colorVar = "var(--color-vital-critical)";
+      } else {
+        // Use stat-specific theme colors
+        switch (vitalType) {
+          case "health":
+            colorVar = "var(--color-vital-health)";
+            break;
+          case "mana":
+            colorVar = "var(--color-vital-mana)";
+            break;
+          case "stamina":
+            colorVar = "var(--color-vital-stamina)";
+            break;
+          case "spirit":
+            colorVar = "var(--color-vital-spirit)";
+            break;
+          case "mind":
+            colorVar = "var(--color-vital-mind)";
+            break;
+        }
+      }
     }
 
     return `--indicator-color: ${colorVar};`;
   }
 
   render() {
+    // Handle display value for indeterminate state
+    const displayValue = this.value ?? "...";
+    const valueClass = this.value === undefined ? "vital-value indeterminate" : "vital-value";
+
+    // For indeterminate state, we still set a value but also add indeterminate attribute
+    const isIndeterminate = this.percent === undefined;
+    const progressValue = isIndeterminate ? 0 : (this.percent ?? 0);
+
     return html`
       <div class="vital-container">
         <div class="vital-row">
           <span class="vital-label">${this.label}</span>
-          <span class="vital-value">${this.value}</span>
+          <span class="${valueClass}">${displayValue}</span>
         </div>
         <sl-progress-bar 
-          value=${this.percent}
+          value=${progressValue}
+          ?indeterminate=${isIndeterminate}
           class=${this._progressBarClass}
           label=${this._accessibleLabel}
           style=${this._progressBarStyle}>
