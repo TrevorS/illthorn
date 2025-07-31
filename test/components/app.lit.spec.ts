@@ -54,7 +54,7 @@ describe("AppRoot", () => {
     const stylesString = AppRoot.styles.toString();
     expect(stylesString).toContain("display: grid");
     expect(stylesString).toContain("height: 100vh");
-    expect(stylesString).toContain("var(--actions-width, 7em)");
+    expect(stylesString).toContain("var(--actions-width, 5em)");
   });
 
   it("should support theme CSS custom properties in styles", () => {
