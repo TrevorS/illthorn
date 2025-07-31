@@ -75,30 +75,21 @@ export class SessionsMenu extends LitElement {
     }
 
     // Subscribe to session focus events
-    Illthorn.bus.subscribeEvent<FrontendSession>(
-      IllthornEvent.SESSION_FOCUS,
-      ({ detail: session }) => {
-        this.handleSessionFocus(session);
-      },
-    );
+    Illthorn.bus.subscribeEvent<FrontendSession>(IllthornEvent.SESSION_FOCUS, ({ detail: session }) => {
+      this.handleSessionFocus(session);
+    });
 
     // Subscribe to new session events
-    Illthorn.bus.subscribeEvent<FrontendSession>(
-      IllthornEvent.SESSION_NEW,
-      () => {
-        this.refreshSessions();
-      },
-    );
+    Illthorn.bus.subscribeEvent<FrontendSession>(IllthornEvent.SESSION_NEW, () => {
+      this.refreshSessions();
+    });
 
     this._eventListenerSetup = true;
   }
 
   private initializeSessions() {
-    this._sessions = Array.from(SessionMap.values()).sort(
-      (a, b) => a.port - b.port,
-    );
-    this._activeSession =
-      this._sessions.find((session) => session.hasFocus) || null;
+    this._sessions = Array.from(SessionMap.values()).sort((a, b) => a.port - b.port);
+    this._activeSession = this._sessions.find((session) => session.hasFocus) || null;
   }
 
   private setupSessionMapWatcher() {
@@ -134,11 +125,8 @@ export class SessionsMenu extends LitElement {
   }
 
   refreshSessions() {
-    this._sessions = Array.from(SessionMap.values()).sort(
-      (a, b) => a.port - b.port,
-    );
-    this._activeSession =
-      this._sessions.find((session) => session.hasFocus) || null;
+    this._sessions = Array.from(SessionMap.values()).sort((a, b) => a.port - b.port);
+    this._activeSession = this._sessions.find((session) => session.hasFocus) || null;
     this.requestUpdate();
   }
 

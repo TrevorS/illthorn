@@ -107,7 +107,8 @@ export class SessionLayout extends LitElement {
       background-color: var(--streams-background, var(--color-surface, #2a2a2a));
       border-top: 1px solid var(--color-border, #444444);
       border-bottom: 1px solid var(--color-border, #444444);
-      min-height: var(--stream-height, 8em);
+      height: var(--stream-height, 8em);
+      max-height: var(--stream-height, 8em);
       display: flex;
       align-items: stretch;
     }
