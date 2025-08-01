@@ -1,11 +1,11 @@
-// ABOUTME: High-performance input manager for rapid value changes without triggering Lit reactivity
+// ABOUTME: Input manager for rapid value changes without triggering Lit reactivity
 // ABOUTME: Provides direct sl-input manipulation with debounced sync back to reactive state
 
 import type SlInput from "@shoelace-style/shoelace/dist/components/input/input.component.js";
 
 export type InputUpdateCallback = (value: string) => void;
 
-export class PerformantInputManager {
+export class InputManager {
   private _isInRapidMode = false;
   private _rapidModeTimer?: number;
   private _pendingValue = "";

@@ -1,6 +1,8 @@
 // ABOUTME: Readline-style key bindings handler for comprehensive text editing capabilities
 // ABOUTME: Implements Emacs/Bash-style key combinations with kill ring and word navigation
 
+import { getWordBoundaryBackward, getWordBoundaryForward } from "./text-navigation";
+
 export interface ReadlineKeyBindings {
   // Text navigation
   moveCursorToStart(): void;
@@ -8,15 +10,14 @@ export interface ReadlineKeyBindings {
   moveWordForward(): void;
   moveWordBackward(): void;
 
-  // Text editing operations
-  killToEndOfLine(): void;
-  killEntireLine(): void;
-  deletePreviousWord(): void;
-  deleteWordForward(): void;
-  yankText(): void;
+  // History navigation
+  navigateHistoryBack(): void;
+  navigateHistoryForward(): void;
 
-  // Kill ring operations
-  addToKillRing(text: string): void;
+  // Command operations
+  submitCommand(): void;
+  replayLastCommand(): void;
+  clearInput(): void;
 
   // Getters for state
   getCursorPosition(): number;
@@ -70,12 +71,20 @@ export class ReadlineKeyHandler {
           this._yankText();
           return true;
 
-        // These cases are handled elsewhere but we acknowledge them
         case "p": // History navigation (equivalent to ArrowUp)
+          e.preventDefault();
+          this.bindings.navigateHistoryBack();
+          return true;
+
         case "n": // History navigation (equivalent to ArrowDown)
+          e.preventDefault();
+          this.bindings.navigateHistoryForward();
+          return true;
+
         case ".": // Command replay
-        case "r": // Reverse search (if implemented)
-          return false; // Let calling code handle these
+          e.preventDefault();
+          this.bindings.replayLastCommand();
+          return true;
       }
     }
 
@@ -97,6 +106,28 @@ export class ReadlineKeyHandler {
           this._deleteWordForward();
           return true;
       }
+    }
+
+    // Standard key handling (non-modifier keys)
+    switch (e.key) {
+      case "Enter":
+        this.bindings.submitCommand();
+        return true;
+
+      case "ArrowUp":
+        e.preventDefault();
+        this.bindings.navigateHistoryBack();
+        return true;
+
+      case "ArrowDown":
+        e.preventDefault();
+        this.bindings.navigateHistoryForward();
+        return true;
+
+      case "Escape":
+        e.preventDefault();
+        this.bindings.clearInput();
+        return true;
     }
 
     return false; // Key not handled
@@ -124,7 +155,7 @@ export class ReadlineKeyHandler {
   private _deletePreviousWord() {
     const position = this.bindings.getCursorPosition();
     const currentValue = this.bindings.getCurrentValue();
-    const wordStart = this._getWordBoundaryBackward(currentValue, position);
+    const wordStart = getWordBoundaryBackward(currentValue, position);
     const deletedText = currentValue.slice(wordStart, position);
 
     if (deletedText.length > 0) {
@@ -137,7 +168,7 @@ export class ReadlineKeyHandler {
   private _deleteWordForward() {
     const position = this.bindings.getCursorPosition();
     const currentValue = this.bindings.getCurrentValue();
-    const wordEnd = this._getWordBoundaryForward(currentValue, position);
+    const wordEnd = getWordBoundaryForward(currentValue, position);
     const deletedText = currentValue.slice(position, wordEnd);
 
     if (deletedText.length > 0) {
@@ -169,35 +200,6 @@ export class ReadlineKeyHandler {
       this._killRing = this._killRing.slice(0, this._maxKillRingSize);
     }
     this._killRingPosition = 0;
-  }
-
-  // Word boundary detection
-  private _getWordBoundaryForward(text: string, position: number): number {
-    // Find the start of the next word
-    let i = position;
-    // Skip current word characters
-    while (i < text.length && /\S/.test(text[i])) {
-      i++;
-    }
-    // Skip whitespace to start of next word
-    while (i < text.length && /\s/.test(text[i])) {
-      i++;
-    }
-    return i;
-  }
-
-  private _getWordBoundaryBackward(text: string, position: number): number {
-    // Find the start of the current word or previous word
-    let i = position;
-    // Skip whitespace before current position
-    while (i > 0 && /\s/.test(text[i - 1])) {
-      i--;
-    }
-    // Skip word characters to find word start
-    while (i > 0 && /\S/.test(text[i - 1])) {
-      i--;
-    }
-    return i;
   }
 
   /**

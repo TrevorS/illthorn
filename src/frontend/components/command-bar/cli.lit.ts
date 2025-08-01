@@ -9,8 +9,9 @@ import { Illthorn } from "../../illthorn";
 import type { GameTag } from "../../parser/tag";
 import type { FrontendSession } from "../../session";
 import { CommandEchoSystem } from "./command-echo";
-import { PerformantInputManager } from "./performant-input";
+import { InputManager } from "./input-manager";
 import { type ReadlineKeyBindings, ReadlineKeyHandler } from "./readline-keys";
+import { getWordBoundaryBackward, getWordBoundaryForward } from "./text-navigation";
 
 @customElement("illthorn-cli-lit")
 export class CLI extends LitElement implements ReadlineKeyBindings {
@@ -148,8 +149,8 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
   // Command echo system for bus-based feed integration
   private _commandEcho?: CommandEchoSystem;
 
-  // High-performance input manager for rapid history navigation
-  private _inputManager?: PerformantInputManager;
+  // Input manager for rapid history navigation
+  private _inputManager?: InputManager;
 
   // Readline-style key bindings handler
   private _readlineHandler?: ReadlineKeyHandler;
@@ -182,9 +183,9 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
   }
 
   firstUpdated() {
-    // Initialize the performance input manager
+    // Initialize the input manager
     if (this._slInput) {
-      this._inputManager = new PerformantInputManager(this._slInput);
+      this._inputManager = new InputManager(this._slInput);
       this._inputManager.setOnSyncCallback((value) => {
         this._inputValue = value;
       });
@@ -220,7 +221,7 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    // Clean up performance input manager
+    // Clean up input manager
     this._inputManager?.destroy();
     // Event subscriptions are automatically cleaned up by the bus system
   }
@@ -255,66 +256,48 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
 
   moveWordForward(): void {
     const position = this.getCursorPosition();
-    const newPosition = this._getWordBoundaryForward(this.getCurrentValue(), position);
+    const newPosition = getWordBoundaryForward(this.getCurrentValue(), position);
     this.setCursorPosition(newPosition);
   }
 
   moveWordBackward(): void {
     const position = this.getCursorPosition();
-    const newPosition = this._getWordBoundaryBackward(this.getCurrentValue(), position);
+    const newPosition = getWordBoundaryBackward(this.getCurrentValue(), position);
     this.setCursorPosition(newPosition);
   }
 
-  killToEndOfLine(): void {
-    // Implemented by ReadlineKeyHandler
-  }
+  // Command history navigation
+  navigateHistoryBack(): void {
+    if (!this.session) return;
 
-  killEntireLine(): void {
-    // Implemented by ReadlineKeyHandler
-  }
-
-  deletePreviousWord(): void {
-    // Implemented by ReadlineKeyHandler
-  }
-
-  deleteWordForward(): void {
-    // Implemented by ReadlineKeyHandler
-  }
-
-  yankText(): void {
-    // Implemented by ReadlineKeyHandler
-  }
-
-  addToKillRing(_text: string): void {
-    // Implemented by ReadlineKeyHandler
-  }
-
-  private _getWordBoundaryForward(text: string, position: number): number {
-    // Find the start of the next word
-    let i = position;
-    // Skip current word characters
-    while (i < text.length && /\S/.test(text[i])) {
-      i++;
+    const history = this.session.history;
+    if (history.position === 0) {
+      history.add(this._inputValue);
     }
-    // Skip whitespace to start of next word
-    while (i < text.length && /\s/.test(text[i])) {
-      i++;
-    }
-    return i;
+    this._setInput(history.back());
   }
 
-  private _getWordBoundaryBackward(text: string, position: number): number {
-    // Find the start of the current word or previous word
-    let i = position;
-    // Skip whitespace before current position
-    while (i > 0 && /\s/.test(text[i - 1])) {
-      i--;
-    }
-    // Skip word characters to find word start
-    while (i > 0 && /\S/.test(text[i - 1])) {
-      i--;
-    }
-    return i;
+  navigateHistoryForward(): void {
+    if (!this.session) return;
+
+    const history = this.session.history;
+    this._setInput(history.forward());
+  }
+
+  // Command operations
+  submitCommand(): void {
+    this._submitCommand();
+  }
+
+  replayLastCommand(): void {
+    this._replayLastCommand();
+  }
+
+  clearInput(): void {
+    if (!this.session) return;
+
+    this._inputValue = "";
+    this.session.history.resetPosition();
   }
 
   // Command replay functionality
@@ -411,63 +394,8 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
       return;
     }
 
-    const history = this.session.history;
-
-    // Command replay (vim-style)
-    if (e.ctrlKey && e.key === ".") {
-      e.preventDefault();
-      this._replayLastCommand();
-      return;
-    }
-
-    // Let readline handler process text editing keys first
-    if (this._readlineHandler?.handleKeyDown(e)) {
-      return; // Key was handled by readline handler
-    }
-
-    // Handle remaining Ctrl key combinations (history navigation, etc.)
-    if (e.ctrlKey) {
-      switch (e.key.toLowerCase()) {
-        case "p": // History navigation (equivalent to ArrowUp)
-          e.preventDefault();
-          if (history.position === 0) {
-            history.add(this._inputValue);
-          }
-          this._setInput(history.back());
-          return;
-
-        case "n": // History navigation (equivalent to ArrowDown)
-          e.preventDefault();
-          this._setInput(history.forward());
-          return;
-      }
-    }
-
-    // Original key handling
-    switch (e.key) {
-      case "Enter":
-        this._submitCommand();
-        break;
-
-      case "ArrowUp":
-        e.preventDefault();
-        if (history.position === 0) {
-          history.add(this._inputValue);
-        }
-        this._setInput(history.back());
-        break;
-
-      case "ArrowDown":
-        e.preventDefault();
-        this._setInput(history.forward());
-        break;
-
-      case "Escape":
-        e.preventDefault();
-        this._inputValue = "";
-        history.resetPosition();
-        break;
-    }
+    // All key handling is now done by the readline handler
+    this._readlineHandler?.handleKeyDown(e);
   }
 
   private _handleInput(e: CustomEvent) {
@@ -475,7 +403,7 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
   }
 
   private _setInput(value: string) {
-    // Use performance-optimized immediate update for history navigation
+    // Use optimized immediate update for history navigation
     this._inputManager?.setValueImmediate(value, value.length);
   }
 

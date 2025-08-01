@@ -6,7 +6,8 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { IllthornEvent } from "../../events";
 import type { FrontendSession as Session } from "../../session/index";
 import { debugFeed } from "../../util/logger";
-import type { CommandEchoEvent } from "./command-echo";
+import type { CommandEchoEvent } from "../command-bar/command-echo";
+import { createCommandEchoHTML } from "./feed/command-echo-html";
 
 @customElement("illthorn-feed-lit")
 export class Feed extends LitElement {
@@ -373,22 +374,22 @@ export class Feed extends LitElement {
   private _handleCommandEcho(event: CustomEvent<CommandEchoEvent>) {
     const { command, isReplay } = event.detail;
 
-    // Create a styled echo element
-    const echoElement = document.createElement("div");
-    echoElement.style.color = "rgba(255, 255, 255, 0.7)";
-    echoElement.style.fontStyle = "italic";
-    echoElement.style.marginBottom = "0.25rem";
-    echoElement.style.fontFamily = '"MonoLisa", monospace';
+    // Generate static HTML for the command echo
+    const echoHTML = createCommandEchoHTML({ command, isReplay });
 
-    // Different formatting for replays vs regular commands
-    if (isReplay) {
-      echoElement.textContent = `[Replay] ${command}`;
-    } else {
-      echoElement.textContent = `> ${command}`;
+    // Add to content HTML array directly
+    this._contentHTML = [...this._contentHTML, echoHTML];
+
+    // Trigger memory management and re-render
+    this.flush();
+    this.requestUpdate();
+
+    // Auto-scroll if appropriate
+    if (!this.isScrolling && this._shouldAutoScroll) {
+      this.updateComplete.then(() => {
+        this.scrollToNow();
+      });
     }
-
-    // Use the proper feed integration method
-    this.appendParsed(echoElement);
   }
 
   render() {

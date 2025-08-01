@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { CommandHistory } from "../src/frontend/session/command-history";
+import { CommandHistory } from "../../../src/frontend/components/command-bar/command-history";
 
 describe("CommandHistory", () => {
   test("back() returns commands in reverse order with linear indexing", () => {
@@ -9,9 +9,9 @@ describe("CommandHistory", () => {
 
     // History is [info, exp, climb tower] (newest first)
     // Current index starts at 0 (most recent = "info")
-    expect(history.back()).toBe("exp");  // Move to index -1
-    expect(history.back()).toBe("climb tower");  // Move to index -2
-    expect(history.back()).toBe("climb tower");  // At boundary, stays at oldest
+    expect(history.back()).toBe("exp"); // Move to index -1
+    expect(history.back()).toBe("climb tower"); // Move to index -2
+    expect(history.back()).toBe("climb tower"); // At boundary, stays at oldest
   });
 
   test("forward() moves towards newer commands", () => {
@@ -22,9 +22,9 @@ describe("CommandHistory", () => {
     // Go back a few steps
     history.back(); // "exp"
     history.back(); // "climb tower"
-    
+
     // Now go forward
-    expect(history.forward()).toBe("exp");  // Move towards newer
+    expect(history.forward()).toBe("exp"); // Move towards newer
     expect(history.forward()).toBe("info"); // Back to most recent
     expect(history.forward()).toBe("info"); // At boundary, stays at newest
   });

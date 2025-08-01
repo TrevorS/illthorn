@@ -18,8 +18,8 @@ import "./session/feed.lit";
 import type { Feed } from "./session/feed.lit";
 import "./session/prompt.lit";
 import type { Prompt } from "./session/prompt.lit";
-import "./session/cli.lit";
-import type { CLI } from "./session/cli.lit";
+import "./command-bar/cli.lit";
+import type { CLI } from "./command-bar/cli.lit";
 
 export type SessionUI = {
   context: HTMLElement;
