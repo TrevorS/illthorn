@@ -8,20 +8,20 @@ describe("createCommandEchoHTML", () => {
 
       expect(html).toContain('class="command-echo"');
       expect(html).toContain('class="prefix"');
-      expect(html).toContain(">></span>");
+      expect(html).toContain("&gt;</span>");
       expect(html).toContain('class="command-text"');
       expect(html).toContain(">look</span>");
-      expect(html).toContain("--color-command-echo,");
-      expect(html).toContain("font-style: italic"); // Command text is now italic
       expect(html).not.toContain('class="command-echo replay"');
     });
 
-    test("should use proper CSS custom properties for regular commands", () => {
+    test("should generate clean HTML without inline styles", () => {
       const html = createCommandEchoHTML({ command: "inventory", isReplay: false });
 
-      expect(html).toContain("--color-command-echo,");
-      expect(html).toContain("--color-command-echo-border,");
-      expect(html).toContain("--color-command-echo-bg,");
+      // Should have proper CSS classes but no inline styles
+      expect(html).toContain('class="command-echo"');
+      expect(html).toContain('class="prefix"');
+      expect(html).toContain('class="command-text"');
+      expect(html).not.toContain("style=");
       expect(html).not.toContain("--color-command-echo-replay");
     });
   });
@@ -35,16 +35,16 @@ describe("createCommandEchoHTML", () => {
       expect(html).toContain(">[Replay]</span>");
       expect(html).toContain('class="command-text"');
       expect(html).toContain(">cast 501</span>");
-      expect(html).toContain("--color-command-echo-replay,");
-      expect(html).toContain("font-style: italic");
     });
 
-    test("should use proper CSS custom properties for replay commands", () => {
+    test("should generate clean HTML without inline styles for replay", () => {
       const html = createCommandEchoHTML({ command: "heal", isReplay: true });
 
-      expect(html).toContain("--color-command-echo-replay,");
-      expect(html).toContain("--color-command-echo-replay-border,");
-      expect(html).toContain("--color-command-echo-replay-bg,");
+      // Should have proper CSS classes but no inline styles
+      expect(html).toContain('class="command-echo replay"');
+      expect(html).toContain('class="prefix"');
+      expect(html).toContain('class="command-text"');
+      expect(html).not.toContain("style=");
     });
   });
 
@@ -68,7 +68,7 @@ describe("createCommandEchoHTML", () => {
       expect(html).toContain('class="command-text"');
       expect(html).toContain("></span>");
       expect(html).toContain('class="prefix"');
-      expect(html).toContain(">></span>");
+      expect(html).toContain("&gt;</span>");
     });
   });
 
@@ -81,33 +81,28 @@ describe("createCommandEchoHTML", () => {
       expect(html).toContain('class="command-text"');
     });
 
-    test("should include proper inline styling", () => {
+    test("should generate clean HTML without inline styling", () => {
       const html = createCommandEchoHTML({ command: "test", isReplay: false });
 
-      expect(html).toContain("font-family: var(--font-family-monospace");
-      expect(html).toContain("MonoLisa");
-      expect(html).toContain("display: block");
-      expect(html).toContain("border-left:");
-      expect(html).toContain("background-color:");
+      // Should have CSS classes but no inline styles - styling handled by CSS
+      expect(html).toContain('class="command-echo"');
+      expect(html).not.toContain("style=");
+      expect(html).not.toContain("font-family:");
+      expect(html).not.toContain("display:");
+      expect(html).not.toContain("border-left:");
+      expect(html).not.toContain("background-color:");
     });
 
-    test("should have proper theme variable integration with fallbacks", () => {
+    test("should rely on CSS classes for theming", () => {
       const regularHtml = createCommandEchoHTML({ command: "test", isReplay: false });
       const replayHtml = createCommandEchoHTML({ command: "test", isReplay: true });
 
-      // Regular command should use theme variables with fallbacks
-      expect(regularHtml).toContain("var(--color-text-secondary");
-      expect(regularHtml).toContain("var(--color-border");
-      expect(regularHtml).toContain("var(--color-surface-secondary");
-      expect(regularHtml).toContain("#ccc"); // fallback
-      expect(regularHtml).toContain("#666"); // fallback
+      // Should use CSS classes, not inline theme variables
+      expect(regularHtml).toContain('class="command-echo"');
+      expect(regularHtml).not.toContain("--color-");
 
-      // Replay command should also use theme variables
-      expect(replayHtml).toContain("var(--color-text-secondary");
-      expect(replayHtml).toContain("var(--color-border");
-      expect(replayHtml).toContain("var(--color-surface-secondary");
-      expect(replayHtml).toContain("#ffcc00"); // fallback
-      expect(replayHtml).toContain("#ff9900"); // fallback
+      expect(replayHtml).toContain('class="command-echo replay"');
+      expect(replayHtml).not.toContain("--color-");
     });
   });
 

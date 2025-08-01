@@ -1,7 +1,6 @@
 import "./styles/index.scss";
 import "./illthorn";
 import "./components/app.lit";
-import "./components/command-bar/command-echo.lit";
 import "./components/timers/roundtime-timer.lit";
 import "./components/timers/casttime-timer.lit";
 

@@ -164,6 +164,37 @@ export class Feed extends LitElement {
       text-decoration: none;
     }
 
+    /* Command echo styling */
+    .content .command-echo {
+      display: block;
+      font-family: var(--font-family-monospace, "MonoLisa", monospace);
+      font-size: 0.9em;
+      line-height: 2.2;
+      margin: 2px 0;
+      color: var(--color-command-echo, var(--color-text-secondary, #ccc));
+      padding: 1px 0;
+      border-left: 1px solid var(--color-command-echo-border, var(--color-border, #666));
+      background-color: var(--color-command-echo-bg, var(--color-surface-secondary, rgba(255, 255, 255, 0.05)));
+    }
+
+    .content .command-echo.replay {
+      color: var(--color-command-echo-replay, var(--color-text-secondary, #ffcc00));
+      border-left-color: var(--color-command-echo-replay-border, var(--color-border, #ff9900));
+      background-color: var(--color-command-echo-replay-bg, var(--color-surface-secondary, rgba(255, 204, 0, 0.1)));
+      font-style: italic;
+    }
+
+    .content .command-echo .prefix {
+      opacity: 0.8;
+      margin-left: 5px;
+      margin-right: 5px;
+    }
+
+    .content .command-echo .command-text {
+      font-weight: normal;
+      font-style: italic;
+    }
+
     /* Preset styling for inline elements */
     .content span {
       font-family: inherit;

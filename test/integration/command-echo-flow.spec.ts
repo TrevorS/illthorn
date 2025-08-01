@@ -9,8 +9,7 @@ import { Parser } from "../../src/frontend/parser/parser";
 import type { FrontendSession } from "../../src/frontend/session";
 import { Bus } from "../../src/frontend/util/bus";
 
-// Import the echo component to ensure it's registered
-import "../../src/frontend/components/command-bar/command-echo.lit";
+// No need to import echo component anymore - using HTML generation
 
 // Mock session for testing
 const createMockSession = (): FrontendSession => {
