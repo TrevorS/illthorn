@@ -48,18 +48,8 @@ export class FrontendSession {
     setTimeout(() => this._processBufferedMessages(), 0);
   }
 
-  get ui(): SessionUI {
-    return (
-      this._ui || {
-        context: document.body, // Fallback
-        cli: null,
-        feed: null,
-        prompt: null,
-        vitals: null,
-        streams: null,
-        hands: { left: null, right: null, spell: null },
-      }
-    );
+  get ui(): SessionUI | null {
+    return this._ui || null;
   }
 
   private _ensureInitialization() {
@@ -77,7 +67,7 @@ export class FrontendSession {
 
   streams(on: boolean) {
     // Components should be available since we wait for initialization
-    if (this.ui.context && this.ui.streams && this.ui.feed) {
+    if (this.ui?.context && this.ui?.streams && this.ui?.feed) {
       this.ui.context.classList.toggle("streams-on", on);
       this.ui.streams.scrollToNow();
       this.ui.feed.scrollToNow();
@@ -112,17 +102,17 @@ export class FrontendSession {
 
     const streams = [...frag.querySelectorAll(".stream.thoughts")];
 
-    if (streams.length && this.ui.streams) {
+    if (streams.length && this.ui?.streams) {
       streams.forEach((entry) => this.ui.streams.addEntry(entry));
     }
 
     if (frag.hasChildNodes() && frag.textContent?.trim() !== "") {
-      if (this.ui.feed) {
+      if (this.ui?.feed) {
         this.ui.feed.appendParsed(frag);
       }
     }
 
-    if (this.ui.feed && !this.ui.feed.has_prompt() && prompt) {
+    if (this.ui?.feed && !this.ui.feed.has_prompt() && prompt) {
       this.ui.feed.appendParsed(prompt);
     }
     if (metadata.length) {
@@ -132,7 +122,7 @@ export class FrontendSession {
   }
 
   handleMacro(macro: string) {
-    if (!this.ui.cli?.input) {
+    if (!this.ui?.cli?.input) {
       return;
     }
 
@@ -154,7 +144,7 @@ export class FrontendSession {
 
   async onFocus() {
     try {
-      if (this.ui.streams && this.ui.feed) {
+      if (this.ui?.streams && this.ui?.feed) {
         this.ui.streams.scrollToNow();
         this.ui.feed.scrollToNow();
       }

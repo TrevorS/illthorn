@@ -6,7 +6,7 @@ import type { FrontendSession, FrontendSession as Session } from ".";
 import { SessionMap } from "./map";
 
 export function endSession(session: Session) {
-  if (!session.ui.feed) return;
+  if (!session.ui?.feed) return;
   //session.socket.end()
   const pre = document.createElement("pre");
   pre.classList.add("session-closed");
@@ -48,7 +48,7 @@ export function renderSession(session: Session, _container: HTMLElement) {
 export function sendCommandToGame(session: Session, cmd: string, _id = "cli") {
   cmd = cmd.toString().trim();
   if (cmd.length === 0) return;
-  const prompt = session.ui.feed.querySelector("prompt:last-child");
+  const prompt = session.ui?.feed?.querySelector("prompt:last-child");
   if (prompt) prompt.textContent += cmd;
   session.sendCommand(cmd);
   return session;

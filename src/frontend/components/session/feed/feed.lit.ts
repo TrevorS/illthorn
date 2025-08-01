@@ -3,11 +3,11 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
-import { IllthornEvent } from "../../events";
-import type { FrontendSession as Session } from "../../session/index";
-import { debugFeed } from "../../util/logger";
-import type { CommandEchoEvent } from "../command-bar/command-echo";
-import { createCommandEchoHTML } from "./feed/command-echo-html";
+import { IllthornEvent } from "../../../events";
+import type { FrontendSession as Session } from "../../../session/index";
+import { debugFeed } from "../../../util/logger";
+import type { CommandEchoEvent } from "../../command-bar/command-echo";
+import { createCommandEchoHTML } from "./command-echo-html";
 
 @customElement("illthorn-feed-lit")
 export class Feed extends LitElement {
