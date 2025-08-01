@@ -72,35 +72,37 @@ export class CLI extends LitElement {
       margin-bottom: 2px;
     }
 
-    .timer-bar {
+    sl-progress-bar.timer-bar {
       height: 3px;
-      /* The bar maxes out, visually, at 20s timers */
-      width: calc(var(--steps) * 5%);
+      width: 100%;
       margin-bottom: 1px;
-      transform-origin: left;
-      transition-property: width, transform;
+      --height: 3px;
+      --track-color: rgba(255, 255, 255, 0.1);
+      --track-width: 100%;
     }
 
-    .timer-bar.go {
-      animation: roundtime var(--duration) steps(var(--steps)) forwards;
+    sl-progress-bar.timer-bar.round-time-current {
+      --indicator-color: var(--color-danger, red);
     }
 
-    .timer-bar.round-time-current {
-      background: var(--color-danger, red);
+    sl-progress-bar.timer-bar.cast-time-current {
+      --indicator-color: var(--color-warning, lightgreen);
     }
 
-    .timer-bar.cast-time-current {
-      background: var(--color-warning, lightgreen);
-    }
-
-    .timer-bar:not(.visible) {
+    sl-progress-bar.timer-bar:not(.visible) {
       display: none;
     }
 
-    @keyframes roundtime {
-      to {
-        transform: scaleX(0);
-      }
+    sl-progress-bar.timer-bar::part(base) {
+      background-color: var(--track-color);
+      border-radius: 0;
+      height: var(--height);
+    }
+
+    sl-progress-bar.timer-bar::part(indicator) {
+      background-color: var(--indicator-color);
+      border-radius: 0;
+      height: var(--height);
     }
   `;
 
@@ -120,7 +122,7 @@ export class CLI extends LitElement {
   private _roundtimeDuration = 0;
 
   @state()
-  private _roundtimeSteps = 0;
+  private _roundtimeProgress = 100; // Start at 100% and animate down
 
   @state()
   private _casttimeValue = 0;
@@ -129,13 +131,13 @@ export class CLI extends LitElement {
   private _casttimeDuration = 0;
 
   @state()
-  private _casttimeSteps = 0;
+  private _casttimeProgress = 100; // Start at 100% and animate down
 
   // Kill ring for text editing operations
   @state()
   private _killRing: string[] = [];
 
-  @state() 
+  @state()
   private _killRingPosition = 0;
 
   // Command replay system
@@ -146,7 +148,7 @@ export class CLI extends LitElement {
   @state()
   private _searchMode = false;
 
-  @state() 
+  @state()
   private _searchQuery = "";
 
   @state()
@@ -273,17 +275,14 @@ export class CLI extends LitElement {
 
   private _yankText() {
     if (this._killRing.length === 0) return;
-    
+
     const text = this._killRing[this._killRingPosition];
     const position = this._getCursorPosition();
-    
-    const newValue = 
-      this._inputValue.slice(0, position) + 
-      text + 
-      this._inputValue.slice(position);
-      
+
+    const newValue = this._inputValue.slice(0, position) + text + this._inputValue.slice(position);
+
     this._inputValue = newValue;
-    
+
     // Position cursor after yanked text
     this.updateComplete.then(() => {
       const newPos = position + text.length;
@@ -310,11 +309,9 @@ export class CLI extends LitElement {
     const wordStart = this._getWordBoundaryBackward(this._inputValue, position);
     const deletedText = this._inputValue.slice(wordStart, position);
     this._addToKillRing(deletedText);
-    
-    this._inputValue = 
-      this._inputValue.slice(0, wordStart) + 
-      this._inputValue.slice(position);
-    
+
+    this._inputValue = this._inputValue.slice(0, wordStart) + this._inputValue.slice(position);
+
     this._setCursorPosition(wordStart);
   }
 
@@ -323,23 +320,21 @@ export class CLI extends LitElement {
     const wordEnd = this._getWordBoundaryForward(this._inputValue, position);
     const deletedText = this._inputValue.slice(position, wordEnd);
     this._addToKillRing(deletedText);
-    
-    this._inputValue = 
-      this._inputValue.slice(0, position) + 
-      this._inputValue.slice(wordEnd);
+
+    this._inputValue = this._inputValue.slice(0, position) + this._inputValue.slice(wordEnd);
   }
 
   // Command replay functionality
   private _replayLastCommand() {
     if (this._lastExecutedCommand.length === 0) return;
-    
+
     // Execute directly without adding to history (vim-style)
     this._executeCommand(this._lastExecutedCommand);
   }
 
   private _executeCommand(command: string) {
     if (!this.session) return;
-    
+
     if (command[0] === ":") {
       return Illthorn.bus.dispatchEvent(IllthornEvent.SUBMIT_ILLTHORN_COMMAND, command);
     }
@@ -372,10 +367,7 @@ export class CLI extends LitElement {
 
   private _updateSearchResults() {
     if (!this.session) return;
-    this._searchResults = this.session.history
-      .getHistory()
-      .filter(cmd => cmd.includes(this._searchQuery))
-      .slice(0, 10); // Limit to 10 results
+    this._searchResults = this.session.history.filter((cmd: string) => cmd.includes(this._searchQuery)).slice(0, 10); // Limit to 10 results
   }
 
   private _subscribeToTimerEvents() {
@@ -390,18 +382,23 @@ export class CLI extends LitElement {
 
       this._roundtimeValue = value;
       this._roundtimeDuration = duration;
-      this._roundtimeSteps = Math.max(1, Math.ceil(duration)); // Ensure at least 1 step
+      this._roundtimeProgress = 100; // Start at 100%
 
-      // Trigger animation by adding/removing 'go' class
-      this.updateComplete.then(() => {
-        const roundBar = this.shadowRoot?.querySelector(".timer-bar.round-time-current") as HTMLElement;
-        if (roundBar && duration > 0) {
-          roundBar.classList.remove("go");
-          // Force reflow
-          roundBar.offsetHeight;
-          roundBar.classList.add("go");
-        }
-      });
+      // Animate progress from 100% to 0% over the duration
+      if (duration > 0) {
+        const startTime = Date.now();
+        const animate = () => {
+          const elapsed = (Date.now() - startTime) / 1000;
+          const progress = Math.max(0, 100 - (elapsed / duration) * 100);
+
+          this._roundtimeProgress = progress;
+
+          if (progress > 0) {
+            requestAnimationFrame(animate);
+          }
+        };
+        requestAnimationFrame(animate);
+      }
     });
 
     // Subscribe to casttime metadata events
@@ -411,18 +408,23 @@ export class CLI extends LitElement {
 
       this._casttimeValue = value;
       this._casttimeDuration = duration;
-      this._casttimeSteps = Math.max(1, Math.ceil(duration)); // Ensure at least 1 step
+      this._casttimeProgress = 100; // Start at 100%
 
-      // Trigger animation by adding/removing 'go' class
-      this.updateComplete.then(() => {
-        const castBar = this.shadowRoot?.querySelector(".timer-bar.cast-time-current") as HTMLElement;
-        if (castBar && duration > 0) {
-          castBar.classList.remove("go");
-          // Force reflow
-          castBar.offsetHeight;
-          castBar.classList.add("go");
-        }
-      });
+      // Animate progress from 100% to 0% over the duration
+      if (duration > 0) {
+        const startTime = Date.now();
+        const animate = () => {
+          const elapsed = (Date.now() - startTime) / 1000;
+          const progress = Math.max(0, 100 - (elapsed / duration) * 100);
+
+          this._casttimeProgress = progress;
+
+          if (progress > 0) {
+            requestAnimationFrame(animate);
+          }
+        };
+        requestAnimationFrame(animate);
+      }
     });
   }
 
@@ -465,27 +467,27 @@ export class CLI extends LitElement {
           e.preventDefault();
           this._moveCursorToStart();
           return;
-          
+
         case "e": // End of line
-          e.preventDefault(); 
+          e.preventDefault();
           this._moveCursorToEnd();
           return;
-          
+
         case "k": // Kill to end of line
           e.preventDefault();
           this._killToEndOfLine();
           return;
-          
+
         case "u": // Kill entire line
           e.preventDefault();
           this._killEntireLine();
           return;
-          
+
         case "w": // Delete previous word
           e.preventDefault();
           this._deletePreviousWord();
           return;
-          
+
         case "y": // Yank (paste)
           e.preventDefault();
           this._yankText();
@@ -513,12 +515,12 @@ export class CLI extends LitElement {
           e.preventDefault();
           this._moveWordForward();
           return;
-          
-        case "b": // Backward word  
+
+        case "b": // Backward word
           e.preventDefault();
           this._moveWordBackward();
           return;
-          
+
         case "d": // Delete word forward
           e.preventDefault();
           this._deleteWordForward();
@@ -605,20 +607,20 @@ export class CLI extends LitElement {
           ${
             hasRoundtime
               ? html`
-            <div 
+            <sl-progress-bar 
               class="timer-bar round-time-current visible"
-              style="--duration: ${this._roundtimeDuration}s; --steps: ${this._roundtimeSteps}"
-            ></div>
+              .value=${this._roundtimeProgress}
+            ></sl-progress-bar>
           `
               : ""
           }
           ${
             hasCasttime
               ? html`
-            <div 
+            <sl-progress-bar 
               class="timer-bar cast-time-current visible"
-              style="--duration: ${this._casttimeDuration}s; --steps: ${this._casttimeSteps}"
-            ></div>
+              .value=${this._casttimeProgress}
+            ></sl-progress-bar>
           `
               : ""
           }
