@@ -14,11 +14,13 @@ Illthorn is a modern cross-platform Electron application that serves as a front-
 - **Install dependencies**: `yarn install`
 
 ### Code Quality
-- **Lint**: `yarn lint` - Runs ESLint on TypeScript files
-- **Test**: `yarn test` - Runs Vitest test suite
+- **Format**: `yarn format` - Formats code using Biome
+- **Lint**: `yarn lint` - Runs Biome linter and auto-fixes issues  
+- **Type Check**: `yarn typecheck` - Runs TypeScript compiler type checking
+- **Test**: `yarn test` - Runs Vitest test suite with verbose output
 - **Test with UI**: `yarn test:ui` - Runs Vitest with browser UI
 - **Test coverage**: `yarn test:coverage` - Generates coverage report
-- **Single test**: `yarn test test/command-history.spec.ts` - Run specific test file
+- **Single test**: `yarn test test/components/session/injuries/injuries.lit.spec.ts` - Run specific test file
 
 ### Versioning
 - **Release candidate**: `yarn rc` - Creates prerelease version, commits, and pushes tags
@@ -42,7 +44,7 @@ The backend uses a modular IPC (Inter-Process Communication) pattern:
 
 ### Frontend Architecture (`src/frontend/`)
 - **Session Management** (`session/`): Frontend session state, command handling, UI rendering
-- **Components** (`components/`): Vanilla Web Components using `customElements.define()`
+- **Components** (`components/`): Mix of Lit Web Components and legacy vanilla components
 - **Parser** (`parser/`): Game text parsing with tag-based content transformation
 - **Themes** (`styles/themes/`): Multiple visual themes for customization
 - **Bus System** (`util/bus.ts`): Custom event-driven communication between components
@@ -51,8 +53,9 @@ The backend uses a modular IPC (Inter-Process Communication) pattern:
 - **IPC Communication**: Structured three-layer pattern (handlers → API → methods) for secure main/renderer communication
 - **Session Mapping**: Both frontend and backend maintain session maps for multi-character support
 - **Event Bus**: Custom DOM-based event system using `CustomEvent` for component communication
-- **Web Components**: Vanilla custom elements extending `HTMLElement` with lifecycle management
+- **Web Components**: Mix of modern Lit components and legacy vanilla custom elements extending `HTMLElement`
 - **Parser Architecture**: Stateful parser consuming game text streams and producing structured DOM
+- **Migration Pattern**: Active migration from vanilla Web Components to Lit components for better maintainability
 
 ### Game Text Processing Flow
 1. **TCP Stream**: Raw game text received from Lich via WebSocket
@@ -68,15 +71,18 @@ The backend uses a modular IPC (Inter-Process Communication) pattern:
 ## Development Notes
 
 ### Package Management
-- Uses Yarn 4.5.3 (specified in volta config: Node 22.11.0)
+- Uses Yarn 4.5.3 (specified in volta config: Node 22.11.0)  
 - Electron Forge with Vite plugin for build tooling and packaging
 - Vite for bundling with SCSS support
+- Biome for code formatting and linting (replaces ESLint/Prettier)
 
 ### Testing Setup
 - Vitest test framework with TypeScript support
-- Tests located in `/test/` directory
+- Tests located in `/test/` directory (mirrors `src/` structure)
 - Path alias `@` points to `src/` for imports
-- Global test environment with Node.js runtime
+- JSDOM environment for component testing
+- Global test environment with experimental decorators support
+- Verbose reporter with bail-on-first-failure for CI/CD
 
 ### Debug Logging System
 The project includes a structured debug logging system using the `debug` library for troubleshooting game events and data flow:
@@ -192,6 +198,14 @@ declare global {
 - Subscribe to bus events for inter-component communication
 - Maintain existing API compatibility when migrating components
 
+### Component Testing Patterns
+- Use Vitest with JSDOM environment for component testing
+- Create mock sessions using `createMockSession()` helper from `/test/mocks/`
+- Test component lifecycle: creation, property updates, event handling, cleanup
+- Use `updateComplete` Promise for async component rendering
+- Mock external dependencies and bus events for isolated testing
+- Follow TDD approach: write tests first, implement to pass tests
+
 ## Project Validation Tools
 
 ### Project Type
@@ -212,6 +226,24 @@ Node.js/TypeScript Electron project
 ### Last Updated
 
 2025-08-01
+
+## Component Architecture Details
+
+### HUD Panel System
+The application uses a collapsible panel system in the left sidebar (HUD):
+- **Room Panel**: Contains room description and compass component
+- **Vitals Panel**: Health, mana, stamina, spirit, mind stats with progress bars
+- **Injuries Panel**: Character wounds with smart left/right pairing and severity indicators
+- **Active Spells Panel**: Currently active spell effects with duration timers
+
+Panels use the `illthorn-panel` component with consistent header styling and can be toggled on/off via `:ui <panel> <on|off>` commands.
+
+### Session UI Integration
+Components integrate with the session system via:
+- `SessionUI` interface provides component references to session logic
+- Components subscribe to bus events: `session.bus.subscribeEvent<GameTag>('metadata/...')`
+- Event namespacing follows pattern: `metadata/<tagName>/<id?>` (e.g., `metadata/progressBar/health`)
+- Session state updates trigger component re-renders via reactive properties
 
 ## Light DOM Component Styling Pattern
 
