@@ -12,8 +12,6 @@ export class Prompt extends LitElement {
       display: inline-block;
       text-align: right;
       font-size: 1.6em;
-      position: relative;
-      top: -0.1em;
     }
   `;
 

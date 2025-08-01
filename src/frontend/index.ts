@@ -2,6 +2,8 @@ import "./styles/index.scss";
 import "./illthorn";
 import "./components/app.lit";
 import "./components/command-bar/command-echo.lit";
+import "./components/timers/roundtime-timer.lit";
+import "./components/timers/casttime-timer.lit";
 
 // Shoelace Web Components integration
 import { setBasePath } from "@shoelace-style/shoelace/dist/utilities/base-path.js";

@@ -12,6 +12,7 @@ export interface MockSession {
   history: { length: number };
   name: string;
   port: number;
+  config?: { name: string; port: number };
 }
 
 export const createMockSession = (name = "test-session", port = 4000): MockSession => ({
@@ -22,6 +23,7 @@ export const createMockSession = (name = "test-session", port = 4000): MockSessi
   history: { length: 0 },
   name,
   port,
+  config: { name, port },
 });
 
 export const createMockCompassData = (directions: string[]): GameTag => {

@@ -282,13 +282,13 @@ describe("Prompt", () => {
       teardown(prompt);
     });
 
-    it("should define proper positioning for CLI integration", async () => {
+    it("should define proper styling for CLI integration", async () => {
       const { prompt } = setup();
       await prompt.updateComplete;
 
       const styleElement = prompt.shadowRoot?.querySelector("style");
-      expect(styleElement?.textContent).toContain("position: relative");
-      expect(styleElement?.textContent).toContain("top: -0.1em");
+      expect(styleElement?.textContent).toContain("text-align: right");
+      expect(styleElement?.textContent).toContain("font-size: 1.6em");
 
       teardown(prompt);
     });

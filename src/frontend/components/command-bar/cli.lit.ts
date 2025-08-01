@@ -1,17 +1,18 @@
-// ABOUTME: Lit-based CLI component for command input and game interaction with timer bars
-// ABOUTME: Handles keyboard events, command history navigation, command routing, and displays roundtime/casttime progress
+// ABOUTME: Lit-based CLI component for command input and game interaction
+// ABOUTME: Handles keyboard events, command history navigation, and command routing
 
 import type SlInput from "@shoelace-style/shoelace/dist/components/input/input.component.js";
 import { css, html, LitElement } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 import { IllthornEvent } from "../../events";
 import { Illthorn } from "../../illthorn";
-import type { GameTag } from "../../parser/tag";
 import type { FrontendSession } from "../../session";
 import { CommandEchoSystem } from "./command-echo";
 import { InputManager } from "./input-manager";
 import { type ReadlineKeyBindings, ReadlineKeyHandler } from "./readline-keys";
 import { getWordBoundaryBackward, getWordBoundaryForward } from "./text-navigation";
+import "../timers/roundtime-timer.lit";
+import "../timers/casttime-timer.lit";
 
 @customElement("illthorn-cli-lit")
 export class CLI extends LitElement implements ReadlineKeyBindings {
@@ -70,74 +71,22 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
       background-color: rgba(0, 0, 0, 0.2);
     }
 
-    /* Timer bars styling - positioned above input */
+    /* Timer components styling - always reserve space to prevent layout jumping */
     .timers {
       display: flex;
       flex-direction: column;
       width: 100%;
+      min-height: 8px; /* Reserve space for up to 2 timers (3px each + 1px spacing + 1px buffer) */
       margin-bottom: 2px;
-    }
-
-    sl-progress-bar.timer-bar {
-      height: 3px;
-      width: 100%;
-      margin-bottom: 1px;
-      --height: 3px;
-      --track-color: rgba(255, 255, 255, 0.1);
-      --track-width: 100%;
-    }
-
-    sl-progress-bar.timer-bar.round-time-current {
-      --indicator-color: var(--color-danger, red);
-    }
-
-    sl-progress-bar.timer-bar.cast-time-current {
-      --indicator-color: var(--color-warning, lightgreen);
-    }
-
-    sl-progress-bar.timer-bar:not(.visible) {
-      display: none;
-    }
-
-    sl-progress-bar.timer-bar::part(base) {
-      background-color: var(--track-color);
-      border-radius: 0;
-      height: var(--height);
-    }
-
-    sl-progress-bar.timer-bar::part(indicator) {
-      background-color: var(--indicator-color);
-      border-radius: 0;
-      height: var(--height);
+      gap: 1px; /* Consistent spacing between stacked timers */
     }
   `;
 
   @property({ type: Object })
   session?: FrontendSession;
 
-  @property({ type: Number })
-  position = 0;
-
   @state()
   private _inputValue = "";
-
-  @state()
-  private _roundtimeValue = 0;
-
-  @state()
-  private _roundtimeDuration = 0;
-
-  @state()
-  private _roundtimeProgress = 100; // Start at 100% and animate down
-
-  @state()
-  private _casttimeValue = 0;
-
-  @state()
-  private _casttimeDuration = 0;
-
-  @state()
-  private _casttimeProgress = 100; // Start at 100% and animate down
 
   // Command replay system
   @state()
@@ -214,7 +163,6 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
 
     // Set up session-dependent systems when session is provided or changes
     if (changedProperties.has("session") && this.session) {
-      this._subscribeToTimerEvents();
       this._commandEcho = new CommandEchoSystem(this.session);
     }
   }
@@ -331,64 +279,6 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
     });
   }
 
-  private _subscribeToTimerEvents() {
-    if (!this.session || !this.session.bus) {
-      return;
-    }
-
-    // Subscribe to roundtime metadata events
-    this.session.bus.subscribeEvent<GameTag>("metadata/roundTime", ({ detail: tag }) => {
-      const value = parseInt(tag.attrs.value as string, 10) || 0;
-      const duration = parseFloat(tag.attrs.time as string) || 0;
-
-      this._roundtimeValue = value;
-      this._roundtimeDuration = duration;
-      this._roundtimeProgress = 100; // Start at 100%
-
-      // Animate progress from 100% to 0% over the duration
-      if (duration > 0) {
-        const startTime = Date.now();
-        const animate = () => {
-          const elapsed = (Date.now() - startTime) / 1000;
-          const progress = Math.max(0, 100 - (elapsed / duration) * 100);
-
-          this._roundtimeProgress = progress;
-
-          if (progress > 0) {
-            requestAnimationFrame(animate);
-          }
-        };
-        requestAnimationFrame(animate);
-      }
-    });
-
-    // Subscribe to casttime metadata events
-    this.session.bus.subscribeEvent<GameTag>("metadata/castTime", ({ detail: tag }) => {
-      const value = parseInt(tag.attrs.value as string, 10) || 0;
-      const duration = parseFloat(tag.attrs.time as string) || 0;
-
-      this._casttimeValue = value;
-      this._casttimeDuration = duration;
-      this._casttimeProgress = 100; // Start at 100%
-
-      // Animate progress from 100% to 0% over the duration
-      if (duration > 0) {
-        const startTime = Date.now();
-        const animate = () => {
-          const elapsed = (Date.now() - startTime) / 1000;
-          const progress = Math.max(0, 100 - (elapsed / duration) * 100);
-
-          this._casttimeProgress = progress;
-
-          if (progress > 0) {
-            requestAnimationFrame(animate);
-          }
-        };
-        requestAnimationFrame(animate);
-      }
-    });
-  }
-
   private _handleKeyDown(e: KeyboardEvent) {
     if (!this.session) {
       return;
@@ -437,38 +327,11 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
   }
 
   render() {
-    const hasRoundtime = this._roundtimeValue > 0 || this._roundtimeDuration > 0;
-    const hasCasttime = this._casttimeValue > 0 || this._casttimeDuration > 0;
-
     return html`
-      ${
-        hasRoundtime || hasCasttime
-          ? html`
-        <div class="timers">
-          ${
-            hasRoundtime
-              ? html`
-            <sl-progress-bar 
-              class="timer-bar round-time-current visible"
-              .value=${this._roundtimeProgress}
-            ></sl-progress-bar>
-          `
-              : ""
-          }
-          ${
-            hasCasttime
-              ? html`
-            <sl-progress-bar 
-              class="timer-bar cast-time-current visible"
-              .value=${this._casttimeProgress}
-            ></sl-progress-bar>
-          `
-              : ""
-          }
-        </div>
-      `
-          : ""
-      }
+      <div class="timers">
+        <illthorn-roundtime-timer-lit .session=${this.session}></illthorn-roundtime-timer-lit>
+        <illthorn-casttime-timer-lit .session=${this.session}></illthorn-casttime-timer-lit>
+      </div>
       
       <div class="input-container">
         <sl-input
