@@ -58,7 +58,7 @@ export class Compass extends LitElement {
   @property({ type: Object })
   session?: Session;
 
-  @state()
+  @property({ type: Array })
   activeDirs: Array<string> = [];
 
   private _eventListenerSetup = false;

@@ -13,7 +13,7 @@ export class StorybookSessionMock {
     
     // Enhance with Storybook-specific features
     this.instance.bus.subscribeEvent = (eventName: string, callback: Function) => {
-      console.log(`Storybook: Subscribed to ${eventName}`);
+      // console.log(`Storybook: Subscribed to ${eventName}`); // Disabled - too noisy
       
       // Store callback for later event simulation
       if (!(window as any).storybookCallbacks) {
@@ -22,7 +22,7 @@ export class StorybookSessionMock {
       (window as any).storybookCallbacks.set(eventName, callback);
       
       return () => {
-        console.log(`Storybook: Unsubscribed from ${eventName}`);
+        // console.log(`Storybook: Unsubscribed from ${eventName}`); // Disabled - too noisy
         (window as any).storybookCallbacks?.delete(eventName);
       };
     };
@@ -46,7 +46,7 @@ export class StorybookSessionMock {
   }
   
   static emitEvent(eventName: string, data: any) {
-    console.log(`Storybook: Emitting ${eventName}`, data);
+    // console.log(`Storybook: Emitting ${eventName}`, data); // Disabled - too noisy
     
     // Trigger subscribed callbacks with proper CustomEvent structure
     const callbacks = (window as any).storybookCallbacks;
