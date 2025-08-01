@@ -77,23 +77,12 @@ export class InjuriesLit extends LitElement {
       --injury-line-height: 14px;
     }
 
-    .injury-panel {
+    :host {
       width: var(--injury-width);
-      background: var(--injury-bg);
-      border: 1px solid var(--injury-border);
       font-family: var(--injury-font);
       font-size: var(--injury-font-size);
     }
 
-    .injury-header {
-      background: var(--injury-header-bg);
-      color: var(--injury-text-secondary);
-      text-align: center;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 4px 8px;
-      border-bottom: 1px solid var(--injury-border);
-    }
 
     .injury-content {
       padding: 4px 8px;
@@ -391,11 +380,8 @@ export class InjuriesLit extends LitElement {
     }
 
     return html`
-      <div class="injury-panel">
-        <div class="injury-header">INJURIES</div>
-        <div class="injury-content">
-          ${this._injuries.length === 0 ? html`<div class="healthy">healthy</div>` : this._injuries.map((injury) => this.renderInjury(injury))}
-        </div>
+      <div class="injury-content">
+        ${this._injuries.length === 0 ? html`<div class="healthy">healthy</div>` : this._injuries.map((injury) => this.renderInjury(injury))}
       </div>
     `;
   }

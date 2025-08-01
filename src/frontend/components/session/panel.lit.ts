@@ -21,11 +21,13 @@ export class Panel extends LitElement {
 
     summary {
       margin: 0;
-      padding: 0.5em;
-      text-transform: uppercase;
+      background: var(--color-surface);
+      color: var(--color-text-secondary);
       text-align: center;
-      background-color: var(--color-surface);
-      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--color-border);
       cursor: pointer;
       user-select: none;
       list-style: none;

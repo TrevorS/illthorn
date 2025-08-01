@@ -47,7 +47,7 @@ describe("InjuriesLit", () => {
 
       const shadowRoot = injuries.shadowRoot;
       // Should not have any injury components when no session is provided
-      expect(shadowRoot?.querySelector(".injury-panel")).toBeFalsy();
+      expect(shadowRoot?.querySelector(".injury-content")).toBeFalsy();
       expect(shadowRoot?.querySelector(".injury-item")).toBeFalsy();
       expect(shadowRoot?.querySelector(".healthy")).toBeFalsy();
 
@@ -263,30 +263,27 @@ describe("InjuriesLit", () => {
   });
 
   describe("Accessibility", () => {
-    it("should have proper panel structure for screen readers", async () => {
+    it("should have proper content structure for accessibility", async () => {
       const injuries = new InjuriesLit(mockSession);
       document.body.appendChild(injuries);
       await injuries.updateComplete;
 
       const shadowRoot = injuries.shadowRoot;
-      const header = shadowRoot?.querySelector(".injury-header");
-      expect(header?.textContent).toBe("INJURIES");
-      expect(header?.tagName.toLowerCase()).toBe("div");
+      const content = shadowRoot?.querySelector(".injury-content");
+      expect(content).toBeTruthy();
+      expect(content?.tagName.toLowerCase()).toBe("div");
 
       injuries.remove();
     });
 
-    it("should maintain injury panel width for consistent layout", async () => {
+    it("should maintain component width for consistent layout", async () => {
       const injuries = new InjuriesLit(mockSession);
       document.body.appendChild(injuries);
       await injuries.updateComplete;
 
-      const shadowRoot = injuries.shadowRoot;
-      const panel = shadowRoot?.querySelector(".injury-panel");
-      const _styles = getComputedStyle(panel as Element);
-
-      // Should have width constraint for terminal aesthetic
-      expect(panel).toBeTruthy();
+      // Component itself should have width styling through :host
+      expect(injuries).toBeTruthy();
+      expect(injuries.tagName.toLowerCase()).toBe("illthorn-injuries-lit");
 
       injuries.remove();
     });
