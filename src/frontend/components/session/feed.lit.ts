@@ -3,8 +3,10 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { IllthornEvent } from "../../events";
 import type { FrontendSession as Session } from "../../session/index";
 import { debugFeed } from "../../util/logger";
+import type { CommandEchoEvent } from "./command-echo";
 
 @customElement("illthorn-feed-lit")
 export class Feed extends LitElement {
@@ -180,6 +182,7 @@ export class Feed extends LitElement {
   private _shouldAutoScroll = true;
 
   private _feedContainer?: HTMLElement;
+  private _hasSubscribedToEcho = false;
 
   connectedCallback() {
     super.connectedCallback();
@@ -356,6 +359,36 @@ export class Feed extends LitElement {
     if (!this._feedContainer) {
       this._feedContainer = this.shadowRoot?.querySelector(".feed-container") as HTMLElement;
     }
+
+    // Subscribe to command echo events when session becomes available
+    if (this.session?.bus && !this._hasSubscribedToEcho) {
+      this.session.bus.subscribeEvent<CommandEchoEvent>(IllthornEvent.COMMAND_ECHO, this._handleCommandEcho.bind(this));
+      this._hasSubscribedToEcho = true;
+    }
+  }
+
+  /**
+   * Handle command echo events from the CLI component
+   */
+  private _handleCommandEcho(event: CustomEvent<CommandEchoEvent>) {
+    const { command, isReplay } = event.detail;
+
+    // Create a styled echo element
+    const echoElement = document.createElement("div");
+    echoElement.style.color = "rgba(255, 255, 255, 0.7)";
+    echoElement.style.fontStyle = "italic";
+    echoElement.style.marginBottom = "0.25rem";
+    echoElement.style.fontFamily = '"MonoLisa", monospace';
+
+    // Different formatting for replays vs regular commands
+    if (isReplay) {
+      echoElement.textContent = `[Replay] ${command}`;
+    } else {
+      echoElement.textContent = `> ${command}`;
+    }
+
+    // Use the proper feed integration method
+    this.appendParsed(echoElement);
   }
 
   render() {

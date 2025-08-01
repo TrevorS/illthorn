@@ -8,9 +8,12 @@ import { IllthornEvent } from "../../events";
 import { Illthorn } from "../../illthorn";
 import type { GameTag } from "../../parser/tag";
 import type { FrontendSession } from "../../session";
+import { CommandEchoSystem } from "./command-echo";
+import { PerformantInputManager } from "./performant-input";
+import { type ReadlineKeyBindings, ReadlineKeyHandler } from "./readline-keys";
 
 @customElement("illthorn-cli-lit")
-export class CLI extends LitElement {
+export class CLI extends LitElement implements ReadlineKeyBindings {
   static styles = css`
     :host {
       display: flex;
@@ -135,19 +138,21 @@ export class CLI extends LitElement {
   @state()
   private _casttimeProgress = 100; // Start at 100% and animate down
 
-  // Kill ring for text editing operations
-  @state()
-  private _killRing: string[] = [];
-
-  @state()
-  private _killRingPosition = 0;
-
   // Command replay system
   @state()
   private _lastExecutedCommand = "";
 
   @query("sl-input")
   private _slInput!: SlInput;
+
+  // Command echo system for bus-based feed integration
+  private _commandEcho?: CommandEchoSystem;
+
+  // High-performance input manager for rapid history navigation
+  private _inputManager?: PerformantInputManager;
+
+  // Readline-style key bindings handler
+  private _readlineHandler?: ReadlineKeyHandler;
 
   /**
    * Public accessor for the input element to maintain API compatibility
@@ -165,12 +170,37 @@ export class CLI extends LitElement {
     return this._slInput.input;
   }
 
+  /**
+   * Override shouldUpdate to skip renders during rapid history navigation
+   */
+  protected shouldUpdate(changedProperties: Map<string | number | symbol, unknown>): boolean {
+    // Skip rendering if we're in rapid mode and only the input value changed
+    if (this._inputManager?.isInRapidMode && changedProperties.has("_inputValue") && changedProperties.size === 1) {
+      return false;
+    }
+    return super.shouldUpdate(changedProperties);
+  }
+
   firstUpdated() {
-    // Focus the input when component is first rendered, but wait for next tick
-    // to ensure sl-input internal structure is ready
-    requestAnimationFrame(() => {
-      this._slInput?.focus();
-    });
+    // Initialize the performance input manager
+    if (this._slInput) {
+      this._inputManager = new PerformantInputManager(this._slInput);
+      this._inputManager.setOnSyncCallback((value) => {
+        this._inputValue = value;
+      });
+
+      // Initialize readline key handler
+      this._readlineHandler = new ReadlineKeyHandler(this);
+    }
+
+    // Focus the input when component is first rendered
+    if (this._inputManager) {
+      this._inputManager.focus();
+    } else {
+      requestAnimationFrame(() => {
+        this._slInput?.focus();
+      });
+    }
   }
 
   connectedCallback() {
@@ -181,29 +211,82 @@ export class CLI extends LitElement {
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
 
-    // Set up timer subscriptions when session is provided or changes
+    // Set up session-dependent systems when session is provided or changes
     if (changedProperties.has("session") && this.session) {
       this._subscribeToTimerEvents();
+      this._commandEcho = new CommandEchoSystem(this.session);
     }
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    // Clean up performance input manager
+    this._inputManager?.destroy();
     // Event subscriptions are automatically cleaned up by the bus system
   }
 
-  // Text navigation utilities
-  private _getCursorPosition(): number {
-    if (this._slInput?.input) {
-      return this._slInput.input.selectionStart || 0;
-    }
-    return 0;
+  // ReadlineKeyBindings interface implementation
+  getCursorPosition(): number {
+    return this._inputManager?.getCursorPosition() || 0;
   }
 
-  private _setCursorPosition(position: number) {
-    if (this._slInput?.input) {
-      this._slInput.input.setSelectionRange(position, position);
-    }
+  setCursorPosition(position: number): void {
+    this._inputManager?.setCursorPosition(position);
+  }
+
+  getCurrentValue(): string {
+    return this._inputManager?.getCurrentValue() || this._inputValue;
+  }
+
+  setValue(value: string): void {
+    // Update both the input manager (for immediate display) and reactive state
+    this._inputManager?.setValueImmediate(value);
+    this._inputValue = value;
+  }
+
+  // Readline key binding operations
+  moveCursorToStart(): void {
+    this.setCursorPosition(0);
+  }
+
+  moveCursorToEnd(): void {
+    this.setCursorPosition(this.getCurrentValue().length);
+  }
+
+  moveWordForward(): void {
+    const position = this.getCursorPosition();
+    const newPosition = this._getWordBoundaryForward(this.getCurrentValue(), position);
+    this.setCursorPosition(newPosition);
+  }
+
+  moveWordBackward(): void {
+    const position = this.getCursorPosition();
+    const newPosition = this._getWordBoundaryBackward(this.getCurrentValue(), position);
+    this.setCursorPosition(newPosition);
+  }
+
+  killToEndOfLine(): void {
+    // Implemented by ReadlineKeyHandler
+  }
+
+  killEntireLine(): void {
+    // Implemented by ReadlineKeyHandler
+  }
+
+  deletePreviousWord(): void {
+    // Implemented by ReadlineKeyHandler
+  }
+
+  deleteWordForward(): void {
+    // Implemented by ReadlineKeyHandler
+  }
+
+  yankText(): void {
+    // Implemented by ReadlineKeyHandler
+  }
+
+  addToKillRing(_text: string): void {
+    // Implemented by ReadlineKeyHandler
   }
 
   private _getWordBoundaryForward(text: string, position: number): number {
@@ -234,117 +317,15 @@ export class CLI extends LitElement {
     return i;
   }
 
-  private _moveWordForward() {
-    const position = this._getCursorPosition();
-    const newPosition = this._getWordBoundaryForward(this._inputValue, position);
-    this._setCursorPosition(newPosition);
-  }
-
-  private _moveWordBackward() {
-    const position = this._getCursorPosition();
-    const newPosition = this._getWordBoundaryBackward(this._inputValue, position);
-    this._setCursorPosition(newPosition);
-  }
-
-  private _moveCursorToStart() {
-    this._setCursorPosition(0);
-  }
-
-  private _moveCursorToEnd() {
-    this._setCursorPosition(this._inputValue.length);
-  }
-
-  // Kill ring operations
-  private _addToKillRing(text: string) {
-    if (text.length === 0) return;
-    this._killRing.unshift(text);
-    if (this._killRing.length > 20) {
-      this._killRing = this._killRing.slice(0, 20);
-    }
-    this._killRingPosition = 0;
-  }
-
-  private _yankText() {
-    if (this._killRing.length === 0) return;
-
-    const text = this._killRing[this._killRingPosition];
-    const position = this._getCursorPosition();
-
-    const newValue = this._inputValue.slice(0, position) + text + this._inputValue.slice(position);
-
-    this._inputValue = newValue;
-
-    // Position cursor after yanked text
-    this.updateComplete.then(() => {
-      const newPos = position + text.length;
-      this._setCursorPosition(newPos);
-    });
-  }
-
-  // Text editing operations
-  private _killToEndOfLine() {
-    const position = this._getCursorPosition();
-    const killedText = this._inputValue.slice(position);
-    this._addToKillRing(killedText);
-    this._inputValue = this._inputValue.slice(0, position);
-  }
-
-  private _killEntireLine() {
-    this._addToKillRing(this._inputValue);
-    this._inputValue = "";
-    this._setCursorPosition(0);
-  }
-
-  private _deletePreviousWord() {
-    const position = this._getCursorPosition();
-    const wordStart = this._getWordBoundaryBackward(this._inputValue, position);
-    const deletedText = this._inputValue.slice(wordStart, position);
-    this._addToKillRing(deletedText);
-
-    this._inputValue = this._inputValue.slice(0, wordStart) + this._inputValue.slice(position);
-
-    this._setCursorPosition(wordStart);
-  }
-
-  private _deleteWordForward() {
-    const position = this._getCursorPosition();
-    const wordEnd = this._getWordBoundaryForward(this._inputValue, position);
-    const deletedText = this._inputValue.slice(position, wordEnd);
-    this._addToKillRing(deletedText);
-
-    this._inputValue = this._inputValue.slice(0, position) + this._inputValue.slice(wordEnd);
-  }
-
   // Command replay functionality
   private _replayLastCommand() {
     if (this._lastExecutedCommand.length === 0) return;
 
     // Echo the command being replayed to the game log for visibility
-    this._echoCommandToGameLog(this._lastExecutedCommand);
+    this._commandEcho?.echoReplay(this._lastExecutedCommand);
 
     // Execute directly without adding to history (vim-style)
     this._executeCommand(this._lastExecutedCommand);
-  }
-
-  private _echoCommandToGameLog(command: string) {
-    if (!this.session) return;
-
-    // Create a visual echo in the game log showing the replayed command
-    const echoElement = document.createElement("div");
-    echoElement.style.color = "rgba(255, 255, 255, 0.7)";
-    echoElement.style.fontStyle = "italic";
-    echoElement.style.marginBottom = "0.25rem";
-    echoElement.textContent = `[Replay] ${command}`;
-
-    // Find the session's game log and append the echo
-    const sessionElement = document.querySelector(`illthorn-session-lit[data-session-name="${this.session.name}"]`);
-    const gameLog = sessionElement?.querySelector(".game-log");
-
-    if (gameLog) {
-      gameLog.appendChild(echoElement);
-      // Auto-scroll to show the replayed command
-      gameLog.scrollTop = gameLog.scrollHeight;
-    }
   }
 
   private _executeCommand(command: string) {
@@ -439,39 +420,14 @@ export class CLI extends LitElement {
       return;
     }
 
-    // Text navigation and editing with Ctrl key
+    // Let readline handler process text editing keys first
+    if (this._readlineHandler?.handleKeyDown(e)) {
+      return; // Key was handled by readline handler
+    }
+
+    // Handle remaining Ctrl key combinations (history navigation, etc.)
     if (e.ctrlKey) {
       switch (e.key.toLowerCase()) {
-        case "a": // Beginning of line
-          e.preventDefault();
-          this._moveCursorToStart();
-          return;
-
-        case "e": // End of line
-          e.preventDefault();
-          this._moveCursorToEnd();
-          return;
-
-        case "k": // Kill to end of line
-          e.preventDefault();
-          this._killToEndOfLine();
-          return;
-
-        case "u": // Kill entire line
-          e.preventDefault();
-          this._killEntireLine();
-          return;
-
-        case "w": // Delete previous word
-          e.preventDefault();
-          this._deletePreviousWord();
-          return;
-
-        case "y": // Yank (paste)
-          e.preventDefault();
-          this._yankText();
-          return;
-
         case "p": // History navigation (equivalent to ArrowUp)
           e.preventDefault();
           if (history.position === 0) {
@@ -483,26 +439,6 @@ export class CLI extends LitElement {
         case "n": // History navigation (equivalent to ArrowDown)
           e.preventDefault();
           this._setInput(history.forward());
-          return;
-      }
-    }
-
-    // Alt key combinations for word movement
-    if (e.altKey) {
-      switch (e.key.toLowerCase()) {
-        case "f": // Forward word
-          e.preventDefault();
-          this._moveWordForward();
-          return;
-
-        case "b": // Backward word
-          e.preventDefault();
-          this._moveWordBackward();
-          return;
-
-        case "d": // Delete word forward
-          e.preventDefault();
-          this._deleteWordForward();
           return;
       }
     }
@@ -539,13 +475,8 @@ export class CLI extends LitElement {
   }
 
   private _setInput(value: string) {
-    this._inputValue = value;
-    // Schedule cursor positioning after the next update
-    this.updateComplete.then(() => {
-      if (this._slInput?.input) {
-        this._slInput.input.setSelectionRange(value.length, value.length);
-      }
-    });
+    // Use performance-optimized immediate update for history navigation
+    this._inputManager?.setValueImmediate(value, value.length);
   }
 
   private _submitCommand() {
@@ -563,14 +494,15 @@ export class CLI extends LitElement {
     // Store for replay system
     this._lastExecutedCommand = command;
 
+    // Echo the command to the game log for visibility
+    this._commandEcho?.echoCommand(command);
+
     this._inputValue = "";
     this.session.history.add(command);
 
     // Focus the input after clearing to maintain user experience
     this.updateComplete.then(() => {
-      requestAnimationFrame(() => {
-        this._slInput?.focus();
-      });
+      this._inputManager?.focus();
     });
 
     this._executeCommand(command);

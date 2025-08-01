@@ -20,4 +20,8 @@ export enum IllthornEvent {
    * when a prompt is encountered in the feed
    */
   PROMPT_UPDATE = "prompt/update",
+  /**
+   * when a command should be echoed to the game feed for visibility
+   */
+  COMMAND_ECHO = "command/echo",
 }

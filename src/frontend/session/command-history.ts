@@ -1,28 +1,27 @@
-//import { LimitedList } from "../util/limited-list"
+// ABOUTME: Command history with linear indexing from 0 (newest) to negative values (older)
+// ABOUTME: Supports 500 command window with boundary detection, no circular wrapping
 
 export enum Mode {
   FORWARD,
   BACKWARD,
 }
 
-/**
- * Safely wrap an index to a valid entry.
- */
-function wrap_index(idx: number, length: number) {
-  // Compute offset for modulus to operate on a positive value
-  const offset = idx >= 0 ? 0 : Math.floor(1 + Math.abs(idx) / length) * length;
-  return (idx + offset) % length;
-}
-
 export class CommandHistory extends Array<string> {
   /**
    * [recent] ----> [oldest]
+   * currentIndex: 0 = most recent, -1 = previous, -2 = older, etc.
    */
-  position: number;
+  private currentIndex: number = 0;
 
   constructor(readonly maxSize = 500) {
     super();
-    this.position = 0;
+  }
+
+  /**
+   * Backward compatibility getter for position
+   */
+  get position(): number {
+    return Math.abs(this.currentIndex);
   }
   /**
    * Add a new command to the history.
@@ -33,13 +32,19 @@ export class CommandHistory extends Array<string> {
     } else {
       this.unshift(command);
     }
+
+    // Maintain maxSize limit by removing oldest commands
+    while (this.length > this.maxSize) {
+      this.pop();
+    }
+
     this.resetPosition();
     // Save commands into storage
     // Storage.set(`commandHistory`, this)
   }
 
   resetPosition() {
-    this.position = 0;
+    this.currentIndex = 0;
   }
   /**
    * Returns the largest valid index available.
@@ -47,31 +52,55 @@ export class CommandHistory extends Array<string> {
   get last_index() {
     return Math.max(this.length - 1, 0);
   }
+
   /**
-   * Step current index one step earlier in the history.
+   * Check if we can navigate backwards (to older commands)
    */
-  forward() {
-    this.position = wrap_index(this.position - 1, this.length);
+  canNavigateBack(): boolean {
+    return Math.abs(this.currentIndex) < this.length - 1;
+  }
+
+  /**
+   * Check if we can navigate forwards (to newer commands)
+   */
+  canNavigateForward(): boolean {
+    return this.currentIndex < 0;
+  }
+
+  /**
+   * Step current index one step earlier in the history (towards newer commands).
+   */
+  forward(): string {
+    if (this.canNavigateForward()) {
+      this.currentIndex++;
+    }
     return this.read();
   }
+
   /**
-   * Step current index one step deeper into the history.
+   * Step current index one step deeper into the history (towards older commands).
    */
-  back() {
-    this.position = wrap_index(this.position + 1, this.length);
+  back(): string {
+    if (this.canNavigateBack()) {
+      this.currentIndex--;
+    }
     return this.read();
   }
   /**
    * Read specified entry in the history.
+   * Uses currentIndex (0 = newest, -1 = previous, etc.) converted to array index
    */
-  read(index = this.position) {
-    return this[index] || "";
+  read(index?: number): string {
+    const arrayIndex = index !== undefined ? index : Math.abs(this.currentIndex);
+    return this[arrayIndex] || "";
   }
+
   /**
    * Update the history at the current index.
    */
   update(value: string) {
-    this[this.position] = value;
+    const arrayIndex = Math.abs(this.currentIndex);
+    this[arrayIndex] = value;
   }
   /**
    * Compute the list of history entries matching the specified text.
@@ -99,10 +128,14 @@ export class CommandHistory extends Array<string> {
     return this.read(0);
   }
   /**
-   * Sets the current index to the specified value.
+   * Sets the current index to the specified value with boundary checking.
+   * Expects linear index (0 = newest, -1 = previous, etc.)
    */
   seek(idx: number) {
-    this.position = wrap_index(idx, this.length);
+    // Clamp to valid range: 0 to -(length-1)
+    const minIndex = -(this.length - 1);
+    const maxIndex = 0;
+    this.currentIndex = Math.max(minIndex, Math.min(maxIndex, idx));
     return this;
   }
 }
