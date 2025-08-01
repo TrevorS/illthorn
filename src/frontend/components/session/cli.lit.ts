@@ -1,5 +1,7 @@
 // ABOUTME: Lit-based CLI component for command input and game interaction with timer bars
 // ABOUTME: Handles keyboard events, command history navigation, command routing, and displays roundtime/casttime progress
+
+import type SlInput from "@shoelace-style/shoelace/dist/components/input/input.component.js";
 import { css, html, LitElement } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 import { IllthornEvent } from "../../events";
@@ -148,14 +150,11 @@ export class CLI extends LitElement {
   @state()
   private _searchMode = false;
 
-  @state()
-  private _searchQuery = "";
-
-  @state()
-  private _searchResults: string[] = [];
+  // @state()
+  // private _searchQuery = ""; // TODO: Re-enable when search UI is implemented
 
   @query("sl-input")
-  private _slInput!: any; // Using any for now until we have proper types
+  private _slInput!: SlInput;
 
   /**
    * Public accessor for the input element to maintain API compatibility
@@ -163,8 +162,8 @@ export class CLI extends LitElement {
   get input(): HTMLInputElement {
     // Access the underlying input element from sl-input
     if (!this._slInput) {
-      const slInput = this.shadowRoot?.querySelector("sl-input") as any;
-      if (slInput && slInput.input) {
+      const slInput = this.shadowRoot?.querySelector("sl-input") as SlInput;
+      if (slInput?.input) {
         return slInput.input;
       }
       // Fallback - this should rarely happen in practice
@@ -203,14 +202,14 @@ export class CLI extends LitElement {
 
   // Text navigation utilities
   private _getCursorPosition(): number {
-    if (this._slInput && this._slInput.input) {
+    if (this._slInput?.input) {
       return this._slInput.input.selectionStart || 0;
     }
     return 0;
   }
 
   private _setCursorPosition(position: number) {
-    if (this._slInput && this._slInput.input) {
+    if (this._slInput?.input) {
       this._slInput.input.setSelectionRange(position, position);
     }
   }
@@ -355,19 +354,19 @@ export class CLI extends LitElement {
   // History search functionality
   private _enterSearchMode() {
     this._searchMode = true;
-    this._searchQuery = "";
+    // this._searchQuery = ""; // TODO: Re-enable when search UI is implemented
     this._updateSearchResults();
   }
 
   private _exitSearchMode() {
     this._searchMode = false;
-    this._searchQuery = "";
-    this._searchResults = [];
+    // this._searchQuery = ""; // TODO: Re-enable when search UI is implemented
   }
 
   private _updateSearchResults() {
     if (!this.session) return;
-    this._searchResults = this.session.history.filter((cmd: string) => cmd.includes(this._searchQuery)).slice(0, 10); // Limit to 10 results
+    // TODO: Implement search result display when search UI is implemented
+    // const searchResults = this.session.history.filter((cmd: string) => cmd.includes(this._searchQuery)).slice(0, 10);
   }
 
   private _subscribeToTimerEvents() {
@@ -556,14 +555,14 @@ export class CLI extends LitElement {
   }
 
   private _handleInput(e: CustomEvent) {
-    this._inputValue = (e.target as any).value;
+    this._inputValue = (e.target as SlInput).value;
   }
 
   private _setInput(value: string) {
     this._inputValue = value;
     // Schedule cursor positioning after the next update
     this.updateComplete.then(() => {
-      if (this._slInput && this._slInput.input) {
+      if (this._slInput?.input) {
         this._slInput.input.setSelectionRange(value.length, value.length);
       }
     });
