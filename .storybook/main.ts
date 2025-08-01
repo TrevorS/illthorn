@@ -40,7 +40,14 @@ const config: StorybookConfig = {
         },
       },
       optimizeDeps: {
-        include: ['lit', 'lit/decorators.js'], // Ensure Lit is pre-bundled
+        include: ['lit', 'lit/decorators.js', 'lit-html', 'lit-element'], // Ensure Lit is pre-bundled
+        exclude: [], // Don't exclude any deps from optimization
+        force: true, // Force re-optimization to pick up our dedupe settings
+      },
+      build: {
+        rollupOptions: {
+          external: [], // Don't externalize anything, bundle everything
+        },
       },
     });
   },

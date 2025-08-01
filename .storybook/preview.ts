@@ -1,6 +1,18 @@
 import type { Preview } from '@storybook/web-components';
 import { html } from 'lit';
 
+// Suppress Lit multiple versions warning in development
+// This is expected in Storybook as it bundles its own Lit version
+const originalWarn = console.warn;
+console.warn = (...args) => {
+  const message = args.join(' ');
+  if (message.includes('Multiple versions of Lit loaded') || 
+      message.includes('Lit is in dev mode')) {
+    return; // Suppress these specific warnings
+  }
+  originalWarn.apply(console, args);
+};
+
 // Import Shoelace theme and components
 import '@shoelace-style/shoelace/dist/themes/light.css';
 import '@shoelace-style/shoelace/dist/themes/dark.css';
