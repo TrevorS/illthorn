@@ -1,9 +1,9 @@
 // ABOUTME: Integration test to verify that the UI initialization race condition is fixed
 // ABOUTME: Tests that session messages don't get lost due to components not being available
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { CommandHistory } from "../../src/frontend/components/command-bar/command-history";
 import type { SessionButton } from "../../src/frontend/components/session/session-button.lit";
 import { Parser } from "../../src/frontend/parser/parser";
-import { CommandHistory } from "../../src/frontend/session/command-history";
 import type { FrontendSession } from "../../src/frontend/session/index";
 import { Bus } from "../../src/frontend/util/bus";
 import "../../src/frontend/components/session-layout.lit";

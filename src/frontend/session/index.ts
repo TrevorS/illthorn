@@ -1,13 +1,13 @@
 import "../components/session/session-button.lit";
 import type { SessionButton } from "../components/session/session-button.lit";
 import "../components/session-layout.lit";
+import { CommandHistory } from "../components/command-bar/command-history";
 import type { SessionUI } from "../components/session-layout.lit";
 import { addHilites } from "../hilites/dom";
 import { castToHTML, createPrompt } from "../parser/dom";
 import { Parser } from "../parser/parser";
 import { Bus } from "../util/bus";
 import { debugRawInput, debugSession, safeStringify } from "../util/logger";
-import { CommandHistory } from "./command-history";
 import { dispatchMetadata } from "./helpers";
 import { SessionMap } from "./map";
 

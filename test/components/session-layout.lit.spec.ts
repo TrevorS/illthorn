@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { CommandHistory } from "../../src/frontend/components/command-bar/command-history";
 import type { CLI } from "../../src/frontend/components/session/cli.lit";
 import type { Compass } from "../../src/frontend/components/session/compass.lit";
 import type { EffectsLit } from "../../src/frontend/components/session/effects/effects.lit";
@@ -11,7 +12,6 @@ import type { Vitals } from "../../src/frontend/components/session/vitals/vitals
 import { SessionLayout } from "../../src/frontend/components/session-layout.lit";
 import { Parser } from "../../src/frontend/parser/parser";
 import type { FrontendSession } from "../../src/frontend/session";
-import { CommandHistory } from "../../src/frontend/session/command-history";
 import { Bus } from "../../src/frontend/util/bus";
 
 // Mock FrontendSession for testing

@@ -18,8 +18,8 @@ import "./session/feed.lit";
 import type { Feed } from "./session/feed.lit";
 import "./session/prompt.lit";
 import type { Prompt } from "./session/prompt.lit";
-import "./session/cli.lit";
-import type { CLI } from "./session/cli.lit";
+import "./command-bar/cli.lit";
+import type { CLI } from "./command-bar/cli.lit";
 
 export type SessionUI = {
   context: HTMLElement;
@@ -122,19 +122,23 @@ export class SessionLayout extends LitElement {
     .cli-wrapper {
       background-color: var(--color-surface);
       display: grid;
-      grid-template-columns: 4em 1fr 22px;
-      grid-gap: 0 0.5em;
+      grid-template-columns: 3em 1fr 22px;
+      grid-gap: 0 0.25em;
       padding: 1em 0.5em;
       align-items: center;
     }
 
     .cli-wrapper illthorn-prompt {
       font-family: "MonoLisa", monospace;
-      display: inline-block;
-      text-align: right;
+      display: flex;
+      align-items: center;
+      text-align: left;
       font-size: 1.6em;
-      position: relative;
-      top: -0.1em;
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-top: 2px;
     }
 
     illthorn-cli-lit {
@@ -167,30 +171,6 @@ export class SessionLayout extends LitElement {
     .timers {
       grid-column: 1 / -1;
       align-self: start;
-    }
-
-    .timer-bar {
-      height: 3px;
-      /* The bar maxes out, visually, at 20s timers */
-      width: calc(var(--steps) * 5%);
-    }
-
-    .timer-bar.go {
-      animation: roundtime var(--duration) steps(var(--steps)) forwards;
-    }
-
-    .round-time-current {
-      background: var(--color-danger, red);
-    }
-
-    .cast-time-current {
-      background: var(--color-warning, lightgreen);
-    }
-
-    @keyframes roundtime {
-      to {
-        transform: scaleX(0);
-      }
     }
 
     button.ui-help-button {

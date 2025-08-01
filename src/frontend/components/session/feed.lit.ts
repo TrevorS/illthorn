@@ -3,8 +3,11 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { IllthornEvent } from "../../events";
 import type { FrontendSession as Session } from "../../session/index";
 import { debugFeed } from "../../util/logger";
+import type { CommandEchoEvent } from "../command-bar/command-echo";
+import { createCommandEchoHTML } from "./feed/command-echo-html";
 
 @customElement("illthorn-feed-lit")
 export class Feed extends LitElement {
@@ -161,6 +164,37 @@ export class Feed extends LitElement {
       text-decoration: none;
     }
 
+    /* Command echo styling */
+    .content .command-echo {
+      display: block;
+      font-family: var(--font-family-monospace, "MonoLisa", monospace);
+      font-size: 0.9em;
+      line-height: 2.2;
+      margin: 2px 0;
+      color: var(--color-command-echo, var(--color-text-secondary, #ccc));
+      padding: 1px 0;
+      border-left: 1px solid var(--color-command-echo-border, var(--color-border, #666));
+      background-color: var(--color-command-echo-bg, var(--color-surface-secondary, rgba(255, 255, 255, 0.05)));
+    }
+
+    .content .command-echo.replay {
+      color: var(--color-command-echo-replay, var(--color-text-secondary, #ffcc00));
+      border-left-color: var(--color-command-echo-replay-border, var(--color-border, #ff9900));
+      background-color: var(--color-command-echo-replay-bg, var(--color-surface-secondary, rgba(255, 204, 0, 0.1)));
+      font-style: italic;
+    }
+
+    .content .command-echo .prefix {
+      opacity: 0.8;
+      margin-left: 5px;
+      margin-right: 5px;
+    }
+
+    .content .command-echo .command-text {
+      font-weight: normal;
+      font-style: italic;
+    }
+
     /* Preset styling for inline elements */
     .content span {
       font-family: inherit;
@@ -180,6 +214,7 @@ export class Feed extends LitElement {
   private _shouldAutoScroll = true;
 
   private _feedContainer?: HTMLElement;
+  private _hasSubscribedToEcho = false;
 
   connectedCallback() {
     super.connectedCallback();
@@ -355,6 +390,36 @@ export class Feed extends LitElement {
     // Cache reference to the feed container after render
     if (!this._feedContainer) {
       this._feedContainer = this.shadowRoot?.querySelector(".feed-container") as HTMLElement;
+    }
+
+    // Subscribe to command echo events when session becomes available
+    if (this.session?.bus && !this._hasSubscribedToEcho) {
+      this.session.bus.subscribeEvent<CommandEchoEvent>(IllthornEvent.COMMAND_ECHO, this._handleCommandEcho.bind(this));
+      this._hasSubscribedToEcho = true;
+    }
+  }
+
+  /**
+   * Handle command echo events from the CLI component
+   */
+  private _handleCommandEcho(event: CustomEvent<CommandEchoEvent>) {
+    const { command, isReplay } = event.detail;
+
+    // Generate static HTML for the command echo
+    const echoHTML = createCommandEchoHTML({ command, isReplay });
+
+    // Add to content HTML array directly
+    this._contentHTML = [...this._contentHTML, echoHTML];
+
+    // Trigger memory management and re-render
+    this.flush();
+    this.requestUpdate();
+
+    // Auto-scroll if appropriate
+    if (!this.isScrolling && this._shouldAutoScroll) {
+      this.updateComplete.then(() => {
+        this.scrollToNow();
+      });
     }
   }
 
