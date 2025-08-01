@@ -146,13 +146,6 @@ export class CLI extends LitElement {
   @state()
   private _lastExecutedCommand = "";
 
-  // History search mode
-  @state()
-  private _searchMode = false;
-
-  // @state()
-  // private _searchQuery = ""; // TODO: Re-enable when search UI is implemented
-
   @query("sl-input")
   private _slInput!: SlInput;
 
@@ -327,8 +320,32 @@ export class CLI extends LitElement {
   private _replayLastCommand() {
     if (this._lastExecutedCommand.length === 0) return;
 
+    // Echo the command being replayed to the game log for visibility
+    this._echoCommandToGameLog(this._lastExecutedCommand);
+
     // Execute directly without adding to history (vim-style)
     this._executeCommand(this._lastExecutedCommand);
+  }
+
+  private _echoCommandToGameLog(command: string) {
+    if (!this.session) return;
+
+    // Create a visual echo in the game log showing the replayed command
+    const echoElement = document.createElement("div");
+    echoElement.style.color = "rgba(255, 255, 255, 0.7)";
+    echoElement.style.fontStyle = "italic";
+    echoElement.style.marginBottom = "0.25rem";
+    echoElement.textContent = `[Replay] ${command}`;
+
+    // Find the session's game log and append the echo
+    const sessionElement = document.querySelector(`illthorn-session-lit[data-session-name="${this.session.name}"]`);
+    const gameLog = sessionElement?.querySelector(".game-log");
+
+    if (gameLog) {
+      gameLog.appendChild(echoElement);
+      // Auto-scroll to show the replayed command
+      gameLog.scrollTop = gameLog.scrollHeight;
+    }
   }
 
   private _executeCommand(command: string) {
@@ -349,24 +366,6 @@ export class CLI extends LitElement {
         this.session?.sendCommand(c);
       }
     });
-  }
-
-  // History search functionality
-  private _enterSearchMode() {
-    this._searchMode = true;
-    // this._searchQuery = ""; // TODO: Re-enable when search UI is implemented
-    this._updateSearchResults();
-  }
-
-  private _exitSearchMode() {
-    this._searchMode = false;
-    // this._searchQuery = ""; // TODO: Re-enable when search UI is implemented
-  }
-
-  private _updateSearchResults() {
-    if (!this.session) return;
-    // TODO: Implement search result display when search UI is implemented
-    // const searchResults = this.session.history.filter((cmd: string) => cmd.includes(this._searchQuery)).slice(0, 10);
   }
 
   private _subscribeToTimerEvents() {
@@ -434,28 +433,10 @@ export class CLI extends LitElement {
 
     const history = this.session.history;
 
-    // Handle search mode first
-    if (this._searchMode) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        this._exitSearchMode();
-        return;
-      }
-      // TODO: Implement search navigation
-      return;
-    }
-
     // Command replay (vim-style)
     if (e.ctrlKey && e.key === ".") {
       e.preventDefault();
       this._replayLastCommand();
-      return;
-    }
-
-    // Reverse history search
-    if (e.ctrlKey && e.key === "r") {
-      e.preventDefault();
-      this._enterSearchMode();
       return;
     }
 
