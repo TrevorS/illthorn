@@ -7,6 +7,8 @@ import "./session/compass.lit";
 import "./session/room.lit";
 import "./session/vitals/vitals.lit";
 import type { Vitals } from "./session/vitals/vitals.lit";
+import "./session/injuries/injuries.lit";
+import type { InjuriesLit } from "./session/injuries/injuries.lit";
 import "./session/effects/effects.lit";
 import "./session/hands/hands.lit";
 import type { Hand } from "./session/hands/hand.lit";
@@ -27,6 +29,7 @@ export type SessionUI = {
   feed: Feed;
   prompt: Prompt;
   vitals: Vitals;
+  injuries: InjuriesLit;
   streams: Streams;
   hands: { left: Hand | null; right: Hand | null; spell: Hand | null };
 };
@@ -236,6 +239,9 @@ export class SessionLayout extends LitElement {
   @query("illthorn-vitals-lit")
   private _vitals?: Vitals;
 
+  @query("illthorn-injuries-lit")
+  private _injuries?: InjuriesLit;
+
   @query("illthorn-streams-lit")
   private _streams?: Streams;
 
@@ -290,6 +296,9 @@ export class SessionLayout extends LitElement {
       get vitals() {
         return self._vitals || null;
       },
+      get injuries() {
+        return self._injuries || null;
+      },
       get streams() {
         return self._streams || null;
       },
@@ -317,6 +326,10 @@ export class SessionLayout extends LitElement {
 
         <illthorn-panel title="vitals" .open=${true}>
           <illthorn-vitals-lit .session=${this.session}></illthorn-vitals-lit>
+        </illthorn-panel>
+
+        <illthorn-panel title="injuries" .open=${true}>
+          <illthorn-injuries-lit .session=${this.session}></illthorn-injuries-lit>
         </illthorn-panel>
 
         <illthorn-panel title="active spells" .open=${true}>

@@ -56,6 +56,7 @@ export class FrontendSession {
         feed: null,
         prompt: null,
         vitals: null,
+        injuries: null,
         streams: null,
         hands: { left: null, right: null, spell: null },
       }
