@@ -131,6 +131,27 @@ export class CLI extends LitElement {
   @state()
   private _casttimeSteps = 0;
 
+  // Kill ring for text editing operations
+  @state()
+  private _killRing: string[] = [];
+
+  @state() 
+  private _killRingPosition = 0;
+
+  // Command replay system
+  @state()
+  private _lastExecutedCommand = "";
+
+  // History search mode
+  @state()
+  private _searchMode = false;
+
+  @state() 
+  private _searchQuery = "";
+
+  @state()
+  private _searchResults: string[] = [];
+
   @query("sl-input")
   private _slInput!: any; // Using any for now until we have proper types
 
@@ -176,6 +197,185 @@ export class CLI extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     // Event subscriptions are automatically cleaned up by the bus system
+  }
+
+  // Text navigation utilities
+  private _getCursorPosition(): number {
+    if (this._slInput && this._slInput.input) {
+      return this._slInput.input.selectionStart || 0;
+    }
+    return 0;
+  }
+
+  private _setCursorPosition(position: number) {
+    if (this._slInput && this._slInput.input) {
+      this._slInput.input.setSelectionRange(position, position);
+    }
+  }
+
+  private _getWordBoundaryForward(text: string, position: number): number {
+    // Find the start of the next word
+    let i = position;
+    // Skip current word characters
+    while (i < text.length && /\S/.test(text[i])) {
+      i++;
+    }
+    // Skip whitespace to start of next word
+    while (i < text.length && /\s/.test(text[i])) {
+      i++;
+    }
+    return i;
+  }
+
+  private _getWordBoundaryBackward(text: string, position: number): number {
+    // Find the start of the current word or previous word
+    let i = position;
+    // Skip whitespace before current position
+    while (i > 0 && /\s/.test(text[i - 1])) {
+      i--;
+    }
+    // Skip word characters to find word start
+    while (i > 0 && /\S/.test(text[i - 1])) {
+      i--;
+    }
+    return i;
+  }
+
+  private _moveWordForward() {
+    const position = this._getCursorPosition();
+    const newPosition = this._getWordBoundaryForward(this._inputValue, position);
+    this._setCursorPosition(newPosition);
+  }
+
+  private _moveWordBackward() {
+    const position = this._getCursorPosition();
+    const newPosition = this._getWordBoundaryBackward(this._inputValue, position);
+    this._setCursorPosition(newPosition);
+  }
+
+  private _moveCursorToStart() {
+    this._setCursorPosition(0);
+  }
+
+  private _moveCursorToEnd() {
+    this._setCursorPosition(this._inputValue.length);
+  }
+
+  // Kill ring operations
+  private _addToKillRing(text: string) {
+    if (text.length === 0) return;
+    this._killRing.unshift(text);
+    if (this._killRing.length > 20) {
+      this._killRing = this._killRing.slice(0, 20);
+    }
+    this._killRingPosition = 0;
+  }
+
+  private _yankText() {
+    if (this._killRing.length === 0) return;
+    
+    const text = this._killRing[this._killRingPosition];
+    const position = this._getCursorPosition();
+    
+    const newValue = 
+      this._inputValue.slice(0, position) + 
+      text + 
+      this._inputValue.slice(position);
+      
+    this._inputValue = newValue;
+    
+    // Position cursor after yanked text
+    this.updateComplete.then(() => {
+      const newPos = position + text.length;
+      this._setCursorPosition(newPos);
+    });
+  }
+
+  // Text editing operations
+  private _killToEndOfLine() {
+    const position = this._getCursorPosition();
+    const killedText = this._inputValue.slice(position);
+    this._addToKillRing(killedText);
+    this._inputValue = this._inputValue.slice(0, position);
+  }
+
+  private _killEntireLine() {
+    this._addToKillRing(this._inputValue);
+    this._inputValue = "";
+    this._setCursorPosition(0);
+  }
+
+  private _deletePreviousWord() {
+    const position = this._getCursorPosition();
+    const wordStart = this._getWordBoundaryBackward(this._inputValue, position);
+    const deletedText = this._inputValue.slice(wordStart, position);
+    this._addToKillRing(deletedText);
+    
+    this._inputValue = 
+      this._inputValue.slice(0, wordStart) + 
+      this._inputValue.slice(position);
+    
+    this._setCursorPosition(wordStart);
+  }
+
+  private _deleteWordForward() {
+    const position = this._getCursorPosition();
+    const wordEnd = this._getWordBoundaryForward(this._inputValue, position);
+    const deletedText = this._inputValue.slice(position, wordEnd);
+    this._addToKillRing(deletedText);
+    
+    this._inputValue = 
+      this._inputValue.slice(0, position) + 
+      this._inputValue.slice(wordEnd);
+  }
+
+  // Command replay functionality
+  private _replayLastCommand() {
+    if (this._lastExecutedCommand.length === 0) return;
+    
+    // Execute directly without adding to history (vim-style)
+    this._executeCommand(this._lastExecutedCommand);
+  }
+
+  private _executeCommand(command: string) {
+    if (!this.session) return;
+    
+    if (command[0] === ":") {
+      return Illthorn.bus.dispatchEvent(IllthornEvent.SUBMIT_ILLTHORN_COMMAND, command);
+    }
+
+    if (command[0] === ";") {
+      return this.session.sendCommand(command);
+    }
+
+    // Handle multi-line commands split by \r
+    return command.split("\\r").forEach((c) => {
+      c = c.trim();
+      if (c.length > 0) {
+        this.session?.sendCommand(c);
+      }
+    });
+  }
+
+  // History search functionality
+  private _enterSearchMode() {
+    this._searchMode = true;
+    this._searchQuery = "";
+    this._updateSearchResults();
+  }
+
+  private _exitSearchMode() {
+    this._searchMode = false;
+    this._searchQuery = "";
+    this._searchResults = [];
+  }
+
+  private _updateSearchResults() {
+    if (!this.session) return;
+    this._searchResults = this.session.history
+      .getHistory()
+      .filter(cmd => cmd.includes(this._searchQuery))
+      .slice(0, 10); // Limit to 10 results
   }
 
   private _subscribeToTimerEvents() {
@@ -233,6 +433,100 @@ export class CLI extends LitElement {
 
     const history = this.session.history;
 
+    // Handle search mode first
+    if (this._searchMode) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        this._exitSearchMode();
+        return;
+      }
+      // TODO: Implement search navigation
+      return;
+    }
+
+    // Command replay (vim-style)
+    if (e.ctrlKey && e.key === ".") {
+      e.preventDefault();
+      this._replayLastCommand();
+      return;
+    }
+
+    // Reverse history search
+    if (e.ctrlKey && e.key === "r") {
+      e.preventDefault();
+      this._enterSearchMode();
+      return;
+    }
+
+    // Text navigation and editing with Ctrl key
+    if (e.ctrlKey) {
+      switch (e.key.toLowerCase()) {
+        case "a": // Beginning of line
+          e.preventDefault();
+          this._moveCursorToStart();
+          return;
+          
+        case "e": // End of line
+          e.preventDefault(); 
+          this._moveCursorToEnd();
+          return;
+          
+        case "k": // Kill to end of line
+          e.preventDefault();
+          this._killToEndOfLine();
+          return;
+          
+        case "u": // Kill entire line
+          e.preventDefault();
+          this._killEntireLine();
+          return;
+          
+        case "w": // Delete previous word
+          e.preventDefault();
+          this._deletePreviousWord();
+          return;
+          
+        case "y": // Yank (paste)
+          e.preventDefault();
+          this._yankText();
+          return;
+
+        case "p": // History navigation (equivalent to ArrowUp)
+          e.preventDefault();
+          if (history.position === 0) {
+            history.add(this._inputValue);
+          }
+          this._setInput(history.back());
+          return;
+
+        case "n": // History navigation (equivalent to ArrowDown)
+          e.preventDefault();
+          this._setInput(history.forward());
+          return;
+      }
+    }
+
+    // Alt key combinations for word movement
+    if (e.altKey) {
+      switch (e.key.toLowerCase()) {
+        case "f": // Forward word
+          e.preventDefault();
+          this._moveWordForward();
+          return;
+          
+        case "b": // Backward word  
+          e.preventDefault();
+          this._moveWordBackward();
+          return;
+          
+        case "d": // Delete word forward
+          e.preventDefault();
+          this._deleteWordForward();
+          return;
+      }
+    }
+
+    // Original key handling
     switch (e.key) {
       case "Enter":
         this._submitCommand();
@@ -285,6 +579,9 @@ export class CLI extends LitElement {
       return;
     }
 
+    // Store for replay system
+    this._lastExecutedCommand = command;
+
     this._inputValue = "";
     this.session.history.add(command);
 
@@ -293,22 +590,7 @@ export class CLI extends LitElement {
       this._slInput?.focus();
     });
 
-    if (command[0] === ":") {
-      return Illthorn.bus.dispatchEvent(IllthornEvent.SUBMIT_ILLTHORN_COMMAND, command);
-    }
-
-    if (command[0] === ";") {
-      // This is going to Lich, so we'll not monkey with it
-      return this.session.sendCommand(command);
-    }
-
-    // Handle multi-line commands split by \r
-    return command.split("\\r").forEach((c) => {
-      c = c.trim();
-      if (c.length > 0) {
-        this.session?.sendCommand(c);
-      }
-    });
+    this._executeCommand(command);
   }
 
   render() {
