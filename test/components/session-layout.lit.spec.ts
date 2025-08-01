@@ -3,7 +3,7 @@ import { CommandHistory } from "../../src/frontend/components/command-bar/comman
 import type { CLI } from "../../src/frontend/components/session/cli.lit";
 import type { Compass } from "../../src/frontend/components/session/compass.lit";
 import type { EffectsLit } from "../../src/frontend/components/session/effects/effects.lit";
-import type { Feed } from "../../src/frontend/components/session/feed.lit";
+import type { Feed } from "../../src/frontend/components/session/feed/feed.lit";
 import type { Panel } from "../../src/frontend/components/session/panel.lit";
 import type { Prompt } from "../../src/frontend/components/session/prompt.lit";
 import type { Room } from "../../src/frontend/components/session/room.lit";
