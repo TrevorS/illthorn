@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { Compass } from "../src/frontend/components/session/compass.lit";
-import { createMockCompassData, createMockSession, mockDirections } from "./mocks";
+import { createMockSession } from "../../../../../test/mocks";
+import { CompassUI } from "./compass-ui.lit";
 
-describe("Compass", () => {
+describe("CompassUI", () => {
   const setup = () => {
-    const compass = document.createElement("illthorn-compass") as Compass;
+    const compass = document.createElement("illthorn-compass-ui") as CompassUI;
     const mockSession = createMockSession();
     document.body.appendChild(compass);
     return { compass, mockSession };
   };
 
-  const teardown = (compass: Compass) => {
+  const teardown = (compass: CompassUI) => {
     if (compass.parentNode) {
       compass.parentNode.removeChild(compass);
     }
@@ -20,16 +20,15 @@ describe("Compass", () => {
     it("should create compass element", () => {
       const { compass } = setup();
 
-      expect(compass).toBeInstanceOf(Compass);
-      expect(compass.tagName.toLowerCase()).toBe("illthorn-compass");
+      expect(compass).toBeInstanceOf(CompassUI);
+      expect(compass.tagName.toLowerCase()).toBe("illthorn-compass-ui");
 
       teardown(compass);
     });
 
     it("should render all direction buttons", async () => {
-      const { compass, mockSession } = setup();
+      const { compass } = setup();
 
-      compass.session = mockSession;
       await compass.updateComplete;
 
       const buttons = compass.shadowRoot?.querySelectorAll("a");
@@ -39,9 +38,8 @@ describe("Compass", () => {
     });
 
     it("should render direction labels correctly", async () => {
-      const { compass, mockSession } = setup();
+      const { compass } = setup();
 
-      compass.session = mockSession;
       await compass.updateComplete;
 
       const buttons = compass.shadowRoot?.querySelectorAll("a");
@@ -60,9 +58,8 @@ describe("Compass", () => {
     });
 
     it("should hide empty direction slots", async () => {
-      const { compass, mockSession } = setup();
+      const { compass } = setup();
 
-      compass.session = mockSession;
       await compass.updateComplete;
 
       const buttons = compass.shadowRoot?.querySelectorAll("a");
@@ -76,18 +73,7 @@ describe("Compass", () => {
     });
   });
 
-  describe("Session property", () => {
-    it("should accept session property", async () => {
-      const { compass, mockSession } = setup();
-
-      compass.session = mockSession;
-      await compass.updateComplete;
-
-      expect(compass.session).toBe(mockSession);
-
-      teardown(compass);
-    });
-
+  describe("ActiveDirs property", () => {
     it("should initialize activeDirs as empty array", () => {
       const { compass } = setup();
 
@@ -96,17 +82,27 @@ describe("Compass", () => {
       teardown(compass);
     });
 
-    it("should update activeDirs when compass data received", async () => {
-      const { compass, mockSession } = setup();
+    it("should accept activeDirs property", async () => {
+      const { compass } = setup();
 
-      compass.session = mockSession;
+      compass.activeDirs = ["n", "s", "e"];
       await compass.updateComplete;
 
-      const compassData = createMockCompassData(mockDirections.basic);
-      mockSession.bus.dispatchEvent("metadata/compass", compassData);
-      await compass.updateComplete;
+      expect(compass.activeDirs).toEqual(["n", "s", "e"]);
 
-      expect(compass.activeDirs).toEqual(mockDirections.basic);
+      teardown(compass);
+    });
+
+    it("should react to activeDirs changes", async () => {
+      const { compass } = setup();
+
+      compass.activeDirs = ["n"];
+      await compass.updateComplete;
+      expect(compass.activeDirs).toEqual(["n"]);
+
+      compass.activeDirs = ["n", "s", "e", "w"];
+      await compass.updateComplete;
+      expect(compass.activeDirs).toEqual(["n", "s", "e", "w"]);
 
       teardown(compass);
     });
@@ -114,9 +110,8 @@ describe("Compass", () => {
 
   describe("Direction activation", () => {
     it('should apply "on" class to active directions', async () => {
-      const { compass, mockSession } = setup();
+      const { compass } = setup();
 
-      compass.session = mockSession;
       compass.activeDirs = ["n", "e"];
       await compass.updateComplete;
 
@@ -133,9 +128,8 @@ describe("Compass", () => {
     });
 
     it("should update visual state when activeDirs change", async () => {
-      const { compass, mockSession } = setup();
+      const { compass } = setup();
 
-      compass.session = mockSession;
       compass.activeDirs = ["n"];
       await compass.updateComplete;
 
@@ -154,16 +148,16 @@ describe("Compass", () => {
 
   describe("Static properties", () => {
     it("should have correct DIRS array", () => {
-      expect(Compass.DIRS).toHaveLength(15);
-      expect(Compass.DIRS[1]).toBe("up");
-      expect(Compass.DIRS[13]).toBe("down");
-      expect(Compass.DIRS[7]).toBe("out");
+      expect(CompassUI.DIRS).toHaveLength(15);
+      expect(CompassUI.DIRS[1]).toBe("up");
+      expect(CompassUI.DIRS[13]).toBe("down");
+      expect(CompassUI.DIRS[7]).toBe("out");
     });
 
     it("should have correct MAP for direction abbreviations", () => {
-      expect(Compass.MAP.up).toBe("u");
-      expect(Compass.MAP.down).toBe("d");
-      expect(Compass.MAP.out).toBe("o");
+      expect(CompassUI.MAP.up).toBe("u");
+      expect(CompassUI.MAP.down).toBe("d");
+      expect(CompassUI.MAP.out).toBe("o");
     });
   });
 });

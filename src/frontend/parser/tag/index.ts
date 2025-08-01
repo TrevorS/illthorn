@@ -1,5 +1,7 @@
 import type { GemstoneTagAttrs } from "./attributes";
 import type { TagName } from "./names";
+
+export type { TagName };
 export enum TagKind {
   TEXT,
   METADATA,

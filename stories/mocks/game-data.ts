@@ -1,24 +1,27 @@
 // ABOUTME: Game data generators for realistic Storybook component testing
 // ABOUTME: Creates structured GameTag objects that match actual game server responses
 
-import type { GameTag } from '../../src/frontend/parser/tag';
+import type { GameTag, TagName } from '../../src/frontend/parser/tag';
 import { makeTag } from '../../src/frontend/parser/tag';
 
 export const StorybookGameData = {
   // Vital data generators
   createVitalUpdate(type: 'health' | 'mana' | 'stamina' | 'spirit' | 'mind', value: number, max: number): GameTag {
-    return makeTag('progressBar', {
+    const tag = makeTag('progressBar' as TagName);
+    tag.attrs = {
       id: type,
       value: value.toString(),
       text: `${value}/${max}`,
-    });
+    };
+    return tag;
   },
   
   // Spell effect generators
   createSpellEffect(name: string, duration: number = 0): GameTag {
-    const tag = makeTag('spell', {
+    const tag = makeTag('spell' as TagName);
+    tag.attrs = {
       value: name,
-    });
+    };
     
     if (duration > 0) {
       tag.attrs = { ...tag.attrs, duration: duration.toString() };
@@ -29,51 +32,61 @@ export const StorybookGameData = {
   
   // Injury data generators
   createInjury(location: string, severity: 'minor' | 'moderate' | 'major' | 'severe'): GameTag {
-    return makeTag('injury', {
+    const tag = makeTag('injury' as TagName);
+    tag.attrs = {
       location,
       severity,
-    });
+    };
+    return tag;
   },
   
   // Room description generator
   createRoom(title: string, description: string): GameTag {
-    return makeTag('room', {
+    const tag = makeTag('room' as TagName);
+    tag.attrs = {
       title,
       description,
-    });
+    };
+    return tag;
   },
   
   // Compass direction generators
   createCompass(directions: Array<string>): GameTag {
     const children = directions.map((dir) => {
-      const tag = makeTag('dir');
+      const tag = makeTag('dir' as TagName);
       tag.attrs = { value: dir };
       return tag;
     });
-    const compass = makeTag('compass');
+    const compass = makeTag('compass' as TagName);
     compass.children = children;
     return compass;
   },
   
   // Hand/inventory generators
   createHand(side: 'left' | 'right', item?: string): GameTag {
-    return makeTag('hand', {
+    const tag = makeTag('hand' as TagName);
+    tag.attrs = {
       side,
       item: item || 'Empty',
-    });
+    };
+    return tag;
   },
   
   // Timer generators
   createCastTime(duration: number): GameTag {
-    return makeTag('castTime', {
+    const tag = makeTag('castTime' as TagName);
+    tag.attrs = {
       value: duration.toString(),
-    });
+    };
+    return tag;
   },
   
   createRoundTime(duration: number): GameTag {
-    return makeTag('roundTime', {
+    const tag = makeTag('roundTime' as TagName);
+    tag.attrs = {
       value: duration.toString(),
-    });
+    };
+    return tag;
   },
   
   // Preset game states for common scenarios

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { CommandHistory } from "../../src/frontend/components/command-bar/command-history";
 import type { CLI } from "../../src/frontend/components/session/cli.lit";
-import type { Compass } from "../../src/frontend/components/session/compass.lit";
+import type { CompassContainer } from "../../src/frontend/components/session/compass";
 import type { EffectsLit } from "../../src/frontend/components/session/effects/effects.lit";
 import type { Feed } from "../../src/frontend/components/session/feed/feed.lit";
 import type { Panel } from "../../src/frontend/components/session/panel.lit";
@@ -141,7 +141,7 @@ describe("SessionLayout", () => {
       expect(room).toBeTruthy();
       expect(room.session).toBe(mockSession);
 
-      const compass = roomPanel?.querySelector("illthorn-compass") as Compass;
+      const compass = roomPanel?.querySelector("illthorn-compass-container") as CompassContainer;
       expect(compass).toBeTruthy();
       expect(compass.session).toBe(mockSession);
     });
@@ -386,7 +386,7 @@ describe("SessionLayout", () => {
       expect(main).toBeTruthy();
 
       // All required components present
-      expect(sessionUI.shadowRoot?.querySelector("illthorn-compass")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-compass-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-room-lit")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-vitals-lit")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-effects-lit")).toBeTruthy();

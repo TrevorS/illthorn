@@ -1,12 +1,10 @@
-// ABOUTME: Lit-based compass component for displaying directional navigation in Gemstone IV
-// ABOUTME: Shows available exits with visual states (active/inactive) based on game metadata
+// ABOUTME: Pure UI component for compass display with no event handling dependencies
+// ABOUTME: Takes activeDirs as reactive property and renders compass grid with visual states
 import { css, html, LitElement } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
-import type { GameTag } from "../../parser/tag";
-import type { FrontendSession as Session } from "../../session/index";
+import { customElement, property } from "lit/decorators.js";
 
-@customElement("illthorn-compass")
-export class Compass extends LitElement {
+@customElement("illthorn-compass-ui")
+export class CompassUI extends LitElement {
   static DIRS = ["", "up", "", "nw", "n", "ne", "w", "out", "e", "sw", "s", "se", "", "down", ""];
 
   static MAP = { up: "u", down: "d", out: "o" } as Record<string, string>;
@@ -55,44 +53,11 @@ export class Compass extends LitElement {
     }
   `;
 
-  @property({ type: Object })
-  session?: Session;
-
   @property({ type: Array })
   activeDirs: Array<string> = [];
 
-  private _eventListenerSetup = false;
-
-  connectedCallback() {
-    super.connectedCallback();
-  }
-
-  updated(changedProperties: Map<string | number | symbol, unknown>) {
-    super.updated(changedProperties);
-
-    if (changedProperties.has("session")) {
-      if (this.session && !this._eventListenerSetup) {
-        this.setupEventListeners();
-        this._eventListenerSetup = true;
-      }
-    }
-  }
-
-  private setupEventListeners() {
-    if (!this.session || !this.session.bus) return;
-
-    this.session.bus.subscribeEvent<GameTag>("metadata/compass", ({ detail: compass }) => {
-      if (compass && compass.children) {
-        this.activeDirs = compass.children.map(({ attrs }) => attrs.value).filter((value): value is string => typeof value === "string");
-      } else {
-        this.activeDirs = [];
-      }
-      this.requestUpdate();
-    });
-  }
-
   private getDisplayText(dir: string): string {
-    return Compass.MAP[dir] || dir;
+    return CompassUI.MAP[dir] || dir;
   }
 
   private isDirectionActive(dir: string): boolean {
@@ -101,7 +66,7 @@ export class Compass extends LitElement {
 
   render() {
     return html`
-      ${Compass.DIRS.map(
+      ${CompassUI.DIRS.map(
         (dir, _index) => html`
         <a 
           class=${dir && this.isDirectionActive(dir) ? "on" : ""}
@@ -118,6 +83,6 @@ export class Compass extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-compass": Compass;
+    "illthorn-compass-ui": CompassUI;
   }
 }

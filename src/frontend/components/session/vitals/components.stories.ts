@@ -1,34 +1,34 @@
-import type { Meta, StoryObj } from '@storybook/web-components';
-import { html } from 'lit';
-import './components.lit';
+import type { Meta, StoryObj } from "@storybook/web-components";
+import { html } from "lit";
+import "./components.lit";
 
 // VitalStat Component Stories
 const vitalStatMeta: Meta = {
-  title: 'Session/Vitals/VitalStat',
-  component: 'illthorn-vital-stat',
+  title: "Session/Vitals/VitalStat",
+  component: "illthorn-vital-stat",
   parameters: {
     docs: {
       description: {
-        component: 'Displays a vital statistic with label, value, and progress bar using Shoelace components.',
+        component: "Displays a vital statistic with label, value, and progress bar using Shoelace components.",
       },
     },
   },
   argTypes: {
     label: {
-      control: 'text',
-      description: 'The label for the vital stat (e.g., "Health", "Mana")'
+      control: "text",
+      description: 'The label for the vital stat (e.g., "Health", "Mana")',
     },
     value: {
-      control: 'text',
-      description: 'The display value (e.g., "100/100", "45/80")'
+      control: "text",
+      description: 'The display value (e.g., "100/100", "45/80")',
     },
     percent: {
-      control: { type: 'range', min: 0, max: 100, step: 1 },
-      description: 'Percentage value for progress bar (affects color thresholds)'
+      control: { type: "range", min: 0, max: 100, step: 1 },
+      description: "Percentage value for progress bar (affects color thresholds)",
     },
     dataVital: {
-      control: 'text',
-      description: 'Data attribute for vital type'
+      control: "text",
+      description: "Data attribute for vital type",
     },
   },
 };
@@ -36,52 +36,52 @@ const vitalStatMeta: Meta = {
 export default vitalStatMeta;
 
 export const HealthFullStory: StoryObj = {
-  name: 'Health - Full',
+  name: "Health - Full",
   args: {
-    label: 'Health',
-    value: '100/100',
+    label: "Health",
+    value: "100/100",
     percent: 100,
   },
 };
 
 export const HealthCriticalStory: StoryObj = {
-  name: 'Health - Critical',
+  name: "Health - Critical",
   args: {
-    label: 'Health',
-    value: '15/100',
+    label: "Health",
+    value: "15/100",
     percent: 15,
   },
 };
 
 export const ManaModerateStory: StoryObj = {
-  name: 'Mana - Moderate',
+  name: "Mana - Moderate",
   args: {
-    label: 'Mana',
-    value: '45/80',
+    label: "Mana",
+    value: "45/80",
     percent: 56,
   },
 };
 
 export const StaminaLowStory: StoryObj = {
-  name: 'Stamina - Low',
+  name: "Stamina - Low",
   args: {
-    label: 'Stamina',
-    value: '20/90',
+    label: "Stamina",
+    value: "20/90",
     percent: 22,
   },
 };
 
 export const IndeterminateStateStory: StoryObj = {
-  name: 'Indeterminate State',
+  name: "Indeterminate State",
   args: {
-    label: 'Spirit',
+    label: "Spirit",
     value: undefined,
     percent: undefined,
   },
 };
 
 export const AllVitalsDemo: StoryObj = {
-  name: 'All Vitals Demo',
+  name: "All Vitals Demo",
   render: () => html`
     <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 200px; background: var(--sl-color-neutral-900); padding: 1rem; border-radius: 0.5rem;">
       <h3 style="margin: 0 0 0.5rem 0; color: white; font-size: 1.1rem;">Character Stats</h3>
@@ -94,67 +94,32 @@ export const AllVitalsDemo: StoryObj = {
   `,
 };
 
-// VitalText Component Stories
-const vitalTextMeta: Meta = {
-  title: 'Session/Vitals/VitalText',
-  component: 'illthorn-vital-text',
-  parameters: {
-    docs: {
-      description: {
-        component: 'Displays a text-only vital statistic without progress bar (used for encumbrance, etc.).',
-      },
-    },
-  },
-  argTypes: {
-    label: {
-      control: 'text',
-      description: 'The label for the vital text'
-    },
-    value: {
-      control: 'text',
-      description: 'The display value'
-    },
-    dataVital: {
-      control: 'text',
-      description: 'Data attribute for vital type'
-    },
-    inverted: {
-      control: 'boolean',
-      description: 'Whether this is an inverted vital (lower is better)'
-    },
-  },
-};
-
 export const EncumbranceStory: StoryObj = {
-  title: 'Session/Vitals/VitalText',
-  name: 'Encumbrance',
+  name: "Encumbrance",
   args: {
-    label: 'Encumbrance',
-    value: 'None',
+    label: "Encumbrance",
+    value: "None",
   },
 };
 
 export const ExperienceStory: StoryObj = {
-  title: 'Session/Vitals/VitalText', 
-  name: 'Experience',
+  name: "Experience",
   args: {
-    label: 'Experience',
-    value: '2,456,789',
+    label: "Experience",
+    value: "2,456,789",
   },
 };
 
 export const LevelStory: StoryObj = {
-  title: 'Session/Vitals/VitalText',
-  name: 'Level',
+  name: "Level",
   args: {
-    label: 'Level',
-    value: '25',
+    label: "Level",
+    value: "25",
   },
 };
 
 export const TextVitalsDemo: StoryObj = {
-  title: 'Session/Vitals/VitalText',
-  name: 'Text Vitals Demo',
+  name: "Text Vitals Demo",
   render: () => html`
     <div style="display: flex; flex-direction: column; gap: 0.25rem; width: 200px; background: var(--sl-color-neutral-900); padding: 1rem; border-radius: 0.5rem;">
       <h3 style="margin: 0 0 0.5rem 0; color: white; font-size: 1.1rem;">Character Info</h3>
@@ -168,8 +133,7 @@ export const TextVitalsDemo: StoryObj = {
 
 // Combined Demo
 export const CombinedVitalsDemo: StoryObj = {
-  title: 'Session/Vitals/Combined',
-  name: 'Full Vitals Panel',
+  name: "Full Vitals Panel",
   render: () => html`
     <div style="display: flex; flex-direction: column; gap: 0.25rem; width: 200px; background: var(--sl-color-neutral-900); padding: 1rem; border-radius: 0.5rem;">
       <h3 style="margin: 0 0 0.5rem 0; color: white; font-size: 1.1rem;">Vitals</h3>

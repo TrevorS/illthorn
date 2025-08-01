@@ -28,7 +28,7 @@ export class StorybookSessionMock {
     };
     
     // Mock UI component references
-    this.instance.ui = {
+    (this.instance as any).ui = {
       vitals: null,
       effects: null,
       compass: null,

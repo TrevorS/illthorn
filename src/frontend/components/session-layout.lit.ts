@@ -3,7 +3,7 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
 import type { FrontendSession as Session } from "../session/index";
-import "./session/compass.lit";
+import "./session/compass";
 import "./session/room.lit";
 import "./session/vitals/vitals.lit";
 import type { Vitals } from "./session/vitals/vitals.lit";
@@ -321,7 +321,7 @@ export class SessionLayout extends LitElement {
       <div class="hud">
         <illthorn-panel title="room" .open=${true}>
           <illthorn-room-lit .session=${this.session}></illthorn-room-lit>
-          <illthorn-compass .session=${this.session}></illthorn-compass>
+          <illthorn-compass-container .session=${this.session}></illthorn-compass-container>
         </illthorn-panel>
 
         <illthorn-panel title="vitals" .open=${true}>
