@@ -23,33 +23,44 @@ export class CLI extends LitElement {
       width: 100%;
     }
 
-    input {
-      font-family: "MonoLisa", monospace;
-      left: 0;
-      top: 0;
-      border: none;
+    sl-input {
       width: 100%;
-      padding: 0.5em;
-      color: #fff;
-      font-size: 1em;
-      background-color: rgba(255, 255, 255, 0.1);
-      z-index: 1;
-      outline: none;
-      box-sizing: border-box;
+      --sl-input-border-width: 0;
+      --sl-input-border-radius-medium: 0;
+      --sl-input-focus-ring-width: 0;
+      --sl-input-background-color: rgba(255, 255, 255, 0.1);
+      --sl-input-background-color-focus: rgba(255, 255, 255, 0.15);
+      --sl-input-color: #fff;
+      --sl-input-font-family: "MonoLisa", monospace;
+      --sl-input-font-size-medium: 1em;
+      --sl-input-height-medium: auto;
+      --sl-input-spacing-medium: 0.5em;
+      --sl-input-placeholder-color: rgba(255, 255, 255, 0.5);
     }
 
-    input:focus {
-      outline: none;
-      background-color: rgba(255, 255, 255, 0.15);
+    sl-input::part(base) {
+      border: none;
+      background-color: var(--sl-input-background-color);
+      font-family: var(--sl-input-font-family);
     }
 
-    input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
+    sl-input::part(input) {
+      border: none;
+      background: transparent;
+      color: var(--sl-input-color);
+      font-family: var(--sl-input-font-family);
+      font-size: var(--sl-input-font-size-medium);
+      padding: var(--sl-input-spacing-medium);
+      outline: none;
+    }
+
+    sl-input::part(input)::placeholder {
+      color: var(--sl-input-placeholder-color);
       font-style: italic;
     }
 
     /* Support for suggestions styling if needed */
-    input.suggestions {
+    sl-input.suggestions::part(base) {
       background-color: rgba(0, 0, 0, 0.2);
     }
 
@@ -120,28 +131,28 @@ export class CLI extends LitElement {
   @state()
   private _casttimeSteps = 0;
 
-  @query("input")
-  private _input!: HTMLInputElement;
+  @query("sl-input")
+  private _slInput!: any; // Using any for now until we have proper types
 
   /**
    * Public accessor for the input element to maintain API compatibility
    */
   get input(): HTMLInputElement {
-    // If the query hasn't resolved yet, query the shadow root directly
-    if (!this._input) {
-      const shadowInput = this.shadowRoot?.querySelector("input") as HTMLInputElement;
-      if (shadowInput) {
-        return shadowInput;
+    // Access the underlying input element from sl-input
+    if (!this._slInput) {
+      const slInput = this.shadowRoot?.querySelector("sl-input") as any;
+      if (slInput && slInput.input) {
+        return slInput.input;
       }
       // Fallback - this should rarely happen in practice
       throw new Error("CLI input element not yet available");
     }
-    return this._input;
+    return this._slInput.input;
   }
 
   firstUpdated() {
     // Focus the input when component is first rendered
-    this._input?.focus();
+    this._slInput?.focus();
   }
 
   connectedCallback() {
@@ -149,7 +160,7 @@ export class CLI extends LitElement {
 
     // Focus when connected to DOM
     this.updateComplete.then(() => {
-      this._input?.focus();
+      this._slInput?.focus();
     });
   }
 
@@ -248,16 +259,16 @@ export class CLI extends LitElement {
     }
   }
 
-  private _handleInput(e: Event) {
-    this._inputValue = (e.target as HTMLInputElement).value;
+  private _handleInput(e: CustomEvent) {
+    this._inputValue = (e.target as any).value;
   }
 
   private _setInput(value: string) {
     this._inputValue = value;
     // Schedule cursor positioning after the next update
     this.updateComplete.then(() => {
-      if (this._input) {
-        this._input.setSelectionRange(value.length, value.length);
+      if (this._slInput && this._slInput.input) {
+        this._slInput.input.setSelectionRange(value.length, value.length);
       }
     });
   }
@@ -279,7 +290,7 @@ export class CLI extends LitElement {
 
     // Focus the input after clearing to maintain user experience
     this.updateComplete.then(() => {
-      this._input?.focus();
+      this._slInput?.focus();
     });
 
     if (command[0] === ":") {
@@ -335,14 +346,14 @@ export class CLI extends LitElement {
       }
       
       <div class="input-container">
-        <input
+        <sl-input
           .value=${this._inputValue}
           @keydown=${this._handleKeyDown}
-          @input=${this._handleInput}
+          @sl-input=${this._handleInput}
           placeholder="Enter command..."
           autocomplete="off"
           spellcheck="false"
-        />
+        ></sl-input>
       </div>
     `;
   }

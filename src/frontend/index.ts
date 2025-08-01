@@ -9,6 +9,7 @@ import { bindMacros } from "./macros";
 import { renderAllSessions } from "./session/connect-all";
 import "@shoelace-style/shoelace/dist/themes/dark.css";
 import "@shoelace-style/shoelace/dist/components/progress-bar/progress-bar.js";
+import "@shoelace-style/shoelace/dist/components/input/input.js";
 
 (async function __illthorn_main() {
   // Configure Shoelace base path for assets
