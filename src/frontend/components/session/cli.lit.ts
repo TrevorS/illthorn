@@ -166,17 +166,16 @@ export class CLI extends LitElement {
   }
 
   firstUpdated() {
-    // Focus the input when component is first rendered
-    this._slInput?.focus();
+    // Focus the input when component is first rendered, but wait for next tick
+    // to ensure sl-input internal structure is ready
+    requestAnimationFrame(() => {
+      this._slInput?.focus();
+    });
   }
 
   connectedCallback() {
     super.connectedCallback();
-
-    // Focus when connected to DOM
-    this.updateComplete.then(() => {
-      this._slInput?.focus();
-    });
+    // Focus handling moved to firstUpdated() to avoid redundancy
   }
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {
@@ -569,7 +568,9 @@ export class CLI extends LitElement {
 
     // Focus the input after clearing to maintain user experience
     this.updateComplete.then(() => {
-      this._slInput?.focus();
+      requestAnimationFrame(() => {
+        this._slInput?.focus();
+      });
     });
 
     this._executeCommand(command);
