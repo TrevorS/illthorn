@@ -173,7 +173,7 @@ describe("SessionLayout", () => {
       await setup();
 
       const panels = sessionUI.shadowRoot?.querySelectorAll("illthorn-panel");
-      expect(panels?.length).toBe(3);
+      expect(panels?.length).toBe(4); // room, vitals, injuries, active spells
 
       panels?.forEach((panel) => {
         expect((panel as Panel).open).toBe(true);
