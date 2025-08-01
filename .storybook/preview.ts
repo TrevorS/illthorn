@@ -6,6 +6,7 @@ import '@shoelace-style/shoelace/dist/themes/light.css';
 import '@shoelace-style/shoelace/dist/themes/dark.css';
 
 // Import your app styles
+import '../src/frontend/styles/_vars.scss';
 import '../src/frontend/styles/index.scss';
 import '../src/frontend/styles/shoelace-theme.scss';
 

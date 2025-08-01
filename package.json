@@ -18,8 +18,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "storybook:serve": "npx http-server storybook-static"
+    "build-storybook": "storybook build"
   },
   "keywords": [],
   "author": {
@@ -35,9 +34,6 @@
     "@electron-forge/maker-squirrel": "^7.8.1",
     "@electron-forge/maker-zip": "^7.8.1",
     "@electron-forge/plugin-vite": "^7.8.1",
-    "@storybook/addon-controls": "^9.0.8",
-    "@storybook/addon-docs": "^9.1.0",
-    "@storybook/addon-viewport": "^9.0.8",
     "@storybook/web-components": "^9.1.0",
     "@storybook/web-components-vite": "^9.1.0",
     "@types/debug": "^4.1.7",

@@ -48,11 +48,13 @@ export class StorybookSessionMock {
   static emitEvent(eventName: string, data: any) {
     console.log(`Storybook: Emitting ${eventName}`, data);
     
-    // Trigger subscribed callbacks
+    // Trigger subscribed callbacks with proper CustomEvent structure
     const callbacks = (window as any).storybookCallbacks;
     if (callbacks?.has(eventName)) {
       const callback = callbacks.get(eventName);
-      callback(data);
+      // Create a CustomEvent-like object with detail property
+      const mockEvent = { detail: data };
+      callback(mockEvent);
     }
     
     // Also dispatch as DOM event for components that listen differently

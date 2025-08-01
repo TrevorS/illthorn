@@ -82,7 +82,11 @@ export class Compass extends LitElement {
     if (!this.session || !this.session.bus) return;
 
     this.session.bus.subscribeEvent<GameTag>("metadata/compass", ({ detail: compass }) => {
-      this.activeDirs = compass.children.map(({ attrs }) => attrs.value).filter((value): value is string => typeof value === "string");
+      if (compass && compass.children) {
+        this.activeDirs = compass.children.map(({ attrs }) => attrs.value).filter((value): value is string => typeof value === "string");
+      } else {
+        this.activeDirs = [];
+      }
       this.requestUpdate();
     });
   }
