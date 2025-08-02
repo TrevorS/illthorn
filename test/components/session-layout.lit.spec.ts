@@ -187,7 +187,7 @@ describe("SessionLayout", () => {
       const main = sessionUI.shadowRoot?.querySelector(".main");
       expect(main).toBeTruthy();
 
-      const hands = main?.querySelector("illthorn-hands-lit");
+      const hands = main?.querySelector("illthorn-hands-container");
       const streams = main?.querySelector("illthorn-streams-lit");
       const feed = main?.querySelector("illthorn-feed-lit");
       const cliWrapper = main?.querySelector(".cli-wrapper");
@@ -201,7 +201,7 @@ describe("SessionLayout", () => {
     it("should render hands container", async () => {
       await setup();
 
-      const handsContainer = sessionUI.shadowRoot?.querySelector("illthorn-hands-lit");
+      const handsContainer = sessionUI.shadowRoot?.querySelector("illthorn-hands-container");
       expect(handsContainer).toBeTruthy();
     });
 
@@ -240,7 +240,7 @@ describe("SessionLayout", () => {
     it("should create hand components via hands container", async () => {
       await setup();
 
-      const handsContainer = sessionUI.shadowRoot?.querySelector("illthorn-hands-lit");
+      const handsContainer = sessionUI.shadowRoot?.querySelector("illthorn-hands-container");
       expect(handsContainer).toBeTruthy();
 
       // Wait for component initialization to complete
@@ -261,21 +261,21 @@ describe("SessionLayout", () => {
       await sessionUI.waitForInitialization();
 
       const sessionUIObj = sessionUI.getSessionUI();
-      expect(sessionUIObj.hands.left?.name).toBe("left");
-      expect(sessionUIObj.hands.right?.name).toBe("right");
-      expect(sessionUIObj.hands.spell?.name).toBe("spell");
+      expect(sessionUIObj.hands.left?.handType).toBe("left");
+      expect(sessionUIObj.hands.right?.handType).toBe("right");
+      expect(sessionUIObj.hands.spell?.handType).toBe("spell");
     });
 
-    it("should set session on hand components", async () => {
+    it("should have hand components with proper content property", async () => {
       await setup();
 
       // Wait for component initialization to complete
       await sessionUI.waitForInitialization();
 
       const sessionUIObj = sessionUI.getSessionUI();
-      expect(sessionUIObj.hands.left?.session).toBe(mockSession);
-      expect(sessionUIObj.hands.right?.session).toBe(mockSession);
-      expect(sessionUIObj.hands.spell?.session).toBe(mockSession);
+      expect(sessionUIObj.hands.left?.content).toBe("None");
+      expect(sessionUIObj.hands.right?.content).toBe("None");
+      expect(sessionUIObj.hands.spell?.content).toBe("None");
     });
   });
 
@@ -325,9 +325,9 @@ describe("SessionLayout", () => {
       expect(sessionUIObj.prompt?.tagName.toLowerCase()).toBe("illthorn-prompt");
       expect(sessionUIObj.vitals?.tagName.toLowerCase()).toBe("illthorn-vitals-lit");
       expect(sessionUIObj.streams?.tagName.toLowerCase()).toBe("illthorn-streams-lit");
-      expect(sessionUIObj.hands.left?.tagName.toLowerCase()).toBe("illthorn-hand-lit");
-      expect(sessionUIObj.hands.right?.tagName.toLowerCase()).toBe("illthorn-hand-lit");
-      expect(sessionUIObj.hands.spell?.tagName.toLowerCase()).toBe("illthorn-hand-lit");
+      expect(sessionUIObj.hands.left?.tagName.toLowerCase()).toBe("illthorn-hand-ui");
+      expect(sessionUIObj.hands.right?.tagName.toLowerCase()).toBe("illthorn-hand-ui");
+      expect(sessionUIObj.hands.spell?.tagName.toLowerCase()).toBe("illthorn-hand-ui");
     });
   });
 
@@ -362,9 +362,9 @@ describe("SessionLayout", () => {
     it("should have hands container component", async () => {
       await setup();
 
-      const hands = sessionUI.shadowRoot?.querySelector("illthorn-hands-lit");
+      const hands = sessionUI.shadowRoot?.querySelector("illthorn-hands-container");
       expect(hands).toBeTruthy();
-      expect(hands?.tagName.toLowerCase()).toBe("illthorn-hands-lit");
+      expect(hands?.tagName.toLowerCase()).toBe("illthorn-hands-container");
     });
   });
 

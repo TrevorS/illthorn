@@ -10,9 +10,9 @@ import type { Vitals } from "./session/vitals/vitals.lit";
 import "./session/injuries/injuries.lit";
 import type { InjuriesLit } from "./session/injuries/injuries.lit";
 import "./session/effects";
-import "./session/hands/hands.lit";
-import type { Hand } from "./session/hands/hand.lit";
-import type { Hands } from "./session/hands/hands.lit";
+import "./session/hands/hands-container.lit";
+import type { HandUI } from "./session/hands/hand-ui.lit";
+import type { HandsContainer } from "./session/hands/hands-container.lit";
 import "./session/panel.lit";
 import "./session/streams.lit";
 import type { Streams } from "./session/streams.lit";
@@ -31,7 +31,7 @@ export type SessionUI = {
   vitals: Vitals;
   injuries: InjuriesLit;
   streams: Streams;
-  hands: { left: Hand | null; right: Hand | null; spell: Hand | null };
+  hands: { left: HandUI | null; right: HandUI | null; spell: HandUI | null };
 };
 
 @customElement("illthorn-session-layout-lit")
@@ -254,8 +254,8 @@ export class SessionLayout extends LitElement {
   @query("illthorn-cli-lit")
   private _cli?: CLI;
 
-  @query("illthorn-hands-lit")
-  private _hands?: Hands;
+  @query("illthorn-hands-container")
+  private _hands?: HandsContainer;
 
   // Promise that resolves when components are fully initialized and ready to use
   private _initializationPromise: Promise<void>;
@@ -339,7 +339,7 @@ export class SessionLayout extends LitElement {
       </div>
 
       <div class="main">
-        <illthorn-hands-lit .session=${this.session}></illthorn-hands-lit>
+        <illthorn-hands-container .session=${this.session}></illthorn-hands-container>
 
         <div class="streams">
           <illthorn-streams-lit .session=${this.session}></illthorn-streams-lit>

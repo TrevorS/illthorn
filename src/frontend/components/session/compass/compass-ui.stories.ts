@@ -3,7 +3,7 @@ import { html } from "lit";
 import "./compass-ui.lit";
 
 const meta: Meta = {
-  title: "Session/Compass UI",
+  title: "Session/Compass",
   component: "illthorn-compass-ui",
   parameters: {
     docs: {
