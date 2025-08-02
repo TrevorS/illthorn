@@ -9,7 +9,7 @@ import "./session/vitals/vitals.lit";
 import type { Vitals } from "./session/vitals/vitals.lit";
 import "./session/injuries/injuries.lit";
 import type { InjuriesLit } from "./session/injuries/injuries.lit";
-import "./session/effects/effects.lit";
+import "./session/effects";
 import "./session/hands/hands.lit";
 import type { Hand } from "./session/hands/hand.lit";
 import type { Hands } from "./session/hands/hands.lit";
@@ -333,8 +333,8 @@ export class SessionLayout extends LitElement {
         </illthorn-panel>
 
         <illthorn-panel title="active spells" .open=${true}>
-          <illthorn-effects-lit .session=${this.session} name="Active Spells">
-          </illthorn-effects-lit>
+          <illthorn-effects-container .session=${this.session} name="Active Spells">
+          </illthorn-effects-container>
         </illthorn-panel>
       </div>
 

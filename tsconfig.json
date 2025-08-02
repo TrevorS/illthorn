@@ -13,7 +13,7 @@
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
-    "types": ["./src/types/illthorn.d.ts"],
+    "types": ["./src/types/illthorn.d.ts", "vitest/globals"],
     "paths": {
       "*": ["node_modules/*"]
     }

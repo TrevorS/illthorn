@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { CommandHistory } from "../../src/frontend/components/command-bar/command-history";
 import type { CLI } from "../../src/frontend/components/session/cli.lit";
 import type { CompassContainer } from "../../src/frontend/components/session/compass";
-import type { EffectsLit } from "../../src/frontend/components/session/effects/effects.lit";
 import type { Feed } from "../../src/frontend/components/session/feed/feed.lit";
 import type { Panel } from "../../src/frontend/components/session/panel.lit";
 import type { Prompt } from "../../src/frontend/components/session/prompt.lit";
@@ -163,7 +162,7 @@ describe("SessionLayout", () => {
       const spellsPanel = sessionUI.shadowRoot?.querySelector('illthorn-panel[title="active spells"]');
       expect(spellsPanel).toBeTruthy();
 
-      const effects = spellsPanel?.querySelector("illthorn-effects-lit") as EffectsLit;
+      const effects = spellsPanel?.querySelector("illthorn-effects-container");
       expect(effects).toBeTruthy();
       expect(effects.session).toBe(mockSession);
       expect(effects.name).toBe("Active Spells");
@@ -389,7 +388,7 @@ describe("SessionLayout", () => {
       expect(sessionUI.shadowRoot?.querySelector("illthorn-compass-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-room-lit")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-vitals-lit")).toBeTruthy();
-      expect(sessionUI.shadowRoot?.querySelector("illthorn-effects-lit")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-effects-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-streams-lit")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-feed-lit")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-prompt")).toBeTruthy();
