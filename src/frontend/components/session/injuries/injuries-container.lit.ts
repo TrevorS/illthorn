@@ -121,9 +121,10 @@ export class InjuriesContainer extends LitElement {
           children: tag.children?.length || 0,
         });
       }
-      
+
       // Also log a sample of ALL events to see what's happening
-      if (Math.random() < 0.05) { // Log ~5% of all events
+      if (Math.random() < 0.05) {
+        // Log ~5% of all events
         console.log("[INJURY DEBUG] 📊 Sample event:", {
           eventType: tag.name,
           id: tag.attrs?.id,
@@ -148,7 +149,7 @@ export class InjuriesContainer extends LitElement {
       console.log(JSON.stringify(dialogTag, null, 2));
       this.processDialogData(dialogTag);
     };
-    
+
     console.log("[INJURY DEBUG] 🎯 SETTING UP EVENT LISTENERS");
     bus.subscribeEvent<GameTag>("metadata/dialogData/injuries", dialogHandler);
     this._eventHandlers.push({ event: "metadata/dialogData/injuries", handler: dialogHandler, bus });
@@ -220,7 +221,7 @@ export class InjuriesContainer extends LitElement {
 
   private processDialogData(dialogTag: GameTag) {
     console.log("[INJURY DEBUG] 🔍 Processing dialogData with children:", dialogTag.children.length);
-    
+
     // Look for image children that represent body parts with injury/scar data
     const imageChildren = dialogTag.children.filter((child) => child.name === "image");
 
