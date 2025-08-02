@@ -7,7 +7,7 @@ import type { Panel } from "../../src/frontend/components/session/panel.lit";
 import type { Prompt } from "../../src/frontend/components/session/prompt.lit";
 import type { Room } from "../../src/frontend/components/session/room.lit";
 import type { SessionButton } from "../../src/frontend/components/session/session-button.lit";
-import type { Vitals } from "../../src/frontend/components/session/vitals/vitals.lit";
+import type { VitalsContainer } from "../../src/frontend/components/session/vitals/vitals-container.lit";
 import { SessionLayout } from "../../src/frontend/components/session-layout.lit";
 import { Parser } from "../../src/frontend/parser/parser";
 import type { FrontendSession } from "../../src/frontend/session";
@@ -151,7 +151,7 @@ describe("SessionLayout", () => {
       const vitalsPanel = sessionUI.shadowRoot?.querySelector('illthorn-panel[title="vitals"]');
       expect(vitalsPanel).toBeTruthy();
 
-      const vitals = vitalsPanel?.querySelector("illthorn-vitals-lit") as Vitals;
+      const vitals = vitalsPanel?.querySelector("illthorn-vitals-container") as VitalsContainer;
       expect(vitals).toBeTruthy();
       expect(vitals.session).toBe(mockSession);
     });
@@ -323,7 +323,7 @@ describe("SessionLayout", () => {
       expect(sessionUIObj.cli?.tagName.toLowerCase()).toBe("illthorn-cli-lit");
       expect(sessionUIObj.feed?.tagName.toLowerCase()).toBe("illthorn-feed-lit");
       expect(sessionUIObj.prompt?.tagName.toLowerCase()).toBe("illthorn-prompt");
-      expect(sessionUIObj.vitals?.tagName.toLowerCase()).toBe("illthorn-vitals-lit");
+      expect(sessionUIObj.vitals?.tagName.toLowerCase()).toBe("illthorn-vitals-container");
       expect(sessionUIObj.streams?.tagName.toLowerCase()).toBe("illthorn-streams-lit");
       expect(sessionUIObj.hands.left?.tagName.toLowerCase()).toBe("illthorn-hand-ui");
       expect(sessionUIObj.hands.right?.tagName.toLowerCase()).toBe("illthorn-hand-ui");
@@ -387,7 +387,7 @@ describe("SessionLayout", () => {
       // All required components present
       expect(sessionUI.shadowRoot?.querySelector("illthorn-compass-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-room-lit")).toBeTruthy();
-      expect(sessionUI.shadowRoot?.querySelector("illthorn-vitals-lit")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-vitals-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-effects-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-streams-lit")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-feed-lit")).toBeTruthy();

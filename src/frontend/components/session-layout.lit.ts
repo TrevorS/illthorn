@@ -5,8 +5,8 @@ import { customElement, property, query } from "lit/decorators.js";
 import type { FrontendSession as Session } from "../session/index";
 import "./session/compass";
 import "./session/room.lit";
-import "./session/vitals/vitals.lit";
-import type { Vitals } from "./session/vitals/vitals.lit";
+import "./session/vitals/vitals-container.lit";
+import type { VitalsContainer } from "./session/vitals/vitals-container.lit";
 import "./session/injuries/injuries.lit";
 import type { InjuriesLit } from "./session/injuries/injuries.lit";
 import "./session/effects";
@@ -28,7 +28,7 @@ export type SessionUI = {
   cli: CLI;
   feed: Feed;
   prompt: Prompt;
-  vitals: Vitals;
+  vitals: VitalsContainer;
   injuries: InjuriesLit;
   streams: Streams;
   hands: { left: HandUI | null; right: HandUI | null; spell: HandUI | null };
@@ -236,8 +236,8 @@ export class SessionLayout extends LitElement {
   }
 
   // Component references using @query decorators
-  @query("illthorn-vitals-lit")
-  private _vitals?: Vitals;
+  @query("illthorn-vitals-container")
+  private _vitals?: VitalsContainer;
 
   @query("illthorn-injuries-lit")
   private _injuries?: InjuriesLit;
@@ -325,7 +325,7 @@ export class SessionLayout extends LitElement {
         </illthorn-panel>
 
         <illthorn-panel title="vitals" .open=${true}>
-          <illthorn-vitals-lit .session=${this.session}></illthorn-vitals-lit>
+          <illthorn-vitals-container .session=${this.session}></illthorn-vitals-container>
         </illthorn-panel>
 
         <illthorn-panel title="injuries" .open=${true}>

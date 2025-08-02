@@ -1,5 +1,5 @@
-// ABOUTME: Modern Lit vital display components - VitalStat (with Shoelace progress bar) and VitalText (text-only)
-// ABOUTME: Shared components used by the main vitals container for different display types
+// ABOUTME: VitalStat component with Shoelace progress bar for displaying vital statistics with percentages
+// ABOUTME: Handles threshold-based styling, indeterminate states, and vital-specific color themes
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import "@shoelace-style/shoelace/dist/components/progress-bar/progress-bar.js";
@@ -7,7 +7,6 @@ import "@shoelace-style/shoelace/dist/components/progress-bar/progress-bar.js";
 // Type definitions for better type safety
 type VitalThresholdCategory = "low" | "medium" | "high";
 
-// Vital Stat Component (with progress meter)
 @customElement("illthorn-vital-stat")
 export class VitalStat extends LitElement {
   static styles = css`
@@ -165,8 +164,8 @@ export class VitalStat extends LitElement {
       this.dataVital = this.label;
     }
 
-    // Update threshold properties when percent changes
-    if (changedProperties.has("percent")) {
+    // Update threshold properties when percent changes or on first update
+    if (changedProperties.has("percent") || changedProperties.size === 0) {
       const category = this._thresholdCategory;
       this.low = category === "low";
       this.medium = category === "medium";
@@ -235,7 +234,7 @@ export class VitalStat extends LitElement {
     const valueClass = this.value === undefined ? "vital-value indeterminate" : "vital-value";
 
     // For indeterminate state, we still set a value but also add indeterminate attribute
-    const isIndeterminate = this.percent === undefined;
+    const isIndeterminate = this.percent === undefined || this.percent === null;
     const progressValue = isIndeterminate ? 0 : (this.percent ?? 0);
 
     return html`
@@ -256,78 +255,8 @@ export class VitalStat extends LitElement {
   }
 }
 
-// Vital Text Component (text-only, no meter)
-@customElement("illthorn-vital-text")
-export class VitalText extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-      padding: 0.4em 0 0.2em;
-      position: relative;
-      color: var(--color-text-primary, #ffffff);
-      background: transparent;
-    }
-
-    .vital-row {
-      display: flex;
-      align-items: center;
-    }
-
-    .vital-label {
-      flex: 1;
-      color: var(--color-text-primary, #ffffff);
-    }
-
-    .vital-value {
-      margin-left: auto;
-      font-weight: bold;
-      color: var(--color-text-primary, #ffffff);
-    }
-  `;
-
-  @property({ type: String })
-  label = "";
-
-  @property({ type: String })
-  value = "";
-
-  @property({ type: String, reflect: true, attribute: "data-vital" })
-  dataVital = "";
-
-  @property({ type: Boolean, reflect: true })
-  inverted = false;
-
-  /**
-   * Computed property to determine if this vital type is inverted
-   * (where lower values are better, like encumbrance)
-   */
-  private get _isInvertedVital(): boolean {
-    return this.label === "encumbrance";
-  }
-
-  willUpdate(changedProperties: Map<string | number | symbol, unknown>) {
-    super.willUpdate(changedProperties);
-
-    // Update dataVital property when label changes
-    if (changedProperties.has("label")) {
-      this.dataVital = this.label;
-      this.inverted = this._isInvertedVital;
-    }
-  }
-
-  render() {
-    return html`
-      <div class="vital-row">
-        <span class="vital-label">${this.label}</span>
-        <span class="vital-value">${this.value}</span>
-      </div>
-    `;
-  }
-}
-
 declare global {
   interface HTMLElementTagNameMap {
     "illthorn-vital-stat": VitalStat;
-    "illthorn-vital-text": VitalText;
   }
 }
