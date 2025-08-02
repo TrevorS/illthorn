@@ -141,19 +141,3 @@ export const SpellList: Story = {
     </div>
   `,
 };
-
-export const InteractiveDemo: Story = {
-  args: {
-    spellName: "Interactive Spell",
-    timeRemaining: "5:00",
-    spellId: "interactive-demo",
-    percent: 50,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: "Use the controls below to see how the spell effect changes with different durations and percentages.",
-      },
-    },
-  },
-};

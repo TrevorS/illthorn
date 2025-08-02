@@ -1,9 +1,12 @@
-// ABOUTME: Injury display component that shows character wounds and injuries in a terminal-aesthetic panel
-// ABOUTME: Processes raw injury XML data with smart pairing, anatomical sorting, and severity indicators
+// ABOUTME: Smart container component for injuries that handles session integration and business logic
+// ABOUTME: Manages injury data state and coordinates with InjuriesUI for presentation
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
+import type { Bus } from "../../../util/bus";
+import "./injuries-ui.lit";
+import type { InjuriesUI } from "./injuries-ui.lit";
 
 interface RawInjury {
   part: string; // "rightArm", "head", etc.
@@ -55,111 +58,106 @@ const DISPLAY_NAMES = new Map([
   ["nerves", "nerves"],
 ]);
 
-// Body parts that can be paired (left/right)
-const _PAIRABLE_PARTS = new Set(["eye", "arm", "hand", "leg"]);
-
-@customElement("illthorn-injuries-lit")
-export class InjuriesLit extends LitElement {
+@customElement("illthorn-injuries-container")
+export class InjuriesContainer extends LitElement {
   static styles = css`
     :host {
       display: block;
-      --injury-width: 180px;
-      --injury-bg: var(--color-background-secondary);
-      --injury-border: var(--color-border);
-      --injury-header-bg: var(--color-surface);
-      --injury-text-primary: var(--color-text-primary);
-      --injury-text-secondary: var(--color-text-secondary);
-      --injury-severity-minor: var(--color-warning);     /* Yellow */
-      --injury-severity-moderate: #ff9800;               /* Orange */
-      --injury-severity-severe: var(--color-danger);     /* Red */
-      --injury-font: monospace;
-      --injury-font-size: 11px;
-      --injury-line-height: 14px;
-    }
-
-    :host {
-      width: var(--injury-width);
-      font-family: var(--injury-font);
-      font-size: var(--injury-font-size);
-    }
-
-
-    .injury-content {
-      padding: 4px 8px;
-    }
-
-    .injury-item {
-      display: flex;
-      justify-content: space-between;
-      line-height: var(--injury-line-height);
-      color: var(--injury-text-primary);
-    }
-
-    .injury-part {
-      text-align: left;
-    }
-
-    .injury-severity {
-      text-align: right;
-      font-weight: bold;
-    }
-
-    .injury-severity.paired .left {
-      margin-right: 2px;
-    }
-
-    .healthy {
-      color: var(--color-success);
-      text-align: left;
-      font-style: italic;
-    }
-
-    /* Severity colors */
-    .severity-minor {
-      color: var(--injury-severity-minor);
-    }
-
-    .severity-moderate {
-      color: var(--injury-severity-moderate);
-    }
-
-    .severity-severe {
-      color: var(--injury-severity-severe);
     }
   `;
 
   @property({ type: Object })
-  session: Session | null = null;
+  session?: Session;
 
   @state()
-  private _injuries: ProcessedInjury[] = [];
+  private _injuries: Array<ProcessedInjury> = [];
 
-  constructor(session?: Session) {
-    super();
-    if (session) {
-      this.session = session;
+  private _eventHandlers: Array<{ event: string; handler: (event: CustomEvent<GameTag>) => void; bus: Bus }> = [];
+
+  updated(changedProperties: Map<string | number | symbol, unknown>) {
+    super.updated(changedProperties);
+
+    if (changedProperties.has("session")) {
+      this._setupEventListeners();
     }
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    this.attachListeners();
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._cleanupEventListeners();
   }
 
-  private attachListeners() {
-    if (!this.session || !this.session.bus) {
+  private _setupEventListeners() {
+    this._cleanupEventListeners();
+
+    if (!this.session?.bus) {
       return;
     }
 
+    const bus = this.session.bus;
+
+    // Debug: Listen for potential injury events with targeted logging
+    const debugHandler = ({ detail: tag }: CustomEvent<GameTag>) => {
+      // Log specific injury-related events without spamming console
+      if (
+        tag.name?.toLowerCase().includes("injur") ||
+        (typeof tag.attrs?.id === "string" && tag.attrs.id.toLowerCase().includes("injur")) ||
+        tag.attrs?.part ||
+        tag.name === "dialogData" ||
+        tag.name === "skin" ||
+        tag.name === "radio" ||
+        tag.name === "wound" ||
+        tag.name === "health"
+      ) {
+        console.log("[INJURY DEBUG] 🎯 Found potential injury event:", {
+          eventType: tag.name,
+          id: tag.attrs?.id,
+          part: tag.attrs?.part,
+          severity: tag.attrs?.severity,
+          attrs: tag.attrs,
+          children: tag.children?.length || 0,
+          hasChildren: tag.children && tag.children.length > 0,
+        });
+
+        // If it has children, log them too
+        if (tag.children && tag.children.length > 0) {
+          tag.children.forEach((child, index) => {
+            console.log(`[INJURY DEBUG] 📋 Child ${index}:`, {
+              name: child.name,
+              attrs: child.attrs,
+              text: child.text,
+            });
+          });
+        }
+      }
+    };
+    bus.subscribeEvent<GameTag>("metadata/*", debugHandler);
+    this._eventHandlers.push({ event: "metadata/*", handler: debugHandler, bus });
+
     // Subscribe to injury updates
-    this.session.bus.subscribeEvent<GameTag>("metadata/injury", ({ detail }) => {
-      this.processInjuryData(detail);
-    });
+    const injuryHandler = ({ detail: injuryTag }: CustomEvent<GameTag>) => {
+      console.log("[INJURY DEBUG] 🔥 Processing direct injury event:", injuryTag);
+      this.processInjuryData(injuryTag);
+    };
+    bus.subscribeEvent<GameTag>("metadata/injury", injuryHandler);
+    this._eventHandlers.push({ event: "metadata/injury", handler: injuryHandler, bus });
 
     // Alternative: if injuries come as dialogData
-    this.session.bus.subscribeEvent<GameTag>("metadata/dialogData/injuries", ({ detail }) => {
-      this.processDialogData(detail);
+    const dialogHandler = ({ detail: dialogTag }: CustomEvent<GameTag>) => {
+      console.log("[INJURY DEBUG] 💬 Processing dialogData injury event:", dialogTag);
+      this.processDialogData(dialogTag);
+    };
+    bus.subscribeEvent<GameTag>("metadata/dialogData/injuries", dialogHandler);
+    this._eventHandlers.push({ event: "metadata/dialogData/injuries", handler: dialogHandler, bus });
+  }
+
+  private _cleanupEventListeners() {
+    this._eventHandlers.forEach(({ event, handler, bus }) => {
+      if (bus?._ele) {
+        bus._ele.removeEventListener(event, handler as EventListener);
+      }
     });
+    this._eventHandlers = [];
   }
 
   private processInjuryData(injuryTag: GameTag) {
@@ -175,7 +173,7 @@ export class InjuriesLit extends LitElement {
     const existingInjuries = [...this._injuries];
 
     // Convert processed injuries back to raw format for processing
-    const rawInjuries: RawInjury[] = [];
+    const rawInjuries: Array<RawInjury> = [];
     existingInjuries.forEach((processed) => {
       if (processed.paired && processed.leftSeverity && processed.rightSeverity) {
         // Split paired injury back into individual parts
@@ -217,7 +215,7 @@ export class InjuriesLit extends LitElement {
       return;
     }
 
-    const rawInjuries: RawInjury[] = injuryChildren.map((child) => ({
+    const rawInjuries: Array<RawInjury> = injuryChildren.map((child) => ({
       part: (child.attrs.part as string) || "",
       severity: parseInt((child.attrs.severity as string) || "0") as 0 | 1 | 2 | 3,
       description: (child.attrs.description as string) || "",
@@ -226,9 +224,9 @@ export class InjuriesLit extends LitElement {
     this._injuries = this.processInjuries(rawInjuries);
   }
 
-  private processInjuries(injuries: RawInjury[]): ProcessedInjury[] {
+  private processInjuries(injuries: Array<RawInjury>): Array<ProcessedInjury> {
     const sorted = this.sortAnatomically(injuries);
-    const processed: ProcessedInjury[] = [];
+    const processed: Array<ProcessedInjury> = [];
     const handled = new Set<string>();
 
     for (const injury of sorted) {
@@ -260,7 +258,7 @@ export class InjuriesLit extends LitElement {
     return processed;
   }
 
-  private sortAnatomically(injuries: RawInjury[]): RawInjury[] {
+  private sortAnatomically(injuries: Array<RawInjury>): Array<RawInjury> {
     return injuries.sort((a, b) => {
       const indexA = BODY_ORDER.indexOf(a.part);
       const indexB = BODY_ORDER.indexOf(b.part);
@@ -272,7 +270,7 @@ export class InjuriesLit extends LitElement {
     });
   }
 
-  private findPair(injury: RawInjury, allInjuries: RawInjury[]): RawInjury | null {
+  private findPair(injury: RawInjury, allInjuries: Array<RawInjury>): RawInjury | null {
     let pairPart: string;
 
     if (injury.part.startsWith("left")) {
@@ -317,78 +315,24 @@ export class InjuriesLit extends LitElement {
     return displayName;
   }
 
-  private getSeveritySymbol(severity: 0 | 1 | 2 | 3): string {
-    switch (severity) {
-      case 1:
-        return "*"; // Minor
-      case 2:
-        return "#"; // Moderate
-      case 3:
-        return "@"; // Severe
-      default:
-        return ""; // Healthy
-    }
-  }
-
-  private getSeverityColor(severity: 0 | 1 | 2 | 3): string {
-    switch (severity) {
-      case 1:
-        return "var(--injury-severity-minor)"; // Yellow
-      case 2:
-        return "var(--injury-severity-moderate)"; // Orange
-      case 3:
-        return "var(--injury-severity-severe)"; // Red
-      default:
-        return "var(--injury-text-primary)"; // Default
-    }
-  }
-
-  private renderInjury(injury: ProcessedInjury) {
-    if (injury.paired) {
-      const leftSymbol = this.getSeveritySymbol(injury.leftSeverity || 0);
-      const rightSymbol = this.getSeveritySymbol(injury.rightSeverity || 0);
-
-      return html`
-        <div class="injury-item">
-          <span class="injury-part">${injury.displayName}</span>
-          <span class="injury-severity paired">
-            <span class="left" style="color: ${this.getSeverityColor(injury.leftSeverity || 0)}">
-              L${leftSymbol}
-            </span>
-            <span class="right" style="color: ${this.getSeverityColor(injury.rightSeverity || 0)}">
-              R${rightSymbol}
-            </span>
-          </span>
-        </div>
-      `;
-    } else {
-      return html`
-        <div class="injury-item">
-          <span class="injury-part">${injury.displayName}</span>
-          <span class="injury-severity single" 
-                style="color: ${this.getSeverityColor(injury.severity)}">
-            ${this.getSeveritySymbol(injury.severity)}
-          </span>
-        </div>
-      `;
-    }
+  getInjuries() {
+    const injuriesUI = this.shadowRoot?.querySelector("illthorn-injuries-ui") as InjuriesUI;
+    return injuriesUI?.getInjuries() || [];
   }
 
   render() {
-    if (!this.session) {
-      return html``;
-    }
-
     return html`
-      <div class="injury-content">
-        ${this._injuries.length === 0 ? html`<div class="healthy">healthy</div>` : this._injuries.map((injury) => this.renderInjury(injury))}
-      </div>
+      <illthorn-injuries-ui
+        .injuries=${this._injuries}>
+      </illthorn-injuries-ui>
     `;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-injuries-lit": InjuriesLit;
+    "illthorn-injuries-container": InjuriesContainer;
   }
 }
+
+export type { ProcessedInjury, RawInjury };
