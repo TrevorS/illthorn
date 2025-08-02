@@ -39,7 +39,7 @@ Starting from leaf components and working up the hierarchy. **After each compone
 - **components.lit.ts** (vitals) - Individual vital display components
 
 #### Tier 2: Container Components (Manage collections)
-- **effects.lit.ts** - Container for spell effects
+- **effects-container.lit.ts** - Container for spell effects
 - **vitals.lit.ts** - Container for vital displays
 - **streams.lit.ts** - Stream message container
 - **compass.lit.ts** - Directional navigation
@@ -193,7 +193,7 @@ declare global {
 - ✅ vitals/components.lit.ts - VitalStat & VitalText components modernized
 
 **Tier 2 (Container Components):** ✅ COMPLETE  
-- ✅ effects.lit.ts - Modernized with event bus integration
+- ✅ effects-container.lit.ts - Migrated to container/presentational pattern
 - ✅ vitals.lit.ts - Modernized container with metadata handling
 - ✅ streams.lit.ts - Modernized stream message container
 - ✅ compass.lit.ts - Modernized directional navigation

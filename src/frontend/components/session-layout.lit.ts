@@ -3,16 +3,16 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
 import type { FrontendSession as Session } from "../session/index";
-import "./session/compass.lit";
+import "./session/compass";
 import "./session/room.lit";
-import "./session/vitals/vitals.lit";
-import type { Vitals } from "./session/vitals/vitals.lit";
-import "./session/injuries/injuries.lit";
-import type { InjuriesLit } from "./session/injuries/injuries.lit";
-import "./session/effects/effects.lit";
-import "./session/hands/hands.lit";
-import type { Hand } from "./session/hands/hand.lit";
-import type { Hands } from "./session/hands/hands.lit";
+import "./session/vitals/vitals-container.lit";
+import type { VitalsContainer } from "./session/vitals/vitals-container.lit";
+import "./session/injuries/injuries-container.lit";
+import type { InjuriesContainer } from "./session/injuries/injuries-container.lit";
+import "./session/effects";
+import "./session/hands/hands-container.lit";
+import type { HandUI } from "./session/hands/hand-ui.lit";
+import type { HandsContainer } from "./session/hands/hands-container.lit";
 import "./session/panel.lit";
 import "./session/streams.lit";
 import type { Streams } from "./session/streams.lit";
@@ -28,10 +28,10 @@ export type SessionUI = {
   cli: CLI;
   feed: Feed;
   prompt: Prompt;
-  vitals: Vitals;
-  injuries: InjuriesLit;
+  vitals: VitalsContainer;
+  injuries: InjuriesContainer;
   streams: Streams;
-  hands: { left: Hand | null; right: Hand | null; spell: Hand | null };
+  hands: { left: HandUI | null; right: HandUI | null; spell: HandUI | null };
 };
 
 @customElement("illthorn-session-layout-lit")
@@ -236,11 +236,11 @@ export class SessionLayout extends LitElement {
   }
 
   // Component references using @query decorators
-  @query("illthorn-vitals-lit")
-  private _vitals?: Vitals;
+  @query("illthorn-vitals-container")
+  private _vitals?: VitalsContainer;
 
-  @query("illthorn-injuries-lit")
-  private _injuries?: InjuriesLit;
+  @query("illthorn-injuries-container")
+  private _injuries?: InjuriesContainer;
 
   @query("illthorn-streams-lit")
   private _streams?: Streams;
@@ -254,8 +254,8 @@ export class SessionLayout extends LitElement {
   @query("illthorn-cli-lit")
   private _cli?: CLI;
 
-  @query("illthorn-hands-lit")
-  private _hands?: Hands;
+  @query("illthorn-hands-container")
+  private _hands?: HandsContainer;
 
   // Promise that resolves when components are fully initialized and ready to use
   private _initializationPromise: Promise<void>;
@@ -321,25 +321,25 @@ export class SessionLayout extends LitElement {
       <div class="hud">
         <illthorn-panel title="room" .open=${true}>
           <illthorn-room-lit .session=${this.session}></illthorn-room-lit>
-          <illthorn-compass .session=${this.session}></illthorn-compass>
+          <illthorn-compass-container .session=${this.session}></illthorn-compass-container>
         </illthorn-panel>
 
         <illthorn-panel title="vitals" .open=${true}>
-          <illthorn-vitals-lit .session=${this.session}></illthorn-vitals-lit>
+          <illthorn-vitals-container .session=${this.session}></illthorn-vitals-container>
         </illthorn-panel>
 
         <illthorn-panel title="injuries" .open=${true}>
-          <illthorn-injuries-lit .session=${this.session}></illthorn-injuries-lit>
+          <illthorn-injuries-container .session=${this.session}></illthorn-injuries-container>
         </illthorn-panel>
 
         <illthorn-panel title="active spells" .open=${true}>
-          <illthorn-effects-lit .session=${this.session} name="Active Spells">
-          </illthorn-effects-lit>
+          <illthorn-effects-container .session=${this.session} name="Active Spells">
+          </illthorn-effects-container>
         </illthorn-panel>
       </div>
 
       <div class="main">
-        <illthorn-hands-lit .session=${this.session}></illthorn-hands-lit>
+        <illthorn-hands-container .session=${this.session}></illthorn-hands-container>
 
         <div class="streams">
           <illthorn-streams-lit .session=${this.session}></illthorn-streams-lit>

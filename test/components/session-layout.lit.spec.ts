@@ -1,14 +1,13 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { CommandHistory } from "../../src/frontend/components/command-bar/command-history";
 import type { CLI } from "../../src/frontend/components/session/cli.lit";
-import type { Compass } from "../../src/frontend/components/session/compass.lit";
-import type { EffectsLit } from "../../src/frontend/components/session/effects/effects.lit";
+import type { CompassContainer } from "../../src/frontend/components/session/compass";
 import type { Feed } from "../../src/frontend/components/session/feed/feed.lit";
 import type { Panel } from "../../src/frontend/components/session/panel.lit";
 import type { Prompt } from "../../src/frontend/components/session/prompt.lit";
 import type { Room } from "../../src/frontend/components/session/room.lit";
 import type { SessionButton } from "../../src/frontend/components/session/session-button.lit";
-import type { Vitals } from "../../src/frontend/components/session/vitals/vitals.lit";
+import type { VitalsContainer } from "../../src/frontend/components/session/vitals/vitals-container.lit";
 import { SessionLayout } from "../../src/frontend/components/session-layout.lit";
 import { Parser } from "../../src/frontend/parser/parser";
 import type { FrontendSession } from "../../src/frontend/session";
@@ -141,7 +140,7 @@ describe("SessionLayout", () => {
       expect(room).toBeTruthy();
       expect(room.session).toBe(mockSession);
 
-      const compass = roomPanel?.querySelector("illthorn-compass") as Compass;
+      const compass = roomPanel?.querySelector("illthorn-compass-container") as CompassContainer;
       expect(compass).toBeTruthy();
       expect(compass.session).toBe(mockSession);
     });
@@ -152,7 +151,7 @@ describe("SessionLayout", () => {
       const vitalsPanel = sessionUI.shadowRoot?.querySelector('illthorn-panel[title="vitals"]');
       expect(vitalsPanel).toBeTruthy();
 
-      const vitals = vitalsPanel?.querySelector("illthorn-vitals-lit") as Vitals;
+      const vitals = vitalsPanel?.querySelector("illthorn-vitals-container") as VitalsContainer;
       expect(vitals).toBeTruthy();
       expect(vitals.session).toBe(mockSession);
     });
@@ -163,7 +162,7 @@ describe("SessionLayout", () => {
       const spellsPanel = sessionUI.shadowRoot?.querySelector('illthorn-panel[title="active spells"]');
       expect(spellsPanel).toBeTruthy();
 
-      const effects = spellsPanel?.querySelector("illthorn-effects-lit") as EffectsLit;
+      const effects = spellsPanel?.querySelector("illthorn-effects-container");
       expect(effects).toBeTruthy();
       expect(effects.session).toBe(mockSession);
       expect(effects.name).toBe("Active Spells");
@@ -188,7 +187,7 @@ describe("SessionLayout", () => {
       const main = sessionUI.shadowRoot?.querySelector(".main");
       expect(main).toBeTruthy();
 
-      const hands = main?.querySelector("illthorn-hands-lit");
+      const hands = main?.querySelector("illthorn-hands-container");
       const streams = main?.querySelector("illthorn-streams-lit");
       const feed = main?.querySelector("illthorn-feed-lit");
       const cliWrapper = main?.querySelector(".cli-wrapper");
@@ -202,7 +201,7 @@ describe("SessionLayout", () => {
     it("should render hands container", async () => {
       await setup();
 
-      const handsContainer = sessionUI.shadowRoot?.querySelector("illthorn-hands-lit");
+      const handsContainer = sessionUI.shadowRoot?.querySelector("illthorn-hands-container");
       expect(handsContainer).toBeTruthy();
     });
 
@@ -241,7 +240,7 @@ describe("SessionLayout", () => {
     it("should create hand components via hands container", async () => {
       await setup();
 
-      const handsContainer = sessionUI.shadowRoot?.querySelector("illthorn-hands-lit");
+      const handsContainer = sessionUI.shadowRoot?.querySelector("illthorn-hands-container");
       expect(handsContainer).toBeTruthy();
 
       // Wait for component initialization to complete
@@ -262,21 +261,21 @@ describe("SessionLayout", () => {
       await sessionUI.waitForInitialization();
 
       const sessionUIObj = sessionUI.getSessionUI();
-      expect(sessionUIObj.hands.left?.name).toBe("left");
-      expect(sessionUIObj.hands.right?.name).toBe("right");
-      expect(sessionUIObj.hands.spell?.name).toBe("spell");
+      expect(sessionUIObj.hands.left?.handType).toBe("left");
+      expect(sessionUIObj.hands.right?.handType).toBe("right");
+      expect(sessionUIObj.hands.spell?.handType).toBe("spell");
     });
 
-    it("should set session on hand components", async () => {
+    it("should have hand components with proper content property", async () => {
       await setup();
 
       // Wait for component initialization to complete
       await sessionUI.waitForInitialization();
 
       const sessionUIObj = sessionUI.getSessionUI();
-      expect(sessionUIObj.hands.left?.session).toBe(mockSession);
-      expect(sessionUIObj.hands.right?.session).toBe(mockSession);
-      expect(sessionUIObj.hands.spell?.session).toBe(mockSession);
+      expect(sessionUIObj.hands.left?.content).toBe("None");
+      expect(sessionUIObj.hands.right?.content).toBe("None");
+      expect(sessionUIObj.hands.spell?.content).toBe("None");
     });
   });
 
@@ -324,11 +323,11 @@ describe("SessionLayout", () => {
       expect(sessionUIObj.cli?.tagName.toLowerCase()).toBe("illthorn-cli-lit");
       expect(sessionUIObj.feed?.tagName.toLowerCase()).toBe("illthorn-feed-lit");
       expect(sessionUIObj.prompt?.tagName.toLowerCase()).toBe("illthorn-prompt");
-      expect(sessionUIObj.vitals?.tagName.toLowerCase()).toBe("illthorn-vitals-lit");
+      expect(sessionUIObj.vitals?.tagName.toLowerCase()).toBe("illthorn-vitals-container");
       expect(sessionUIObj.streams?.tagName.toLowerCase()).toBe("illthorn-streams-lit");
-      expect(sessionUIObj.hands.left?.tagName.toLowerCase()).toBe("illthorn-hand-lit");
-      expect(sessionUIObj.hands.right?.tagName.toLowerCase()).toBe("illthorn-hand-lit");
-      expect(sessionUIObj.hands.spell?.tagName.toLowerCase()).toBe("illthorn-hand-lit");
+      expect(sessionUIObj.hands.left?.tagName.toLowerCase()).toBe("illthorn-hand-ui");
+      expect(sessionUIObj.hands.right?.tagName.toLowerCase()).toBe("illthorn-hand-ui");
+      expect(sessionUIObj.hands.spell?.tagName.toLowerCase()).toBe("illthorn-hand-ui");
     });
   });
 
@@ -363,9 +362,9 @@ describe("SessionLayout", () => {
     it("should have hands container component", async () => {
       await setup();
 
-      const hands = sessionUI.shadowRoot?.querySelector("illthorn-hands-lit");
+      const hands = sessionUI.shadowRoot?.querySelector("illthorn-hands-container");
       expect(hands).toBeTruthy();
-      expect(hands?.tagName.toLowerCase()).toBe("illthorn-hands-lit");
+      expect(hands?.tagName.toLowerCase()).toBe("illthorn-hands-container");
     });
   });
 
@@ -386,10 +385,10 @@ describe("SessionLayout", () => {
       expect(main).toBeTruthy();
 
       // All required components present
-      expect(sessionUI.shadowRoot?.querySelector("illthorn-compass")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-compass-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-room-lit")).toBeTruthy();
-      expect(sessionUI.shadowRoot?.querySelector("illthorn-vitals-lit")).toBeTruthy();
-      expect(sessionUI.shadowRoot?.querySelector("illthorn-effects-lit")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-vitals-container")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-effects-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-streams-lit")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-feed-lit")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-prompt")).toBeTruthy();

@@ -1,7 +1,7 @@
 // ABOUTME: Centralized mock objects for testing
 // ABOUTME: Provides consistent mock implementations for session, bus, and game components
 
-import { type GameTag, makeTag } from "../../src/frontend/parser/tag";
+import { type GameTag, makeTag, type TagName } from "../../src/frontend/parser/tag";
 import { Bus } from "../../src/frontend/util/bus";
 
 export interface MockSession {
@@ -28,11 +28,11 @@ export const createMockSession = (name = "test-session", port = 4000): MockSessi
 
 export const createMockCompassData = (directions: string[]): GameTag => {
   const children = directions.map((dir) => {
-    const tag = makeTag("dir");
+    const tag = makeTag("dir" as TagName);
     tag.attrs = { value: dir };
     return tag;
   });
-  const compass = makeTag("compass");
+  const compass = makeTag("compass" as TagName);
   compass.children = children;
   return compass;
 };

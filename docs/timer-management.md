@@ -220,8 +220,8 @@ export class TimerManager {
    - ✅ Already renders spell rows with percentages
    - ➕ Add live countdown with TimerManager integration
    
-3. **`src/frontend/components/session/effects/effects.lit.ts`**
-   - ✅ Already processes progressBar metadata  
+3. **`src/frontend/components/session/effects/effects-container.lit.ts`**
+   - ✅ Already processes progressBar metadata (migrated to container/presentational pattern)
    - ➕ Initialize timers and handle expiration events
    
 4. **`src/frontend/components/session/prompt.lit.ts`**

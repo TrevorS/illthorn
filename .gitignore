@@ -92,3 +92,6 @@ typings/
 
 # Electron-Forge
 out/
+
+# Storybook build output
+storybook-static/

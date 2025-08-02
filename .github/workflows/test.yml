@@ -30,14 +30,5 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Format check
-        run: yarn format
-
-      - name: Lint check
-        run: yarn lint
-
-      - name: Type check
-        run: yarn typecheck
-
-      - name: Run tests
-        run: yarn test
+      - name: Run full validation pipeline
+        run: yarn check

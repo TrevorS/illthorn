@@ -137,7 +137,7 @@ Shoelace is a framework-agnostic Web Components library with 50+ professionally 
 - Maintain command autocomplete integration
 
 #### 5. Effects → sl-card Integration
-**Current**: `components/session/effects/effects.lit.ts` - Custom effect containers
+**Current**: `components/session/effects/effects-container.lit.ts` - Custom effect containers
 **Shoelace Target**: `sl-card` wrappers
 
 **Benefits**:
