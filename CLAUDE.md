@@ -14,6 +14,7 @@ Illthorn is a modern cross-platform Electron application that serves as a front-
 - **Install dependencies**: `yarn install`
 
 ### Code Quality
+- **Full validation**: `yarn check` - Runs complete validation pipeline (format, lint, typecheck, test)
 - **Format**: `yarn format` - Formats code using Biome
 - **Lint**: `yarn lint` - Runs Biome linter and auto-fixes issues  
 - **Type Check**: `yarn typecheck` - Runs TypeScript compiler type checking
@@ -215,13 +216,6 @@ Node.js/TypeScript Electron project
 ### Package Manager
 
 - **Node.js**: `yarn`
-
-### Validation Commands
-
-- **Format**: `yarn format`
-- **Lint**: `yarn lint`
-- **Type Check**: `yarn typecheck`
-- **Test**: `yarn test`
 
 ### Last Updated
 

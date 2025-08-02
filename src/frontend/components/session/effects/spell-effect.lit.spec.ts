@@ -1,7 +1,7 @@
 // ABOUTME: Test suite for SpellEffect component verifying text-based spell status display
 // ABOUTME: Tests styling, property updates, and percentage-based visual feedback without progress bars
 import { describe, expect, it } from "vitest";
-import { SpellEffect } from "../../../../src/frontend/components/session/effects/spell-effect.lit";
+import { SpellEffect } from "./spell-effect.lit";
 
 describe("SpellEffect", () => {
   const setup = () => {
