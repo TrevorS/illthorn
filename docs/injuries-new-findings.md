@@ -218,14 +218,98 @@ private processRadioWound(radioTag: GameTag): ProcessedInjury | null {
 }
 ```
 
-## Conclusion
+## 🎯 BREAKTHROUGH: Actual Injury Data Discovered! (2025-08-02)
 
-Our injury component is correctly structured but targeting the wrong events. The `dialogData` with `id: "injuries"` contains UI layout information, while actual wound data likely comes through `<radio>` tag events that represent interactive wound markers on the visual body diagram.
+### ⚡ **Major Discovery: Injuries are in `image` tags, not `radio` tags!**
 
-The next development phase should focus on:
-1. Listening for radio events
-2. Processing radio tag wound data
-3. Testing with real game injury scenarios
-4. Fallback to XMLData access if needed
+From live gameplay logs with character who has injuries and scars, we found the **actual injury data structure**:
 
-This research provides a clear path forward for implementing a functional injury display component that properly integrates with GemStone IV's actual wound tracking system.
+### **Injury/Scar Pattern in Image Tags**
+
+```json
+// LEFT HAND INJURY (Severity 1)
+{
+  "name": "image",
+  "attrs": {
+    "id": "leftHand", 
+    "name": "Injury1",  // ← INJURY MARKER!
+    "height": "0",
+    "width": "0"
+  }
+}
+
+// LEFT EYE SCAR (Severity 1)  
+{
+  "name": "image",
+  "attrs": {
+    "id": "leftEye",
+    "name": "Scar1",    // ← SCAR MARKER!
+    "height": "0",
+    "width": "0"
+  }
+}
+
+// BACK INJURY (Severity 1)
+{
+  "name": "image", 
+  "attrs": {
+    "id": "back",
+    "name": "Injury1",  // ← ANOTHER INJURY!
+    "height": "0",
+    "width": "0"
+  }
+}
+
+// HEALTHY PART (for comparison)
+{
+  "name": "image",
+  "attrs": {
+    "id": "head",
+    "name": "head",     // ← HEALTHY (name matches id)
+    "height": "0", 
+    "width": "0"
+  }
+}
+```
+
+### **🧩 Decoding the Pattern**
+
+The injury system works through **`image` tags within `dialogData/injuries` events**:
+
+- **Healthy parts**: `"name": "{partName}"` (e.g., `"name": "head"` matches `"id": "head"`)
+- **Injured parts**: `"name": "Injury{severity}"` (e.g., `"Injury1"`, `"Injury2"`, `"Injury3"`)  
+- **Scarred parts**: `"name": "Scar{severity}"` (e.g., `"Scar1"`, `"Scar2"`, `"Scar3"`)
+
+### **🎯 Implementation Update**
+
+**FIXED**: Updated `processDialogData()` to parse `image` children instead of looking for non-existent `injury` or `radio` tags.
+
+**New Logic**:
+1. Filter `dialogData/injuries` children for `image` tags
+2. Parse each image's `id` (body part) and `name` (injury/scar status)  
+3. Extract severity from `"Injury1"` → severity 1, `"Scar2"` → severity 2, etc.
+4. Map to internal body part naming (`"leftHand"` → `"lefthand"`)
+5. Process through existing injury pairing and display logic
+
+### **✅ Current Status**
+
+✅ **Injury data source**: FOUND - it's `image` tags in `dialogData/injuries`  
+✅ **Parsing logic**: IMPLEMENTED and ready for testing  
+✅ **Debug logging**: Enhanced to show detected injuries/scars  
+✅ **Pattern mapping**: Part IDs and severity levels decoded  
+🎯 **Next**: Live testing should show injuries in UI  
+
+### **🔍 Expected Debug Output**
+
+With the fix, you should now see logs like:
+```
+[INJURY DEBUG] 🔴 INJURY DETECTED: leftHand -> Injury1 (severity 1)
+[INJURY DEBUG] 🟡 SCAR DETECTED: leftEye -> Scar1 (severity 1)  
+[INJURY DEBUG] 🎯 Found 2 injuries/scars: [{part: "lefthand", severity: 1, ...}, ...]
+```
+
+## 🏆 Conclusion
+
+**The mystery is solved!** Injury data comes through `dialogData/injuries` events but as `image` children, not `injury` or `radio` children. The `radio` tag theory was incorrect - the actual data was hiding in plain sight within the dialog events we were already receiving.
+
+**This should immediately fix injury display** - the component will now properly detect and show injuries and scars from the existing event stream.

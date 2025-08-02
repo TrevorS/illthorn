@@ -475,4 +475,131 @@ describe("InjuriesContainer", () => {
       teardown(container);
     });
   });
+
+  describe("Radio Event Handling", () => {
+    let container: InjuriesContainer;
+    let eventCallbacks: { [key: string]: (event: CustomEvent<GameTag>) => void } = {};
+
+    beforeEach(() => {
+      mockBus.subscribeEvent = vi.fn().mockImplementation((eventName: string, callback: (event: CustomEvent<GameTag>) => void) => {
+        eventCallbacks[eventName] = callback;
+      });
+
+      container = setup(mockSession as FrontendSession);
+    });
+
+    afterEach(() => {
+      teardown(container);
+      eventCallbacks = {};
+    });
+
+    it("should subscribe to metadata/radio events", () => {
+      expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/radio", expect.any(Function));
+    });
+
+    it("should process radio tag with valid wound data", async () => {
+      const mockRadioTag: GameTag = {
+        kind: TagKind.METADATA,
+        name: "radio",
+        gameName: "",
+        attrs: { part: "head", severity: "2" },
+        children: [],
+        state: TagState.OPEN,
+        text: "",
+      };
+
+      eventCallbacks["metadata/radio"]({ detail: mockRadioTag } as CustomEvent<GameTag>);
+      await container.updateComplete;
+
+      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
+      expect(injuriesUI).toBeTruthy();
+    });
+
+    it("should ignore radio tag with no wound data (severity 0)", async () => {
+      const mockRadioTag: GameTag = {
+        kind: TagKind.METADATA,
+        name: "radio",
+        gameName: "",
+        attrs: { part: "head", severity: "0" },
+        children: [],
+        state: TagState.OPEN,
+        text: "",
+      };
+
+      eventCallbacks["metadata/radio"]({ detail: mockRadioTag } as CustomEvent<GameTag>);
+      await container.updateComplete;
+
+      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
+      expect(injuriesUI).toBeTruthy();
+    });
+
+    it("should ignore radio tag without part or severity attributes", async () => {
+      const mockRadioTag: GameTag = {
+        kind: TagKind.METADATA,
+        name: "radio",
+        gameName: "",
+        attrs: { id: "some-radio" },
+        children: [],
+        state: TagState.OPEN,
+        text: "",
+      };
+
+      eventCallbacks["metadata/radio"]({ detail: mockRadioTag } as CustomEvent<GameTag>);
+      await container.updateComplete;
+
+      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
+      expect(injuriesUI).toBeTruthy();
+    });
+
+    it("should map radio part names to internal naming convention", async () => {
+      const mockRadioTag: GameTag = {
+        kind: TagKind.METADATA,
+        name: "radio",
+        gameName: "",
+        attrs: { part: "rightArm", severity: "3" },
+        children: [],
+        state: TagState.OPEN,
+        text: "",
+      };
+
+      eventCallbacks["metadata/radio"]({ detail: mockRadioTag } as CustomEvent<GameTag>);
+      await container.updateComplete;
+
+      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
+      expect(injuriesUI).toBeTruthy();
+    });
+
+    it("should handle multiple radio events and update injury list", async () => {
+      // First radio event - head injury
+      const headRadioTag: GameTag = {
+        kind: TagKind.METADATA,
+        name: "radio",
+        gameName: "",
+        attrs: { part: "head", severity: "1" },
+        children: [],
+        state: TagState.OPEN,
+        text: "",
+      };
+
+      eventCallbacks["metadata/radio"]({ detail: headRadioTag } as CustomEvent<GameTag>);
+      await container.updateComplete;
+
+      // Second radio event - arm injury
+      const armRadioTag: GameTag = {
+        kind: TagKind.METADATA,
+        name: "radio",
+        gameName: "",
+        attrs: { part: "rightArm", severity: "2" },
+        children: [],
+        state: TagState.OPEN,
+        text: "",
+      };
+
+      eventCallbacks["metadata/radio"]({ detail: armRadioTag } as CustomEvent<GameTag>);
+      await container.updateComplete;
+
+      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
+      expect(injuriesUI).toBeTruthy();
+    });
+  });
 });

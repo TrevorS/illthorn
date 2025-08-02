@@ -74,10 +74,16 @@ export class InjuriesContainer extends LitElement {
 
   private _eventHandlers: Array<{ event: string; handler: (event: CustomEvent<GameTag>) => void; bus: Bus }> = [];
 
+  constructor() {
+    super();
+    console.log("[INJURY DEBUG] 🎭 InjuriesContainer created");
+  }
+
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
 
     if (changedProperties.has("session")) {
+      console.log("[INJURY DEBUG] 🏗️ SESSION CHANGED - Setting up listeners, session:", !!this.session);
       this._setupEventListeners();
     }
   }
@@ -91,48 +97,42 @@ export class InjuriesContainer extends LitElement {
     this._cleanupEventListeners();
 
     if (!this.session?.bus) {
+      console.log("[INJURY DEBUG] ❌ No session or bus available");
       return;
     }
 
+    console.log("[INJURY DEBUG] ✅ Session and bus available, setting up listeners");
     const bus = this.session.bus;
 
-    // Debug: Listen for potential injury events with targeted logging
-    const debugHandler = ({ detail: tag }: CustomEvent<GameTag>) => {
-      // Log specific injury-related events without spamming console
+    // Debug: Listen for ALL metadata events to see what's coming through
+    const allEventsHandler = ({ detail: tag }: CustomEvent<GameTag>) => {
+      // Log injury-related events
       if (
         tag.name?.toLowerCase().includes("injur") ||
         (typeof tag.attrs?.id === "string" && tag.attrs.id.toLowerCase().includes("injur")) ||
-        tag.attrs?.part ||
         tag.name === "dialogData" ||
-        tag.name === "skin" ||
-        tag.name === "radio" ||
-        tag.name === "wound" ||
-        tag.name === "health"
+        tag.name === "image" ||
+        tag.name === "radio"
       ) {
-        console.log("[INJURY DEBUG] 🎯 Found potential injury event:", {
+        console.log("[INJURY DEBUG] 🎯 Injury-related event:", {
           eventType: tag.name,
           id: tag.attrs?.id,
-          part: tag.attrs?.part,
-          severity: tag.attrs?.severity,
           attrs: tag.attrs,
           children: tag.children?.length || 0,
+        });
+      }
+      
+      // Also log a sample of ALL events to see what's happening
+      if (Math.random() < 0.05) { // Log ~5% of all events
+        console.log("[INJURY DEBUG] 📊 Sample event:", {
+          eventType: tag.name,
+          id: tag.attrs?.id,
           hasChildren: tag.children && tag.children.length > 0,
         });
-
-        // If it has children, log them too
-        if (tag.children && tag.children.length > 0) {
-          tag.children.forEach((child, index) => {
-            console.log(`[INJURY DEBUG] 📋 Child ${index}:`, {
-              name: child.name,
-              attrs: child.attrs,
-              text: child.text,
-            });
-          });
-        }
       }
     };
-    bus.subscribeEvent<GameTag>("metadata/*", debugHandler);
-    this._eventHandlers.push({ event: "metadata/*", handler: debugHandler, bus });
+    bus.subscribeEvent<GameTag>("metadata/*", allEventsHandler);
+    this._eventHandlers.push({ event: "metadata/*", handler: allEventsHandler, bus });
 
     // Subscribe to injury updates
     const injuryHandler = ({ detail: injuryTag }: CustomEvent<GameTag>) => {
@@ -144,11 +144,23 @@ export class InjuriesContainer extends LitElement {
 
     // Alternative: if injuries come as dialogData
     const dialogHandler = ({ detail: dialogTag }: CustomEvent<GameTag>) => {
-      console.log("[INJURY DEBUG] 💬 Processing dialogData injury event:", dialogTag);
+      console.log("[INJURY DEBUG] 💬 Processing dialogData injury event:");
+      console.log(JSON.stringify(dialogTag, null, 2));
       this.processDialogData(dialogTag);
     };
+    
+    console.log("[INJURY DEBUG] 🎯 SETTING UP EVENT LISTENERS");
     bus.subscribeEvent<GameTag>("metadata/dialogData/injuries", dialogHandler);
     this._eventHandlers.push({ event: "metadata/dialogData/injuries", handler: dialogHandler, bus });
+
+    // Radio tags: the actual wound data comes through radio events
+    const radioHandler = ({ detail: radioTag }: CustomEvent<GameTag>) => {
+      console.log("[INJURY DEBUG] 📻 Processing radio tag event:");
+      console.log(JSON.stringify(radioTag, null, 2));
+      this.processRadioData(radioTag);
+    };
+    bus.subscribeEvent<GameTag>("metadata/radio", radioHandler);
+    this._eventHandlers.push({ event: "metadata/radio", handler: radioHandler, bus });
   }
 
   private _cleanupEventListeners() {
@@ -207,21 +219,213 @@ export class InjuriesContainer extends LitElement {
   }
 
   private processDialogData(dialogTag: GameTag) {
-    const injuryChildren = dialogTag.children.filter((child) => child.name === "injury");
+    console.log("[INJURY DEBUG] 🔍 Processing dialogData with children:", dialogTag.children.length);
+    
+    // Look for image children that represent body parts with injury/scar data
+    const imageChildren = dialogTag.children.filter((child) => child.name === "image");
 
-    if (injuryChildren.length === 0) {
-      // No injuries - show healthy state
-      this._injuries = [];
+    console.log("[INJURY DEBUG] 📸 Found image children:", imageChildren.length);
+
+    if (imageChildren.length === 0) {
+      // No image data - skip processing
+      console.log("[INJURY DEBUG] ⏭️ No image children, skipping");
       return;
     }
 
-    const rawInjuries: Array<RawInjury> = injuryChildren.map((child) => ({
-      part: (child.attrs.part as string) || "",
-      severity: parseInt((child.attrs.severity as string) || "0") as 0 | 1 | 2 | 3,
-      description: (child.attrs.description as string) || "",
-    }));
+    const rawInjuries: Array<RawInjury> = [];
 
+    imageChildren.forEach((child) => {
+      const partId = child.attrs.id as string;
+      const imageName = child.attrs.name as string;
+
+      console.log(`[INJURY DEBUG] 🔎 Examining image: id="${partId}" name="${imageName}"`);
+
+      // Skip skin/health UI elements
+      if (partId === "healthSkin" || !partId || !imageName) {
+        console.log(`[INJURY DEBUG] ⏭️ Skipping: healthSkin or missing data`);
+        return;
+      }
+
+      // Parse injury/scar information from image name
+      const injury = this.parseInjuryFromImageName(partId, imageName);
+      if (injury) {
+        console.log(`[INJURY DEBUG] ➕ Adding injury:`, injury);
+        rawInjuries.push(injury);
+      }
+    });
+
+    // Only update injuries if we found some, otherwise preserve existing state
+    if (rawInjuries.length > 0) {
+      console.log(`[INJURY DEBUG] 🎯 Found ${rawInjuries.length} injuries/scars:`, rawInjuries);
+      this._injuries = this.processInjuries(rawInjuries);
+    } else {
+      // If we only see healthy parts, clear injuries
+      const hasHealthyPartsOnly = imageChildren.some((child) => child.attrs.name === child.attrs.id && child.attrs.id !== "healthSkin");
+      if (hasHealthyPartsOnly && imageChildren.length > 5) {
+        // Only clear if we see multiple healthy parts (full body scan)
+        console.log("[INJURY DEBUG] 🟢 All parts healthy - clearing injuries");
+        this._injuries = [];
+      }
+    }
+  }
+
+  private parseInjuryFromImageName(partId: string, imageName: string): RawInjury | null {
+    // Map part IDs to our internal naming
+    const partMap = new Map([
+      ["head", "head"],
+      ["neck", "neck"],
+      ["rightEye", "righteye"],
+      ["leftEye", "lefteye"],
+      ["chest", "chest"],
+      ["abdomen", "abdomen"],
+      ["back", "back"],
+      ["rightArm", "rightarm"],
+      ["leftArm", "leftarm"],
+      ["rightHand", "righthand"],
+      ["leftHand", "lefthand"],
+      ["rightLeg", "rightleg"],
+      ["leftLeg", "leftleg"],
+      ["nsys", "nerves"],
+    ]);
+
+    const internalPart = partMap.get(partId) || partId.toLowerCase();
+
+    // Parse injury severity from image name
+    if (imageName.startsWith("Injury")) {
+      const severityMatch = imageName.match(/Injury(\d+)/);
+      const severity = severityMatch ? parseInt(severityMatch[1]) : 1;
+
+      console.log(`[INJURY DEBUG] 🔴 INJURY DETECTED: ${partId} -> ${imageName} (severity ${severity})`);
+
+      return {
+        part: internalPart,
+        severity: Math.min(severity, 3) as 0 | 1 | 2 | 3, // Cap at 3
+        description: `${partId} injury (severity ${severity})`,
+      };
+    }
+
+    if (imageName.startsWith("Scar")) {
+      const severityMatch = imageName.match(/Scar(\d+)/);
+      const severity = severityMatch ? parseInt(severityMatch[1]) : 1;
+
+      console.log(`[INJURY DEBUG] 🟡 SCAR DETECTED: ${partId} -> ${imageName} (severity ${severity})`);
+
+      return {
+        part: internalPart,
+        severity: Math.min(severity, 3) as 0 | 1 | 2 | 3, // Cap at 3
+        description: `${partId} scar (severity ${severity})`,
+      };
+    }
+
+    // Healthy part (imageName matches partId) - only log occasionally to avoid spam
+    if (Math.random() < 0.1) {
+      console.log(`[INJURY DEBUG] ✅ Healthy part: ${partId} -> ${imageName}`);
+    }
+    return null;
+  }
+
+  private processRadioData(radioTag: GameTag) {
+    // Extract wound data from radio tag attributes
+    const radioWound = this.processRadioWound(radioTag);
+
+    if (!radioWound) {
+      console.log("[INJURY DEBUG] 🚫 Radio tag does not contain valid wound data:", radioTag);
+      return;
+    }
+
+    console.log("[INJURY DEBUG] ✅ Extracted wound from radio tag:", radioWound);
+
+    // Convert to RawInjury and add to existing injuries
+    const existingInjuries = [...this._injuries];
+
+    // Convert processed injuries back to raw format for processing
+    const rawInjuries: Array<RawInjury> = [];
+    existingInjuries.forEach((processed) => {
+      if (processed.paired && processed.leftSeverity && processed.rightSeverity) {
+        // Split paired injury back into individual parts
+        const basePart = this.getBasePartFromPaired(processed.displayName);
+        rawInjuries.push({
+          part: `left${basePart}`,
+          severity: processed.leftSeverity,
+          description: "existing injury",
+        });
+        rawInjuries.push({
+          part: `right${basePart}`,
+          severity: processed.rightSeverity,
+          description: "existing injury",
+        });
+      } else {
+        // Find the original part name from display name
+        const originalPart = this.getOriginalPartName(processed.displayName);
+        rawInjuries.push({
+          part: originalPart,
+          severity: processed.severity,
+          description: "existing injury",
+        });
+      }
+    });
+
+    // Add the new wound
+    rawInjuries.push(radioWound);
+
+    // Reprocess all injuries
     this._injuries = this.processInjuries(rawInjuries);
+  }
+
+  private processRadioWound(radioTag: GameTag): RawInjury | null {
+    const attrs = radioTag.attrs;
+
+    // Check if this radio tag represents a wound/injury
+    if (!attrs?.part || !attrs?.severity) {
+      return null;
+    }
+
+    // Extract wound information from radio tag attributes
+    const part = attrs.part as string;
+    const severity = parseInt(attrs.severity as string) as 0 | 1 | 2 | 3;
+
+    // Check if severity is valid (1-3 for wounds, 0 for no wound)
+    if (severity < 0 || severity > 3) {
+      console.log("[INJURY DEBUG] ⚠️ Invalid severity level:", severity);
+      return null;
+    }
+
+    // If severity is 0, this indicates no wound (healthy part)
+    if (severity === 0) {
+      return null;
+    }
+
+    // Map radio part names to our internal naming convention
+    const mappedPart = this.mapRadioPartName(part);
+
+    return {
+      part: mappedPart,
+      severity: severity,
+      description: `${part} injury (severity ${severity})`,
+    };
+  }
+
+  private mapRadioPartName(radioPart: string): string {
+    // Map radio tag part names to our internal body part names
+    // This may need adjustment based on actual radio tag part naming
+    const partMap = new Map([
+      ["head", "head"],
+      ["neck", "neck"],
+      ["rightEye", "righteye"],
+      ["leftEye", "lefteye"],
+      ["chest", "chest"],
+      ["abdomen", "abdomen"],
+      ["back", "back"],
+      ["rightArm", "rightarm"],
+      ["leftArm", "leftarm"],
+      ["rightHand", "righthand"],
+      ["leftHand", "lefthand"],
+      ["rightLeg", "rightleg"],
+      ["leftLeg", "leftleg"],
+      ["nerves", "nerves"],
+    ]);
+
+    return partMap.get(radioPart) || radioPart.toLowerCase();
   }
 
   private processInjuries(injuries: Array<RawInjury>): Array<ProcessedInjury> {
