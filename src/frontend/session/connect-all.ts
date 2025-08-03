@@ -16,7 +16,7 @@ window.debugSessionDetection = async () => {
   // Add a test function to simulate game input
   if (sessions.length > 0) {
     const testSession = sessions[0];
-    console.log("Adding test content to session:", testSession.name);
+    debugSessionConnect("Adding test content to session: %s", testSession.name);
 
     // Simulate some game text after a short delay
     setTimeout(() => {

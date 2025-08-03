@@ -9,7 +9,7 @@ import type { Room } from "../../src/frontend/components/session/room.lit";
 import type { SessionButton } from "../../src/frontend/components/session/session-button.lit";
 import type { VitalsContainer } from "../../src/frontend/components/session/vitals/vitals-container.lit";
 import { SessionLayout } from "../../src/frontend/components/session-layout.lit";
-import { Parser } from "../../src/frontend/parser/parser";
+import { SaxophoneParser } from "../../src/frontend/parser/saxophone-parser";
 import type { FrontendSession } from "../../src/frontend/session";
 import { Bus } from "../../src/frontend/util/bus";
 
@@ -20,7 +20,7 @@ const createMockSession = (): FrontendSession => {
   return {
     name: "test-session",
     config: { name: "test-session", port: 4000 },
-    parser: Parser.of(),
+    parser: new SaxophoneParser(),
     bus,
     hasFocus: false,
     history: new CommandHistory(100),

@@ -1,6 +1,8 @@
 /**
 this casts GameTags to HTMLElements
  */
+
+import { debugParser } from "../util/logger";
 import type { GameTag } from "./tag";
 
 export type Renderable = { frag: DocumentFragment; metadata: GameTag[] };
@@ -114,12 +116,12 @@ export function handleStreamTag(frag: DocumentFragment, tag: GameTag): void {
   const shouldFilter = duplicatedStreamIds.includes(tag.attrs.id as string) || tag.gameName === "popStream";
 
   if (shouldFilter) {
-    console.log("🚫 FILTERING OUT stream:", tag.gameName, tag.attrs.id || "(no id)");
+    debugParser("🚫 FILTERING OUT stream: %s %s", tag.gameName, tag.attrs.id || "(no id)");
     return;
   }
 
   // Render streams that are not duplicates
-  console.log("✅ RENDERING stream:", tag.gameName, tag.attrs.id || "(no id)");
+  debugParser("✅ RENDERING stream: %s %s", tag.gameName, tag.attrs.id || "(no id)");
 
   const streamEle = document.createElement("pre");
   const streamFrag = document.createDocumentFragment();

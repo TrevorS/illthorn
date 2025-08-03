@@ -2,16 +2,27 @@
 // ABOUTME: Event-driven streaming parser replacing custom character-by-character parsing
 
 import Saxophone from "saxophone";
-import type { XMLParser } from "./interface";
+import { debugParser } from "../util/logger";
 import type { GameTag } from "./tag";
 import { makeTag, normalizeTagName, TagState } from "./tag";
 import { parseAttrs } from "./tag/attributes";
 
+// Internal types for saxophone event handlers
+interface SaxophoneTag {
+  name: string;
+  attrs: string;
+  isSelfClosing?: boolean;
+}
+
+interface SaxophoneTextNode {
+  contents: string;
+}
+
 /**
- * Saxophone-based parser that implements the same API as the custom parser
+ * Saxophone-based XML parser for game text processing
  * Uses event-driven streaming for better performance and memory usage
  */
-export class SaxophoneParser implements XMLParser {
+export class SaxophoneParser {
   private saxophone: Saxophone;
   private tagStack: Array<GameTag> = [];
   private completed: Array<GameTag> = [];
@@ -26,7 +37,7 @@ export class SaxophoneParser implements XMLParser {
   }
 
   /**
-   * Parse game XML text into GameTag objects (main API method)
+   * Parse game XML text into GameTag objects
    */
   parse(text: string): GameTag[] {
     try {
@@ -62,7 +73,7 @@ export class SaxophoneParser implements XMLParser {
   }
 
   /**
-   * Reset parser state (required by XMLParser interface)
+   * Reset parser state
    */
   reset(): void {
     this.tagStack.length = 0;
@@ -72,7 +83,7 @@ export class SaxophoneParser implements XMLParser {
   }
 
   /**
-   * Check if all tags are closed (required by XMLParser interface)
+   * Check if all tags are closed
    */
   get isClosed(): boolean {
     return this.tagStack.length === 0;
@@ -133,7 +144,7 @@ export class SaxophoneParser implements XMLParser {
   /**
    * Handle tag opening events from saxophone
    */
-  private handleTagOpen(saxTag: { name: string; attrs: string; isSelfClosing?: boolean }): void {
+  private handleTagOpen(saxTag: SaxophoneTag): void {
     const normalizedName = normalizeTagName(saxTag.name);
 
     // Handle pushStream to start stream content collection
@@ -241,7 +252,7 @@ export class SaxophoneParser implements XMLParser {
   /**
    * Handle text content between tags
    */
-  private handleTextContent(text: string | { contents: string }): void {
+  private handleTextContent(text: SaxophoneTextNode | string): void {
     // Saxophone passes an object with a contents property
     const textStr = typeof text === "object" && text.contents ? text.contents : String(text || "");
 
@@ -323,7 +334,7 @@ export class SaxophoneParser implements XMLParser {
    * Handle parsing errors with basic recovery
    */
   private handleError(error: Error): void {
-    console.warn("SaxophoneParser error:", error);
+    debugParser("Saxophone parser error: %s", error.message);
 
     // For now, just continue - more sophisticated error recovery can be added later
   }
@@ -333,8 +344,8 @@ export class SaxophoneParser implements XMLParser {
    * Could fall back to simpler parsing or return partial results
    */
   private recoverFromError(originalText: string, error: Error): GameTag[] {
-    console.error("SaxophoneParser failed to parse XML:", error);
-    console.error("Original text:", originalText);
+    debugParser("SaxophoneParser failed to parse XML: %s", error.message);
+    debugParser("Original text: %s", originalText);
 
     // For now, return empty array - in production this could try:
     // 1. Falling back to the original parser

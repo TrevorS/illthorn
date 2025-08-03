@@ -1,9 +1,7 @@
 // ABOUTME: Test suite for SaxophoneParser implementation
-// ABOUTME: Ensures compatibility with existing Parser and validates new functionality
+// ABOUTME: Validates XML parsing functionality and game protocol handling
 
 import { beforeEach, describe, expect, test } from "vitest";
-import type { XMLParser } from "../../src/frontend/parser/interface";
-import { Parser } from "../../src/frontend/parser/parser";
 import { SaxophoneParser } from "../../src/frontend/parser/saxophone-parser";
 import { GameXMLTestData } from "../fixtures/game-xml";
 
@@ -22,60 +20,41 @@ function extractAllText(tags: Array<{ text?: string; children?: Array<{ text?: s
 }
 
 describe("SaxophoneParser", () => {
-  let saxophoneParser: XMLParser;
-  let customParser: XMLParser;
+  let parser: SaxophoneParser;
 
   beforeEach(() => {
-    saxophoneParser = new SaxophoneParser();
-    customParser = Parser.of();
+    parser = new SaxophoneParser();
   });
 
-  describe("Basic API Compatibility", () => {
-    test("implements XMLParser interface", () => {
-      expect(saxophoneParser.parse).toBeDefined();
-      expect(saxophoneParser.reset).toBeDefined();
-      expect(saxophoneParser.isClosed).toBeDefined();
+  describe("Basic API", () => {
+    test("has required parser methods", () => {
+      expect(parser.parse).toBeDefined();
+      expect(parser.reset).toBeDefined();
+      expect(parser.isClosed).toBeDefined();
     });
 
     test("parser starts in closed state", () => {
-      expect(saxophoneParser.isClosed).toBe(true);
+      expect(parser.isClosed).toBe(true);
     });
 
     test("reset method clears parser state", () => {
-      saxophoneParser.parse('<progressBar id="health" value="100" />');
-      saxophoneParser.reset();
-      expect(saxophoneParser.isClosed).toBe(true);
+      parser.parse('<progressBar id="health" value="100" />');
+      parser.reset();
+      expect(parser.isClosed).toBe(true);
     });
   });
 
   describe("Vitals XML Parsing", () => {
     test("parses basic health update", () => {
-      const result = saxophoneParser.parse(GameXMLTestData.vitals.basic);
+      const result = parser.parse(GameXMLTestData.vitals.basic);
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe("progressBar");
       expect(result[0].attrs.id).toBe("health");
       expect(result[0].attrs.value).toBe("100");
     });
 
-    test("produces same output as custom parser for vitals", () => {
-      const testCases = [
-        GameXMLTestData.vitals.basic,
-        GameXMLTestData.vitals.injured,
-        GameXMLTestData.vitals.stance,
-        GameXMLTestData.vitals.encumbrance,
-        GameXMLTestData.vitals.zero,
-      ];
-
-      testCases.forEach((xml) => {
-        const saxResult = saxophoneParser.parse(xml);
-        const customResult = customParser.parse(xml);
-
-        expect(saxResult).toEqual(customResult);
-      });
-    });
-
     test("parses full vitals set correctly", () => {
-      const result = saxophoneParser.parse(GameXMLTestData.vitals.fullSet);
+      const result = parser.parse(GameXMLTestData.vitals.fullSet);
 
       // Filter to only progressBar elements (exclude text nodes from line breaks)
       const progressBars = result.filter((tag) => tag.name === "progressBar");
@@ -93,7 +72,7 @@ describe("SaxophoneParser", () => {
 
   describe("Spell Effects XML Parsing", () => {
     test("parses single spell correctly", () => {
-      const result = saxophoneParser.parse(GameXMLTestData.spells.singleSpell);
+      const result = parser.parse(GameXMLTestData.spells.singleSpell);
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe("dialogData");
       expect(result[0].attrs.id).toBe("Active Spells");
@@ -108,25 +87,8 @@ describe("SaxophoneParser", () => {
       expect(spell.attrs.time).toBe("60");
     });
 
-    test("produces same output as custom parser for spells", () => {
-      const testCases = [
-        GameXMLTestData.spells.singleSpell,
-        GameXMLTestData.spells.multipleSpells,
-        GameXMLTestData.spells.empty,
-        GameXMLTestData.spells.cooldowns,
-        GameXMLTestData.spells.buffs,
-      ];
-
-      testCases.forEach((xml) => {
-        const saxResult = saxophoneParser.parse(xml);
-        const customResult = customParser.parse(xml);
-
-        expect(saxResult).toEqual(customResult);
-      });
-    });
-
     test("parses multiple spells correctly", () => {
-      const result = saxophoneParser.parse(GameXMLTestData.spells.multipleSpells);
+      const result = parser.parse(GameXMLTestData.spells.multipleSpells);
       expect(result).toHaveLength(1);
 
       const dialogData = result[0];
@@ -146,7 +108,7 @@ describe("SaxophoneParser", () => {
       const testCases = [GameXMLTestData.rooms.simple, GameXMLTestData.rooms.withCharacters, GameXMLTestData.rooms.withFormatting, GameXMLTestData.rooms.withStreams];
 
       testCases.forEach((xml) => {
-        const saxResult = saxophoneParser.parse(xml);
+        const saxResult = parser.parse(xml);
 
         // Saxophone parser should successfully parse all room descriptions
         expect(saxResult.length).toBeGreaterThan(0);
@@ -178,33 +140,26 @@ describe("SaxophoneParser", () => {
 
   describe("Text Preprocessing", () => {
     test("converts pushBold/popBold to b tags", () => {
-      const result = saxophoneParser.parse(GameXMLTestData.misc.pushBoldPopBold);
+      const result = parser.parse(GameXMLTestData.misc.pushBoldPopBold);
 
       // Should contain b tags, not pushBold/popBold
       const hasB = result.some((tag) => tag.name === "b" || tag.children.some((child) => child.name === "b"));
       expect(hasB).toBe(true);
     });
-
-    test("produces same output as custom parser for pushBold/popBold", () => {
-      const saxResult = saxophoneParser.parse(GameXMLTestData.misc.pushBoldPopBold);
-      const customResult = customParser.parse(GameXMLTestData.misc.pushBoldPopBold);
-
-      expect(saxResult).toEqual(customResult);
-    });
   });
 
   describe("Mixed Content Parsing", () => {
     test("correctly parses mixed content", () => {
-      const saxResult = saxophoneParser.parse(GameXMLTestData.misc.mixed);
+      const result = parser.parse(GameXMLTestData.misc.mixed);
 
       // Should successfully parse mixed content
-      expect(saxResult.length).toBeGreaterThan(0);
+      expect(result.length).toBeGreaterThan(0);
 
       // Should contain various tag types
-      const hasStyleTags = saxResult.some((tag) => tag.name === "style");
-      const hasBoldTags = saxResult.some((tag) => tag.name === "b");
-      const hasProgressBars = saxResult.some((tag) => tag.name === "progressBar");
-      const hasTextContent = saxResult.some((tag) => tag.name === ":text" && tag.text.trim().length > 0);
+      const hasStyleTags = result.some((tag) => tag.name === "style");
+      const hasBoldTags = result.some((tag) => tag.name === "b");
+      const hasProgressBars = result.some((tag) => tag.name === "progressBar");
+      const hasTextContent = result.some((tag) => tag.name === ":text" && tag.text.trim().length > 0);
 
       expect(hasStyleTags).toBe(true);
       expect(hasBoldTags).toBe(true);
@@ -214,7 +169,7 @@ describe("SaxophoneParser", () => {
 
     test("handles text and tags together", () => {
       const xml = 'Some text <progressBar id="health" value="85" /> more text';
-      const result = saxophoneParser.parse(xml);
+      const result = parser.parse(xml);
 
       expect(result.length).toBeGreaterThan(1);
 
@@ -229,18 +184,18 @@ describe("SaxophoneParser", () => {
 
   describe("Error Handling", () => {
     test("handles empty input gracefully", () => {
-      const result = saxophoneParser.parse("");
+      const result = parser.parse("");
       expect(result).toEqual([]);
     });
 
     test("handles whitespace-only input gracefully", () => {
-      const result = saxophoneParser.parse("   \n  \t  ");
+      const result = parser.parse("   \n  \t  ");
       expect(result).toEqual([]);
     });
 
     test("continues parsing after encountering errors", () => {
       // Test with some malformed XML - should attempt to continue
-      const result = saxophoneParser.parse(GameXMLTestData.malformed.unclosedTag);
+      const result = parser.parse(GameXMLTestData.malformed.unclosedTag);
       // Should return some result (even if empty) without throwing
       expect(Array.isArray(result)).toBe(true);
     });
@@ -251,7 +206,7 @@ describe("SaxophoneParser", () => {
       const largeXML = GameXMLTestData.vitals.fullSet.repeat(100);
 
       const start = performance.now();
-      const result = saxophoneParser.parse(largeXML);
+      const result = parser.parse(largeXML);
       const end = performance.now();
 
       expect(result.length).toBeGreaterThan(0);
@@ -262,7 +217,7 @@ describe("SaxophoneParser", () => {
       // Create a large document with many individual progressBar tags (realistic scenario)
       const largeSpellList = Array.from({ length: 1000 }, (_, i) => `<progressBar id="spell${i}" text="Spell ${i}" time="300" value="80" />`).join("\n");
 
-      const result = saxophoneParser.parse(largeSpellList);
+      const result = parser.parse(largeSpellList);
 
       // Should parse all 1000 progressBar tags (plus text nodes for newlines)
       const progressBars = result.filter((tag) => tag.name === "progressBar");
@@ -272,7 +227,7 @@ describe("SaxophoneParser", () => {
       // Memory usage test - ensure parser doesn't leak memory
       const memBefore = process.memoryUsage().heapUsed;
       for (let i = 0; i < 10; i++) {
-        saxophoneParser.parse(largeSpellList);
+        parser.parse(largeSpellList);
       }
       const memAfter = process.memoryUsage().heapUsed;
 
@@ -287,7 +242,7 @@ describe("SaxophoneParser", () => {
   a faded gold ring
   a wool jacket<popStream/>`;
 
-      const result = saxophoneParser.parse(inventoryXML);
+      const result = parser.parse(inventoryXML);
 
       // Should create one stream tag containing the inventory content
       expect(result).toHaveLength(1);
@@ -311,7 +266,7 @@ describe("SaxophoneParser", () => {
     test("does not add stream content to main output", () => {
       const mixedXML = `Before stream<pushStream id="inv"/>inventory item<popStream/>After stream`;
 
-      const result = saxophoneParser.parse(mixedXML);
+      const result = parser.parse(mixedXML);
 
       // Should have: "Before stream" text, stream tag, "After stream" text
       expect(result).toHaveLength(3);

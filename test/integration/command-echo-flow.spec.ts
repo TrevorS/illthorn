@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { CLI } from "../../src/frontend/components/command-bar/cli.lit";
 import { CommandHistory } from "../../src/frontend/components/command-bar/command-history";
 import { Feed } from "../../src/frontend/components/session/feed/feed.lit";
-import { Parser } from "../../src/frontend/parser/parser";
+import { SaxophoneParser } from "../../src/frontend/parser/saxophone-parser";
 import type { FrontendSession } from "../../src/frontend/session";
 import { Bus } from "../../src/frontend/util/bus";
 
@@ -15,7 +15,7 @@ import { Bus } from "../../src/frontend/util/bus";
 const createMockSession = (): FrontendSession => {
   const bus = new Bus();
   const history = new CommandHistory();
-  const parser = new Parser();
+  const parser = new SaxophoneParser();
 
   return {
     bus,

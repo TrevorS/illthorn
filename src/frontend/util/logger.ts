@@ -15,6 +15,10 @@ export const debugSession = Debug(`${NAMESPACE}:session`);
 export const debugSessionConnect = Debug(`${NAMESPACE}:session-connect`);
 export const debugApp = Debug(`${NAMESPACE}:app`);
 export const debugFeed = Debug(`${NAMESPACE}:feed`);
+export const debugInjuries = Debug(`${NAMESPACE}:injuries`);
+export const debugParser = Debug(`${NAMESPACE}:parser`);
+export const debugMacros = Debug(`${NAMESPACE}:macros`);
+export const debugCommands = Debug(`${NAMESPACE}:commands`);
 
 // Utility function to safely stringify objects for logging
 export function safeStringify(obj: unknown, maxLength = 500): string {

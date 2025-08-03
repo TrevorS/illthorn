@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { CommandHistory } from "../../src/frontend/components/command-bar/command-history";
 import type { SessionButton } from "../../src/frontend/components/session/session-button.lit";
-import { Parser } from "../../src/frontend/parser/parser";
+import { SaxophoneParser } from "../../src/frontend/parser/saxophone-parser";
 import type { FrontendSession } from "../../src/frontend/session/index";
 import { Bus } from "../../src/frontend/util/bus";
 import "../../src/frontend/components/session-layout.lit";
@@ -15,7 +15,7 @@ const createMockSession = () => {
   return {
     name: "race-test-session",
     config: { name: "race-test-session", port: 4000 },
-    parser: Parser.of(),
+    parser: new SaxophoneParser(),
     bus,
     hasFocus: false,
     history: new CommandHistory(100),
