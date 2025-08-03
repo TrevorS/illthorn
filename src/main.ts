@@ -1,7 +1,11 @@
 import path from "node:path";
+import { config } from "dotenv";
 import { app, BrowserWindow, screen, shell } from "electron";
 import "./backend";
 import { setWebContents } from "./backend/webcontents";
+
+// Load environment variables from .env file
+config();
 
 // Vite handles entry points differently than webpack - no magic constants needed
 

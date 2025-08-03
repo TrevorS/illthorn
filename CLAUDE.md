@@ -6,6 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Illthorn is a modern cross-platform Electron application that serves as a front-end client for Gemstone IV, a text-based MUD (Multi-User Dungeon). The app connects to Lich (a Ruby-based scripting framework) via TCP sockets and provides a rich UI with themes, highlighting, command history, and multi-session support.
 
+## Environment Configuration
+
+The application uses dotenv for environment variable management. Copy `.env.example` to `.env` and modify as needed:
+
+```bash
+cp .env.example .env
+```
+
+Environment variables can be configured as needed for development.
+
 ## Development Commands
 
 ### Core Development
@@ -55,12 +65,12 @@ The backend uses a modular IPC (Inter-Process Communication) pattern:
 - **Session Mapping**: Both frontend and backend maintain session maps for multi-character support
 - **Event Bus**: Custom DOM-based event system using `CustomEvent` for component communication
 - **Web Components**: Mix of modern Lit components and legacy vanilla custom elements extending `HTMLElement`
-- **Parser Architecture**: Stateful parser consuming game text streams and producing structured DOM
+- **Parser Architecture**: Saxophone-based XML parser consuming game text streams and producing structured DOM
 - **Migration Pattern**: Active migration from vanilla Web Components to Lit components for better maintainability
 
 ### Game Text Processing Flow
 1. **TCP Stream**: Raw game text received from Lich via WebSocket
-2. **Parser** (`parser/parser.ts`): Tokenizes XML-like tags and text into structured `GameTag` objects
+2. **Parser** (`parser/saxophone-parser.ts`): Tokenizes XML-like tags and text into structured `GameTag` objects
 3. **DOM Rendering**: Components subscribe to parsed events and update their display
 4. **Highlighting**: Text is processed through highlight groups with configurable CSS styling
 
@@ -94,6 +104,13 @@ The project includes a structured debug logging system using the `debug` library
 - `illthorn:raw-input` - Raw Lich input data before parsing
 - `illthorn:effects` - Effects component event processing
 - `illthorn:session` - Session-level message processing
+- `illthorn:session-connect` - Session connection and detection events
+- `illthorn:app` - Application-level events and state changes
+- `illthorn:feed` - Feed component rendering and content management
+- `illthorn:injuries` - Injury system debugging and wound processing
+- `illthorn:parser` - XML parser operation and error handling
+- `illthorn:macros` - Macro binding and execution
+- `illthorn:commands` - Command processing and echo system
 
 #### Enabling Debug Logging (Opt-in Only)
 **Browser Console** (for frontend debugging):
@@ -125,6 +142,10 @@ DEBUG=illthorn:effects,illthorn:metadata yarn start  # Specific loggers
 #### Common Debug Patterns
 - **Spell Effects Issues**: `DEBUG=illthorn:effects,illthorn:metadata,illthorn:bus`
 - **Raw Input Analysis**: `DEBUG=illthorn:raw-input,illthorn:session`
+- **Parser Issues**: `DEBUG=illthorn:parser,illthorn:raw-input`
+- **Injury System Debugging**: `DEBUG=illthorn:injuries,illthorn:metadata`
+- **Session Connection Problems**: `DEBUG=illthorn:session-connect,illthorn:session`
+- **Command System Issues**: `DEBUG=illthorn:commands,illthorn:macros`
 - **Event Flow Debugging**: `DEBUG=illthorn:*`
 
 ### CLI Commands (User-facing)

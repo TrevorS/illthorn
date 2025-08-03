@@ -8,3 +8,10 @@ import * as SettingsAPI from "./backend/settings/mainworld-api";
 contextBridge.exposeInMainWorld("Session", SessionAPI);
 contextBridge.exposeInMainWorld("App", AppAPI);
 contextBridge.exposeInMainWorld("Settings", SettingsAPI);
+
+// Expose relevant environment variables to renderer process
+contextBridge.exposeInMainWorld("process", {
+  env: {
+    NODE_ENV: process.env.NODE_ENV,
+  },
+});

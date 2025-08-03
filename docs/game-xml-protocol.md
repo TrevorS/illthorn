@@ -81,14 +81,91 @@ this.session.bus.subscribeEvent<GameTag>(`metadata/dialogData/Active Spells`, ({
 });
 ```
 
+## Stream Handling (Critical)
+
+### Multi-Message Stream Pattern
+
+**IMPORTANT**: The Wrayth protocol sends stream content across **multiple separate XML messages**, not as a single unified message. This is a critical pattern that affects inventory, speech, thoughts, and other stream types.
+
+#### Stream Flow Example (Inventory)
+
+```xml
+<!-- Message 1: Stream setup and control -->
+<streamWindow id='inv' title='My Inventory' target='wear' ifClosed='' resident='true'/>
+<clearStream id='inv' ifClosed=''/>
+<pushStream id='inv'/>Your worn items are:
+
+<!-- Message 2: Inventory content (NO stream tags) -->
+  a <a exist="610601127" noun="stickpin">diamond-set platinum stickpin</a>
+  a <a exist="610601128" noun="ring">faded gold ring</a>
+  a <a exist="610601129" noun="jacket">wool jacket</a>
+
+<!-- Message 3: More content (NO stream tags) -->
+You are wearing a <a exist="610601127" noun="stickpin">diamond-set platinum stickpin</a>, a <a exist="610601128" noun="ring">faded gold ring</a>...
+
+<!-- Message 4: Stream end -->
+<popStream/>
+```
+
+#### Stream Types Using This Pattern
+
+- **`inv` (inventory)** - Item lists and equipment
+- **`speech`** - Player and NPC dialogue
+- **`thoughts`** - ESP/telepathy messages
+- **`logons`/`logoffs`** - Player login/logout notifications
+- **`death`** - Death messages and combat results
+- **`bounty`** - Bounty system notifications
+
+#### Parser Requirements
+
+**Critical**: Parser must maintain stream state across multiple `parse()` calls:
+
+```typescript
+// ❌ WRONG: This breaks streams
+parse(text: string): GameTag[] {
+  this.currentStream = null;  // Resets stream state!
+  this.inStream = false;
+}
+
+// ✅ CORRECT: This preserves streams
+parse(text: string): GameTag[] {
+  // Reset tag parsing state only
+  this.tagStack.length = 0;
+  this.completed.length = 0;
+  // Keep stream state: this.currentStream, this.inStream
+}
+```
+
+### Stream Content Collection
+
+When inside a stream context:
+1. All content (text and tags) should be collected into the stream tag
+2. Content should NOT appear in the main game feed
+3. Stream tag should be marked with appropriate `id` attribute
+4. Stream content should be available for filtering/routing
+
 ## Data Flow
 
-1. **Game** → Sends XML via Lich
-2. **Parser** → Converts XML to GameTag objects
+1. **Game** → Sends XML via Lich (may be multiple messages for streams)
+2. **Parser** → Converts XML to GameTag objects (maintains stream state)
 3. **dispatchMetadata()** → Creates bus events from tags
 4. **Components** → Subscribe to specific events and update UI
 
 ## Debugging
+
+### Stream Issues
+
+To debug stream-related problems, enable comprehensive logging:
+```javascript
+localStorage.setItem('debug', 'illthorn:*');
+```
+
+**Key debugging patterns:**
+- **Stream state tracking**: Check if parser maintains stream context across messages
+- **Content duplication**: Look for content appearing in both main feed and streams
+- **Missing stream content**: Verify `pushStream`/`popStream` handling
+
+### General XML Debugging
 
 Enable debug logging to see the XML structure:
 ```javascript
@@ -99,3 +176,10 @@ This will show:
 - Raw XML structure being processed
 - Event names being generated
 - Child element filtering and processing
+
+### Stream Debugging Tips
+
+1. **Check parser type**: Ensure saxophone parser is enabled for proper stream handling
+2. **Monitor console logs**: Look for "FILTERING OUT stream:" messages
+3. **Verify stream state**: Stream context should persist across multiple XML messages
+4. **Test stream commands**: Try `inv`, `say hello`, ESP commands to trigger different streams

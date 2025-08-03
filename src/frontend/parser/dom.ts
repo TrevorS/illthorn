@@ -1,6 +1,8 @@
 /**
 this casts GameTags to HTMLElements
  */
+
+import { debugParser } from "../util/logger";
 import type { GameTag } from "./tag";
 
 export type Renderable = { frag: DocumentFragment; metadata: GameTag[] };
@@ -107,21 +109,26 @@ export function decodeHTMLEntities(text: string): string {
 }
 
 export function handleStreamTag(frag: DocumentFragment, tag: GameTag): void {
-  switch (tag.attrs.id) {
-    case "speech":
-    case "bounty":
-    case "inv":
-    case "room":
-      return; // noop / these are duplicated
-    default: {
-      const streamEle = document.createElement("pre");
-      const streamFrag = document.createDocumentFragment();
-      const styles = Object.values(tag.attrs) as string[];
-      streamEle.classList.add(...styles, "stream");
+  // Filter out streams that duplicate regular content
+  const duplicatedStreamIds = ["speech", "bounty", "inv", "room"];
 
-      tag.children.forEach((tag, idx) => handleTag(tag, idx, tag.children, streamFrag, []));
-      streamEle.append(streamFrag);
-      frag.append(streamEle);
-    }
+  // Check for both pushStream with specific id and any popStream
+  const shouldFilter = duplicatedStreamIds.includes(tag.attrs.id as string) || tag.gameName === "popStream";
+
+  if (shouldFilter) {
+    debugParser("🚫 FILTERING OUT stream: %s %s", tag.gameName, tag.attrs.id || "(no id)");
+    return;
   }
+
+  // Render streams that are not duplicates
+  debugParser("✅ RENDERING stream: %s %s", tag.gameName, tag.attrs.id || "(no id)");
+
+  const streamEle = document.createElement("pre");
+  const streamFrag = document.createDocumentFragment();
+  const styles = Object.values(tag.attrs) as string[];
+  streamEle.classList.add(...styles, "stream");
+
+  tag.children.forEach((tag, idx) => handleTag(tag, idx, tag.children, streamFrag, []));
+  streamEle.append(streamFrag);
+  frag.append(streamEle);
 }

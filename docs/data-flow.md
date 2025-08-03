@@ -29,7 +29,8 @@ The frontend receives game text and processes it through a multi-stage pipeline:
 - `FrontendSession.onMessage()` receives raw game text
 - **Parser** converts game XML tags to structured `GameTag` objects
 - Handles nested tags, attributes, and text content
-- Located in: `src/frontend/parser/parser.ts`
+- **Stream State Management**: Maintains stream context across multiple XML messages
+- Located in: `src/frontend/parser/parser.ts` (legacy) or `src/frontend/parser/saxophone-parser.ts` (new)
 
 #### DOM Conversion Stage  
 - **DOM Converter** transforms `GameTag[]` arrays to HTML `DocumentFragment`
@@ -48,6 +49,8 @@ The frontend receives game text and processes it through a multi-stage pipeline:
 #### Streams Panel
 - Extracts special content (thoughts, deaths, etc.) to side panels
 - Filters duplicate stream types (speech, bounty, inv, room)
+- **Multi-message Stream Handling**: Game sends streams across multiple XML messages
+- Content between `<pushStream id="type"/>` and `<popStream/>` is collected into stream tags
 - Located in: `src/frontend/session/index.ts:63-67`
 
 #### Highlighting System
@@ -91,6 +94,13 @@ The parsing system follows a clear pipeline:
 Game XML → GameTag objects → HTML DOM → Styled rendering
 ```
 
+**Critical Stream Handling**: The Wrayth protocol sends stream content across multiple separate XML messages:
+1. `<pushStream id="inv"/>` - Stream control message
+2. Content messages (without stream tags)
+3. `<popStream/>` - Stream end message
+
+Parser must maintain stream state across multiple `parse()` calls to prevent duplicate content.
+
 ### Secure IPC Communication
 - Uses Electron's contextBridge for secure main/renderer communication
 - Typed method enums prevent invalid IPC calls
@@ -104,7 +114,7 @@ Game XML → GameTag objects → HTML DOM → Styled rendering
 ### Memory Management
 - Feed component auto-prunes old messages to prevent memory bloat
 - Streams panel maintains separate message history
-- Parser resets state between message processing
+- Parser resets tag parsing state but maintains stream context across messages
 
 ## File References
 
@@ -116,7 +126,9 @@ Game XML → GameTag objects → HTML DOM → Styled rendering
 
 ### Frontend Files  
 - `src/frontend/session/index.ts` - Frontend session lifecycle and message processing
-- `src/frontend/parser/parser.ts` - Game text parsing engine
+- `src/frontend/parser/parser.ts` - Legacy game text parsing engine
+- `src/frontend/parser/saxophone-parser.ts` - Modern streaming parser with multi-message support
+- `src/frontend/parser/parser-factory.ts` - Parser abstraction and feature flags
 - `src/frontend/parser/dom.ts` - HTML conversion and rendering
 - `src/frontend/components/session/feed.ts` - Main game text display
 - `src/frontend/components/session/cli.ts` - Command input handling

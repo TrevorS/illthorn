@@ -3,6 +3,7 @@ import type { SessionButton } from "../components/session/session-button.lit";
 import { IllthornEvent } from "../events";
 import { Illthorn } from "../illthorn";
 import { currentSession, focusSession } from "../session/helpers";
+import { debugMacros } from "../util/logger";
 
 type MacroProfile = Record<string, string>;
 
@@ -15,7 +16,7 @@ export async function loadMacros(): Promise<MacroProfile> {
 export async function bindUserMacros() {
   const macros = await loadMacros();
   Object.entries(macros).forEach(([keyCombo, command]) => {
-    console.log("macros:bind -> %s -> %s", keyCombo, command);
+    debugMacros("bind -> %s -> %s", keyCombo, command);
     keyboardjs.addListener(keyCombo.toLocaleLowerCase(), () => {
       command.split(/\r/).forEach((line) => {
         Illthorn.bus.dispatchEvent(IllthornEvent.MACRO, line);

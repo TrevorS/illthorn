@@ -5,7 +5,7 @@ import { CommandHistory } from "../components/command-bar/command-history";
 import type { SessionUI } from "../components/session-layout.lit";
 import { addHilites } from "../hilites/dom";
 import { castToHTML, createPrompt } from "../parser/dom";
-import { Parser } from "../parser/parser";
+import { SaxophoneParser } from "../parser/saxophone-parser";
 import { Bus } from "../util/bus";
 import { debugRawInput, debugSession, safeStringify } from "../util/logger";
 import { dispatchMetadata } from "./helpers";
@@ -18,7 +18,7 @@ export class FrontendSession {
     return session;
   }
 
-  readonly parser: Parser;
+  readonly parser: SaxophoneParser;
   readonly bus: Bus;
   hasFocus: boolean = false;
   readonly history: CommandHistory = new CommandHistory(100);
@@ -27,7 +27,7 @@ export class FrontendSession {
   private _messageBuffer: Array<string> = [];
 
   constructor(readonly config: Illthorn.Session.Config) {
-    this.parser = Parser.of();
+    this.parser = new SaxophoneParser();
     this.bus = new Bus();
 
     this.actionButton = document.createElement("illthorn-session-button") as SessionButton;

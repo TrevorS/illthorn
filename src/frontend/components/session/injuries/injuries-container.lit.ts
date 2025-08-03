@@ -5,6 +5,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
 import type { Bus } from "../../../util/bus";
+import { debugInjuries, safeStringify } from "../../../util/logger";
 import "./injuries-ui.lit";
 import type { InjuriesUI } from "./injuries-ui.lit";
 
@@ -76,14 +77,14 @@ export class InjuriesContainer extends LitElement {
 
   constructor() {
     super();
-    console.log("[INJURY DEBUG] 🎭 InjuriesContainer created");
+    debugInjuries("🎭 InjuriesContainer created");
   }
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
 
     if (changedProperties.has("session")) {
-      console.log("[INJURY DEBUG] 🏗️ SESSION CHANGED - Setting up listeners, session:", !!this.session);
+      debugInjuries("🏗️ SESSION CHANGED - Setting up listeners, session: %s", !!this.session);
       this._setupEventListeners();
     }
   }
@@ -97,11 +98,11 @@ export class InjuriesContainer extends LitElement {
     this._cleanupEventListeners();
 
     if (!this.session?.bus) {
-      console.log("[INJURY DEBUG] ❌ No session or bus available");
+      debugInjuries("❌ No session or bus available");
       return;
     }
 
-    console.log("[INJURY DEBUG] ✅ Session and bus available, setting up listeners");
+    debugInjuries("✅ Session and bus available, setting up listeners");
     const bus = this.session.bus;
 
     // Debug: Listen for ALL metadata events to see what's coming through
@@ -114,22 +115,28 @@ export class InjuriesContainer extends LitElement {
         tag.name === "image" ||
         tag.name === "radio"
       ) {
-        console.log("[INJURY DEBUG] 🎯 Injury-related event:", {
-          eventType: tag.name,
-          id: tag.attrs?.id,
-          attrs: tag.attrs,
-          children: tag.children?.length || 0,
-        });
+        debugInjuries(
+          "🎯 Injury-related event: %s",
+          safeStringify({
+            eventType: tag.name,
+            id: tag.attrs?.id,
+            attrs: tag.attrs,
+            children: tag.children?.length || 0,
+          }),
+        );
       }
 
       // Also log a sample of ALL events to see what's happening
       if (Math.random() < 0.05) {
         // Log ~5% of all events
-        console.log("[INJURY DEBUG] 📊 Sample event:", {
-          eventType: tag.name,
-          id: tag.attrs?.id,
-          hasChildren: tag.children && tag.children.length > 0,
-        });
+        debugInjuries(
+          "📊 Sample event: %s",
+          safeStringify({
+            eventType: tag.name,
+            id: tag.attrs?.id,
+            hasChildren: tag.children && tag.children.length > 0,
+          }),
+        );
       }
     };
     bus.subscribeEvent<GameTag>("metadata/*", allEventsHandler);
@@ -137,7 +144,7 @@ export class InjuriesContainer extends LitElement {
 
     // Subscribe to injury updates
     const injuryHandler = ({ detail: injuryTag }: CustomEvent<GameTag>) => {
-      console.log("[INJURY DEBUG] 🔥 Processing direct injury event:", injuryTag);
+      debugInjuries("🔥 Processing direct injury event: %s", safeStringify(injuryTag));
       this.processInjuryData(injuryTag);
     };
     bus.subscribeEvent<GameTag>("metadata/injury", injuryHandler);
@@ -145,23 +152,35 @@ export class InjuriesContainer extends LitElement {
 
     // Alternative: if injuries come as dialogData
     const dialogHandler = ({ detail: dialogTag }: CustomEvent<GameTag>) => {
-      console.log("[INJURY DEBUG] 💬 Processing dialogData injury event:");
-      console.log(JSON.stringify(dialogTag, null, 2));
+      debugInjuries("💬 Processing dialogData injury event: %s", safeStringify(dialogTag));
       this.processDialogData(dialogTag);
     };
 
-    console.log("[INJURY DEBUG] 🎯 SETTING UP EVENT LISTENERS");
+    debugInjuries("🎯 SETTING UP EVENT LISTENERS");
     bus.subscribeEvent<GameTag>("metadata/dialogData/injuries", dialogHandler);
     this._eventHandlers.push({ event: "metadata/dialogData/injuries", handler: dialogHandler, bus });
 
     // Radio tags: the actual wound data comes through radio events
     const radioHandler = ({ detail: radioTag }: CustomEvent<GameTag>) => {
-      console.log("[INJURY DEBUG] 📻 Processing radio tag event:");
-      console.log(JSON.stringify(radioTag, null, 2));
+      debugInjuries("📻 Processing radio tag event: %s", safeStringify(radioTag));
       this.processRadioData(radioTag);
     };
     bus.subscribeEvent<GameTag>("metadata/radio", radioHandler);
     this._eventHandlers.push({ event: "metadata/radio", handler: radioHandler, bus });
+
+    // Listen for specific body part image events (metadata/image/back, metadata/image/leftEye, etc.)
+    const bodyPartImageHandler = ({ detail: imageTag }: CustomEvent<GameTag>) => {
+      debugInjuries("🖼️ Processing body part image event: %s", safeStringify(imageTag));
+      this.processIndividualImageData(imageTag);
+    };
+
+    // Subscribe to specific body part image events that represent injury/scar data
+    const bodyParts = ["head", "neck", "rightEye", "leftEye", "chest", "abdomen", "back", "rightArm", "leftArm", "rightHand", "leftHand", "rightLeg", "leftLeg", "nsys"];
+
+    bodyParts.forEach((part) => {
+      bus.subscribeEvent<GameTag>(`metadata/image/${part}`, bodyPartImageHandler);
+      this._eventHandlers.push({ event: `metadata/image/${part}`, handler: bodyPartImageHandler, bus });
+    });
   }
 
   private _cleanupEventListeners() {
@@ -220,16 +239,16 @@ export class InjuriesContainer extends LitElement {
   }
 
   private processDialogData(dialogTag: GameTag) {
-    console.log("[INJURY DEBUG] 🔍 Processing dialogData with children:", dialogTag.children.length);
+    debugInjuries("🔍 Processing dialogData with children: %d", dialogTag.children.length);
 
     // Look for image children that represent body parts with injury/scar data
     const imageChildren = dialogTag.children.filter((child) => child.name === "image");
 
-    console.log("[INJURY DEBUG] 📸 Found image children:", imageChildren.length);
+    debugInjuries("📸 Found image children: %d", imageChildren.length);
 
     if (imageChildren.length === 0) {
       // No image data - skip processing
-      console.log("[INJURY DEBUG] ⏭️ No image children, skipping");
+      debugInjuries("⏭️ No image children, skipping");
       return;
     }
 
@@ -239,32 +258,32 @@ export class InjuriesContainer extends LitElement {
       const partId = child.attrs.id as string;
       const imageName = child.attrs.name as string;
 
-      console.log(`[INJURY DEBUG] 🔎 Examining image: id="${partId}" name="${imageName}"`);
+      debugInjuries("🔎 Examining image: id=%s name=%s", partId, imageName);
 
       // Skip skin/health UI elements
       if (partId === "healthSkin" || !partId || !imageName) {
-        console.log(`[INJURY DEBUG] ⏭️ Skipping: healthSkin or missing data`);
+        debugInjuries("⏭️ Skipping: healthSkin or missing data");
         return;
       }
 
       // Parse injury/scar information from image name
       const injury = this.parseInjuryFromImageName(partId, imageName);
       if (injury) {
-        console.log(`[INJURY DEBUG] ➕ Adding injury:`, injury);
+        debugInjuries("➕ Adding injury: %s", safeStringify(injury));
         rawInjuries.push(injury);
       }
     });
 
     // Only update injuries if we found some, otherwise preserve existing state
     if (rawInjuries.length > 0) {
-      console.log(`[INJURY DEBUG] 🎯 Found ${rawInjuries.length} injuries/scars:`, rawInjuries);
+      debugInjuries("🎯 Found %d injuries/scars: %s", rawInjuries.length, safeStringify(rawInjuries));
       this._injuries = this.processInjuries(rawInjuries);
     } else {
       // If we only see healthy parts, clear injuries
       const hasHealthyPartsOnly = imageChildren.some((child) => child.attrs.name === child.attrs.id && child.attrs.id !== "healthSkin");
       if (hasHealthyPartsOnly && imageChildren.length > 5) {
         // Only clear if we see multiple healthy parts (full body scan)
-        console.log("[INJURY DEBUG] 🟢 All parts healthy - clearing injuries");
+        debugInjuries("🟢 All parts healthy - clearing injuries");
         this._injuries = [];
       }
     }
@@ -296,7 +315,7 @@ export class InjuriesContainer extends LitElement {
       const severityMatch = imageName.match(/Injury(\d+)/);
       const severity = severityMatch ? parseInt(severityMatch[1]) : 1;
 
-      console.log(`[INJURY DEBUG] 🔴 INJURY DETECTED: ${partId} -> ${imageName} (severity ${severity})`);
+      debugInjuries("🔴 INJURY DETECTED: %s -> %s (severity %d)", partId, imageName, severity);
 
       return {
         part: internalPart,
@@ -309,7 +328,7 @@ export class InjuriesContainer extends LitElement {
       const severityMatch = imageName.match(/Scar(\d+)/);
       const severity = severityMatch ? parseInt(severityMatch[1]) : 1;
 
-      console.log(`[INJURY DEBUG] 🟡 SCAR DETECTED: ${partId} -> ${imageName} (severity ${severity})`);
+      debugInjuries("🟡 SCAR DETECTED: %s -> %s (severity %d)", partId, imageName, severity);
 
       return {
         part: internalPart,
@@ -320,9 +339,40 @@ export class InjuriesContainer extends LitElement {
 
     // Healthy part (imageName matches partId) - only log occasionally to avoid spam
     if (Math.random() < 0.1) {
-      console.log(`[INJURY DEBUG] ✅ Healthy part: ${partId} -> ${imageName}`);
+      debugInjuries("✅ Healthy part: %s -> %s", partId, imageName);
     }
     return null;
+  }
+
+  private processIndividualImageData(imageTag: GameTag) {
+    debugInjuries("🔍 Processing individual image tag");
+
+    const partId = imageTag.attrs.id as string;
+    const imageName = imageTag.attrs.name as string;
+
+    debugInjuries("🔎 Examining individual image: id=%s name=%s", partId, imageName);
+
+    // Skip skin/health UI elements
+    if (partId === "healthSkin" || !partId || !imageName) {
+      debugInjuries("⏭️ Skipping: healthSkin or missing data");
+      return;
+    }
+
+    // Parse injury/scar information from image name
+    const injury = this.parseInjuryFromImageName(partId, imageName);
+    if (!injury) {
+      // This is likely a healthy part - check if we should clear injuries for this part
+      if (imageName === partId) {
+        debugInjuries("✅ Healthy part detected: %s", partId);
+        this.removeInjuryForPart(injury?.part || partId);
+      }
+      return;
+    }
+
+    debugInjuries("➕ Adding individual injury: %s", safeStringify(injury));
+
+    // Update injuries by replacing/adding this specific injury
+    this.updateInjuryForPart(injury);
   }
 
   private processRadioData(radioTag: GameTag) {
@@ -330,11 +380,11 @@ export class InjuriesContainer extends LitElement {
     const radioWound = this.processRadioWound(radioTag);
 
     if (!radioWound) {
-      console.log("[INJURY DEBUG] 🚫 Radio tag does not contain valid wound data:", radioTag);
+      debugInjuries("🚫 Radio tag does not contain valid wound data: %s", safeStringify(radioTag));
       return;
     }
 
-    console.log("[INJURY DEBUG] ✅ Extracted wound from radio tag:", radioWound);
+    debugInjuries("✅ Extracted wound from radio tag: %s", safeStringify(radioWound));
 
     // Convert to RawInjury and add to existing injuries
     const existingInjuries = [...this._injuries];
@@ -387,7 +437,7 @@ export class InjuriesContainer extends LitElement {
 
     // Check if severity is valid (1-3 for wounds, 0 for no wound)
     if (severity < 0 || severity > 3) {
-      console.log("[INJURY DEBUG] ⚠️ Invalid severity level:", severity);
+      debugInjuries("⚠️ Invalid severity level: %s", severity);
       return null;
     }
 
@@ -520,12 +570,94 @@ export class InjuriesContainer extends LitElement {
     return displayName;
   }
 
+  private updateInjuryForPart(newInjury: RawInjury) {
+    // Convert current processed injuries back to raw format
+    const rawInjuries: Array<RawInjury> = [];
+
+    for (const processed of this._injuries) {
+      if (processed.paired && processed.leftSeverity !== undefined && processed.rightSeverity !== undefined) {
+        // Split paired injury back into individual parts
+        const basePart = this.getBasePartFromPaired(processed.displayName);
+        rawInjuries.push({
+          part: `left${basePart}`,
+          severity: processed.leftSeverity,
+          description: "existing injury",
+        });
+        rawInjuries.push({
+          part: `right${basePart}`,
+          severity: processed.rightSeverity,
+          description: "existing injury",
+        });
+      } else {
+        // Find the original part name from display name
+        const originalPart = this.getOriginalPartName(processed.displayName);
+        rawInjuries.push({
+          part: originalPart,
+          severity: processed.severity,
+          description: "existing injury",
+        });
+      }
+    }
+
+    // Remove any existing injury for this part
+    const filteredInjuries = rawInjuries.filter((injury) => injury.part !== newInjury.part);
+
+    // Add the new injury
+    filteredInjuries.push(newInjury);
+
+    // Reprocess all injuries
+    this._injuries = this.processInjuries(filteredInjuries);
+
+    debugInjuries("🔄 Updated injuries list: %s", safeStringify(this._injuries));
+  }
+
+  private removeInjuryForPart(partName: string) {
+    // Convert current processed injuries back to raw format
+    const rawInjuries: Array<RawInjury> = [];
+
+    for (const processed of this._injuries) {
+      if (processed.paired && processed.leftSeverity !== undefined && processed.rightSeverity !== undefined) {
+        // Split paired injury back into individual parts
+        const basePart = this.getBasePartFromPaired(processed.displayName);
+        rawInjuries.push({
+          part: `left${basePart}`,
+          severity: processed.leftSeverity,
+          description: "existing injury",
+        });
+        rawInjuries.push({
+          part: `right${basePart}`,
+          severity: processed.rightSeverity,
+          description: "existing injury",
+        });
+      } else {
+        // Find the original part name from display name
+        const originalPart = this.getOriginalPartName(processed.displayName);
+        rawInjuries.push({
+          part: originalPart,
+          severity: processed.severity,
+          description: "existing injury",
+        });
+      }
+    }
+
+    // Remove injury for the specified part
+    const filteredInjuries = rawInjuries.filter((injury) => injury.part !== partName);
+
+    // Reprocess remaining injuries
+    this._injuries = this.processInjuries(filteredInjuries);
+
+    debugInjuries("🧹 Removed injury for part %s, remaining: %s", partName, safeStringify(this._injuries));
+  }
+
   getInjuries() {
     const injuriesUI = this.shadowRoot?.querySelector("illthorn-injuries-ui") as InjuriesUI;
     return injuriesUI?.getInjuries() || [];
   }
 
   render() {
+    if (this._injuries.length > 0) {
+      debugInjuries("🎨 Rendering with %d injuries: %s", this._injuries.length, safeStringify(this._injuries));
+    }
     return html`
       <illthorn-injuries-ui
         .injuries=${this._injuries}>

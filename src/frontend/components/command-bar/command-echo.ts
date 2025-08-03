@@ -3,6 +3,7 @@
 
 import { IllthornEvent } from "../../events";
 import type { FrontendSession } from "../../session";
+import { debugCommands } from "../../util/logger";
 
 export interface CommandEchoEvent {
   command: string;
@@ -32,7 +33,7 @@ export class CommandEchoSystem {
    */
   private dispatchEcho(command: string, isReplay: boolean): void {
     if (!this.session?.bus) {
-      console.warn("CommandEchoSystem: No session bus available for command echo");
+      debugCommands("CommandEchoSystem: No session bus available for command echo");
       return;
     }
 

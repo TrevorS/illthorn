@@ -14,10 +14,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
-  define: {
-    // Shoelace base path for assets
-    'process.env.SHOELACE_BASE_PATH': JSON.stringify('/node_modules/@shoelace-style/shoelace/dist/'),
-  },
   css: {
     preprocessorOptions: {
       scss: {

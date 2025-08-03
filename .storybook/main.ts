@@ -20,9 +20,6 @@ const config: StorybookConfig = {
         },
         dedupe: ['lit', 'lit-html', 'lit-element'], // Dedupe Lit versions
       },
-      define: {
-        'process.env.SHOELACE_BASE_PATH': JSON.stringify('/node_modules/@shoelace-style/shoelace/dist/'),
-      },
       css: {
         preprocessorOptions: {
           scss: {
