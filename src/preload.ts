@@ -8,3 +8,12 @@ import * as SettingsAPI from "./backend/settings/mainworld-api";
 contextBridge.exposeInMainWorld("Session", SessionAPI);
 contextBridge.exposeInMainWorld("App", AppAPI);
 contextBridge.exposeInMainWorld("Settings", SettingsAPI);
+
+// Expose relevant environment variables to renderer process
+// Only expose parser-related config for security
+contextBridge.exposeInMainWorld("process", {
+  env: {
+    ILLTHORN_PARSER_TYPE: process.env.ILLTHORN_PARSER_TYPE,
+    NODE_ENV: process.env.NODE_ENV,
+  },
+});

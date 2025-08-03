@@ -1,0 +1,38 @@
+<!-- Spell effects and active magic samples from Gemstone IV -->
+
+<!-- Active spells dialog -->
+<dialogData id="Active Spells">
+  <progressBar id="spell1" text="Bless" time="120" value="80" />
+  <progressBar id="spell2" text="Spirit Defense" time="45" value="90" />
+  <progressBar id="spell3" text="Heroism" time="300" value="60" />
+</dialogData>
+
+<!-- Single spell effect -->
+<dialogData id="Active Spells">
+  <progressBar id="spell1" text="Mass Blur" time="60" value="100" />
+</dialogData>
+
+<!-- Empty spell list -->
+<dialogData id="Active Spells">
+</dialogData>
+
+<!-- Cooldowns -->
+<dialogData id="Cooldowns">
+  <progressBar id="cooldown1" text="Warrior's Resolve" time="600" value="25" />
+  <progressBar id="cooldown2" text="Surge of Strength" time="180" value="75" />
+</dialogData>
+
+<!-- Buffs -->
+<dialogData id="Buffs">
+  <progressBar id="buff1" text="Gift of Eonak" time="180" value="90" />
+  <progressBar id="buff2" text="Elemental Bias" time="240" value="65" />
+</dialogData>
+
+<!-- Complex nested spell data -->
+<dialogData id="Active Spells">
+  <progressBar id="spell1" text="Elemental Defense I" time="1800" value="95" />
+  <progressBar id="spell2" text="Elemental Defense II" time="1800" value="95" />
+  <progressBar id="spell3" text="Elemental Defense III" time="1800" value="95" />
+  <progressBar id="spell4" text="Thurfel's Ward" time="600" value="50" />
+  <progressBar id="spell5" text="Spirit Defense" time="1800" value="95" />
+</dialogData>

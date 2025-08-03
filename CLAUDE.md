@@ -6,6 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Illthorn is a modern cross-platform Electron application that serves as a front-end client for Gemstone IV, a text-based MUD (Multi-User Dungeon). The app connects to Lich (a Ruby-based scripting framework) via TCP sockets and provides a rich UI with themes, highlighting, command history, and multi-session support.
 
+## Environment Configuration
+
+The application uses dotenv for environment variable management. Copy `.env.example` to `.env` and modify as needed:
+
+```bash
+cp .env.example .env
+```
+
+### Parser Configuration
+- `ILLTHORN_PARSER_TYPE=custom` - Use legacy custom parser (default, safe)
+- `ILLTHORN_PARSER_TYPE=saxophone` - Use new saxophone parser (performance optimized)
+
+Environment variables take precedence over defaults but can be overridden programmatically for testing.
+
 ## Development Commands
 
 ### Core Development

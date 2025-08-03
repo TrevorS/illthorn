@@ -1,0 +1,32 @@
+<!-- Malformed XML samples that game servers sometimes send -->
+
+<!-- Unclosed tags -->
+<progressBar id="health" text="health 85" value="85"
+<style id="" />Some text here
+
+<!-- Missing closing brackets -->
+<progressBar id="mana" text="mana 92" value="92" /
+<dialogData id="Active Spells"
+  <progressBar id="spell1" text="Bless" time="120" value="80" />
+
+<!-- Nested unclosed tags -->
+<dialogData id="Active Spells">
+  <progressBar id="spell1" text="Heroism" time="300" value="60"
+  <progressBar id="spell2" text="Bless" time="120" value="80" />
+</dialogData>
+
+<!-- Invalid attribute syntax -->
+<progressBar id=health text="health 85" value="85" />
+<progressBar id="mana" text=mana 92 value="92" />
+
+<!-- Mixed quotes -->
+<progressBar id="health" text='health 85" value="85" />
+
+<!-- Stray characters -->
+<progressBar id="health" text="health 85" value="85" />}
+Some random text with < and > symbols
+
+<!-- Empty tags with issues -->
+<progressBar />
+<dialogData>
+<style id="" />

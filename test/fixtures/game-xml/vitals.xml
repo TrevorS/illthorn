@@ -1,0 +1,26 @@
+<!-- Vitals-related XML samples from Gemstone IV -->
+
+<!-- Basic health update -->
+<progressBar id="health" text="health 100" value="100" />
+
+<!-- Full vitals set -->
+<progressBar id="health" text="health 85" value="85" />
+<progressBar id="mana" text="mana 92" value="92" />
+<progressBar id="stamina" text="stamina 78" value="78" />
+<progressBar id="spirit" text="spirit 100" value="100" />
+<progressBar id="mindState" text="clear" value="100" />
+
+<!-- Combat stance and encumbrance -->
+<progressBar id="pbarStance" text="offensive forward" value="80" />
+<progressBar id="encumlevel" text="light" value="15" />
+
+<!-- Injured state -->
+<progressBar id="health" text="health 45" value="45" />
+<progressBar id="spirit" text="spirit 60" value="60" />
+
+<!-- Zero values -->
+<progressBar id="stamina" text="stamina 0" value="0" />
+<progressBar id="mana" text="mana 0" value="0" />
+
+<!-- High encumbrance -->
+<progressBar id="encumlevel" text="heavy" value="85" />

@@ -1,0 +1,35 @@
+<!-- Room descriptions and navigation samples from Gemstone IV -->
+
+<!-- Basic room description with exits -->
+<style id="" />You are standing in a small wooden cabin. The walls are lined with rough-hewn planks, and a stone fireplace dominates one wall. A simple wooden table sits in the center of the room.
+<style id="" />Obvious exits: <d>north</d>, <d>south</d>, <d>east</d>
+
+<!-- Room with items and characters -->
+<style id="" />This is the town square of Wehnimer's Landing. A large bronze statue stands in the center, depicting a warrior in battle gear. Cobblestone paths lead off in several directions.
+<style id="" />Also here: <a exist="player">Adventurer Bob</a>, <a exist="player">Wizard Alice</a>
+<style id="" />Obvious items: <a exist="item">a silver coin</a>, <a exist="item">a leather pouch</a>
+<style id="" />Obvious exits: <d>north</d>, <d>south</d>, <d>east</d>, <d>west</d>
+
+<!-- Room with complex formatting -->
+<style id="" />
+<b>Moonstone Creek Bridge</b>
+<style id="" />The wooden bridge spans a gentle creek that flows beneath with a soft babbling sound. Moonlight reflects off the water's surface, creating dancing patterns of light. To the north, you can see the lights of Silverwood Manor through the trees.
+
+<style id="" />Also here: <a exist="player">Lord Silverwind</a>
+<style id="" />Obvious paths: <d>north</d>, <d>south</d>
+
+<!-- Combat room with mixed content -->
+<style id="" />
+<pushBold/>A massive troll emerges from the shadows!</pushBold/>
+<style id="" />The creature's eyes glow with malevolent hunger as it raises its claws to attack.
+<style id="" />
+<style id="" />Also here: <a exist="monster">a massive troll</a>
+<style id="" />Obvious exits: <d>north</d>, <d>east</d>
+
+<!-- Room with nested style and stream tags -->
+<pushStream id="room" />
+<style id="" />
+<b>Temple Courtyard</b>
+<style id="" />This peaceful courtyard is surrounded by marble columns that support a vaulted ceiling. Soft chanting can be heard from the temple beyond.
+<style id="" />Obvious exits: <d>north</d>, <d>south</d>
+<popStream />
