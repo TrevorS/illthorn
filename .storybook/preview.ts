@@ -17,6 +17,10 @@ console.warn = (...args) => {
 import '@shoelace-style/shoelace/dist/themes/light.css';
 import '@shoelace-style/shoelace/dist/themes/dark.css';
 
+// Import Shoelace components used by our Lit components
+import '@shoelace-style/shoelace/dist/components/input/input.js';
+import '@shoelace-style/shoelace/dist/components/progress-bar/progress-bar.js';
+
 // Import your app styles
 import '../src/frontend/styles/_vars.scss';
 import '../src/frontend/styles/index.scss';
