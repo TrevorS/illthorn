@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/web-components";
+import type { Meta, StoryObj } from "@storybook/web-components-vite";
 import { html } from "lit";
 import "./feed.lit";
 
@@ -8,7 +8,8 @@ const meta: Meta = {
   parameters: {
     docs: {
       description: {
-        component: "Main game text display component with auto-scrolling, memory management, command echo integration, and extensive styling for different game text types. Handles parsed HTML content from game server.",
+        component:
+          "Main game text display component with auto-scrolling, memory management, command echo integration, and extensive styling for different game text types. Handles parsed HTML content from game server.",
       },
     },
   },
@@ -45,7 +46,7 @@ export const WithGameText: Story = {
   },
   render: (args) => {
     // Simulate game text content
-    const sampleContent = `
+    const _sampleContent = `
       <div class="content">
         <pre><span class="roomName">Town Square Central</span></pre>
         <pre><span class="roomDesc">This is the heart of the main square of Wehnimer's Landing. The town square is bustling with people. A massive granite archway leads north into the town proper.</span></pre>
@@ -69,7 +70,7 @@ export const WithGameText: Story = {
     return html`
       <div style="width: 600px; height: 400px; padding: 1rem; background: var(--color-surface);">
         <h3 style="margin: 0 0 1rem 0; color: var(--color-text);">Game Text Sample</h3>
-        <div style="height: 350px; background: var(--color-background); border: 1px solid var(--color-border); ${args.focused ? 'border-color: var(--color-focus);' : ''}">
+        <div style="height: 350px; background: var(--color-background); border: 1px solid var(--color-border); ${args.focused ? "border-color: var(--color-focus);" : ""}">
           <div style="
             height: 100%;
             overflow-y: auto;
@@ -188,7 +189,7 @@ export const Focused: Story = {
   render: (args) => html`
     <div style="width: 600px; height: 400px; padding: 1rem; background: var(--color-surface);">
       <h3 style="margin: 0 0 1rem 0; color: var(--color-text);">Focused Feed</h3>
-      <div style="height: 350px; background: var(--color-background); border: 1px solid ${args.focused ? 'var(--color-focus, #0080ff)' : 'var(--color-border)'};">
+      <div style="height: 350px; background: var(--color-background); border: 1px solid ${args.focused ? "var(--color-focus, #0080ff)" : "var(--color-border)"};">
         <div style="
           height: 100%;
           overflow-y: auto;

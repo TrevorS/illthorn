@@ -1,4 +1,4 @@
-import type { Preview } from '@storybook/web-components';
+import type { Preview } from '@storybook/web-components-vite';
 import { html } from 'lit';
 
 // Suppress Lit multiple versions warning in development
