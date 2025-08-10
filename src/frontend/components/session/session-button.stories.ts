@@ -17,7 +17,8 @@ const meta: Meta = {
   parameters: {
     docs: {
       description: {
-        component: "Session switching button component that displays session name initial and tab number. Handles click events to focus sessions and automatically updates active state based on session focus events.",
+        component:
+          "Session switching button component that displays session name initial and tab number. Handles click events to focus sessions and automatically updates active state based on session focus events.",
       },
     },
   },

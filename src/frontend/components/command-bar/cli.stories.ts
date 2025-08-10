@@ -8,7 +8,8 @@ const meta: Meta = {
   parameters: {
     docs: {
       description: {
-        component: "Command-line interface component for game interaction with integrated timers, command history, readline-style key bindings, and support for multiple command types (game commands, internal :commands, and direct ;commands).",
+        component:
+          "Command-line interface component for game interaction with integrated timers, command history, readline-style key bindings, and support for multiple command types (game commands, internal :commands, and direct ;commands).",
       },
     },
   },

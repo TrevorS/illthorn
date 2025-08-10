@@ -8,7 +8,8 @@ const meta: Meta = {
   parameters: {
     docs: {
       description: {
-        component: "Countdown timer component that displays casting time remaining with smooth progress bar animation. Subscribes to metadata/castTime events and uses orange warning color styling.",
+        component:
+          "Countdown timer component that displays casting time remaining with smooth progress bar animation. Subscribes to metadata/castTime events and uses orange warning color styling.",
       },
     },
   },

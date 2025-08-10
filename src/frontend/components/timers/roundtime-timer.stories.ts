@@ -8,7 +8,8 @@ const meta: Meta = {
   parameters: {
     docs: {
       description: {
-        component: "Countdown timer component that displays action cooldown (roundtime) remaining with smooth progress bar animation. Subscribes to metadata/roundTime events and uses red danger color styling.",
+        component:
+          "Countdown timer component that displays action cooldown (roundtime) remaining with smooth progress bar animation. Subscribes to metadata/roundTime events and uses red danger color styling.",
       },
     },
   },
