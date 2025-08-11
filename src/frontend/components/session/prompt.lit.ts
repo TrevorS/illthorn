@@ -2,6 +2,7 @@
 // ABOUTME: Subscribes to prompt events and updates displayed text content with server timing data
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import type { GameTag } from "../../parser/tag";
 import type { FrontendSession as Session } from "../../session/index";
 
 @customElement("illthorn-prompt")
@@ -48,11 +49,11 @@ export class Prompt extends LitElement {
       return;
     }
 
-    this.session.bus.subscribeEvent<HTMLElement>("prompt", ({ detail: prompt }) => {
+    this.session.bus.subscribeEvent<GameTag>("prompt", ({ detail: prompt }) => {
       //console.trace(prompt)
-      const _time = prompt.getAttribute("time");
+      const _time = prompt.attrs.time as string;
       // todo: handle server time offset
-      this._promptText = prompt.textContent || "";
+      this._promptText = prompt.text || "";
       this.requestUpdate();
     });
   }

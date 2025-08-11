@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/web-components-vite";
 import { html } from "lit";
 
 // Event action logging for stories
-const action = (name: string) => (detail?: any) => {
+const action = (name: string) => (detail?: unknown) => {
   console.log(`[Story Event] ${name}:`, detail);
 };
 import "./base-game-element.lit";
@@ -10,7 +10,8 @@ import { makeTag } from "../../parser/tag";
 
 // Mock game tag creation utility
 const createMockTag = (tagName: string, attrs: Record<string, string> = {}, text = "") => {
-  const tag = makeTag(tagName as any);
+  // TypeScript workaround for dynamic tag creation in stories
+  const tag = makeTag(tagName as "a");
   tag.attrs = attrs;
   tag.text = text;
   return tag;
@@ -300,7 +301,8 @@ export const InteractionTest: Story = {
           // Simulate dispatching an interaction event
           const element = document.querySelector("illthorn-base-game-element");
           if (element) {
-            (element as any).dispatchInteraction("test", {
+            // Access protected method for story demonstration
+            (element as unknown as { dispatchInteraction: (type: string, detail: Record<string, unknown>) => void }).dispatchInteraction("test", {
               testData: "Clicked from story",
               timestamp: Date.now(),
             });

@@ -16,8 +16,8 @@ import type { HandsContainer } from "./session/hands/hands-container.lit";
 import "./session/panel.lit";
 import "./session/streams.lit";
 import type { Streams } from "./session/streams.lit";
-import "./session/feed/feed.lit";
-import type { Feed } from "./session/feed/feed.lit";
+import "./session/feed/feed-modernized.lit";
+import type { FeedModernized } from "./session/feed/feed-modernized.lit";
 import "./session/prompt.lit";
 import type { Prompt } from "./session/prompt.lit";
 import "./command-bar/cli.lit";
@@ -26,7 +26,7 @@ import type { CLI } from "./command-bar/cli.lit";
 export type SessionUI = {
   context: HTMLElement;
   cli: CLI;
-  feed: Feed;
+  feed: FeedModernized;
   prompt: Prompt;
   vitals: VitalsContainer;
   injuries: InjuriesContainer;
@@ -245,8 +245,8 @@ export class SessionLayout extends LitElement {
   @query("illthorn-streams-lit")
   private _streams?: Streams;
 
-  @query("illthorn-feed-lit")
-  private _feed?: Feed;
+  @query("illthorn-feed-modernized-lit")
+  private _feed?: FeedModernized;
 
   @query("illthorn-prompt")
   private _prompt?: Prompt;
@@ -346,7 +346,7 @@ export class SessionLayout extends LitElement {
         </div>
 
         <div class="feed-wrapper">
-          <illthorn-feed-lit .session=${this.session}></illthorn-feed-lit>
+          <illthorn-feed-modernized-lit .session=${this.session}></illthorn-feed-modernized-lit>
         </div>
 
         <div class="cli-wrapper">

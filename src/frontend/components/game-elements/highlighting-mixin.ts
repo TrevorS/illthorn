@@ -19,7 +19,8 @@ export interface HighlightSettings {
 /**
  * Mixin to add highlighting capabilities to game element components
  */
-export const HighlightingMixin = <T extends Constructor<LitElement>>(superClass: T) => {
+// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+export const HighlightingMixin = <T extends new (...args: any[]) => LitElement>(superClass: T) => {
   class HighlightingElement extends superClass {
     @property({ type: Array }) highlightPatterns: Array<HighlightPattern> = [];
     @state() protected _activeHighlight?: HighlightPattern;
@@ -36,7 +37,7 @@ export const HighlightingMixin = <T extends Constructor<LitElement>>(superClass:
       this._removeGlobalListeners();
     }
 
-    updated(changedProperties: Map<string, any>) {
+    updated(changedProperties: Map<string, unknown>) {
       super.updated(changedProperties);
 
       if (changedProperties.has("highlightPatterns") || changedProperties.has("textContent")) {

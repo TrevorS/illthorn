@@ -6,6 +6,7 @@ import { loadGameObjectData, type ParsedXMLData, XMLDataParser } from "./xml-dat
 /**
  * Comprehensive item categorization system based on XML data
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Manages shared state and async initialization for item categorization
 export class ItemHighlighter {
   private static xmlData: ParsedXMLData | null = null;
   private static loading: Promise<ParsedXMLData> | null = null;
@@ -188,7 +189,7 @@ export class ItemHighlighter {
   /**
    * Enhanced categorization that checks multiple attributes
    */
-  static async categorizeGameElement(attributes: { noun?: string; exist?: string; name?: string; [key: string]: any }): Promise<{
+  static async categorizeGameElement(attributes: { noun?: string; exist?: string; name?: string; [key: string]: unknown }): Promise<{
     category: string | null;
     confidence: "high" | "medium" | "low";
     source: "noun" | "name" | "exist" | "fallback";

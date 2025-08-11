@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/web-components-vite";
 import { html } from "lit";
 
 // Event action logging for stories
-const action = (name: string) => (detail?: any) => {
+const action = (name: string) => (detail?: unknown) => {
   console.log(`[Story Event] ${name}:`, detail);
 };
 import "./game-monster.lit";
@@ -204,7 +204,7 @@ export const ExtremeThreatMonster: Story = {
 export const TargetedMonster: Story = {
   render: () => {
     const simulateTargeting = (element: Element) => {
-      const monster = element as any;
+      const monster = element as unknown as { _isTargeted: boolean; requestUpdate: () => void };
       monster._isTargeted = !monster._isTargeted;
       monster.requestUpdate();
       action("targeting-toggled")(monster._isTargeted ? "Targeted" : "Untargeted");
@@ -237,7 +237,7 @@ export const WoundedMonster: Story = {
       let currentIndex = 0;
 
       return (element: Element) => {
-        const monster = element as any;
+        const monster = element as unknown as { _healthStatus: string; requestUpdate: () => void };
         currentIndex = (currentIndex + 1) % states.length;
         monster._healthStatus = states[currentIndex];
         monster.requestUpdate();

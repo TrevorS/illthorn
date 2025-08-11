@@ -4,14 +4,14 @@
 /**
  * Generic constructor type for mixin patterns
  */
-export type Constructor<T = {}> = new (...args: Array<any>) => T;
+export type Constructor<T = Record<string, unknown>> = new (...args: Array<unknown>) => T;
 
 /**
  * Constructor type for abstract classes
  */
-export type AbstractConstructor<T = {}> = abstract new (...args: Array<any>) => T;
+export type AbstractConstructor<T = Record<string, unknown>> = abstract new (...args: Array<unknown>) => T;
 
 /**
  * Constructor type with specific parameters
  */
-export type ParameterizedConstructor<T, P extends Array<any> = Array<any>> = new (...args: P) => T;
+export type ParameterizedConstructor<T, P extends Array<unknown> = Array<unknown>> = new (...args: P) => T;

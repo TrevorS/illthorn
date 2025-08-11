@@ -25,10 +25,7 @@ export class GameCommand extends BaseGameElement {
     }
     
     :host(:hover) {
-      background-color: var(--color-surface, rgba(42, 42, 42, 0.3));
-      border-bottom-color: var(--color-focus, #0a84ff);
-      text-shadow: 0 0 3px currentColor;
-      transform: translateY(-1px);
+      text-decoration: underline;
     }
     
     :host(:focus) {
@@ -128,6 +125,9 @@ export class GameCommand extends BaseGameElement {
 
   connectedCallback() {
     super.connectedCallback();
+
+    // Set tabindex="0" for keyboard accessibility (WCAG 2.1 compliance)
+    // This allows users to navigate commands using Tab/Shift+Tab and execute with Enter/Space
     this.setAttribute("tabindex", "0");
     this.setAttribute("role", "button");
 

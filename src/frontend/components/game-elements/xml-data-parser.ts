@@ -16,6 +16,7 @@ export interface ParsedXMLData {
 /**
  * Parses gameobj-data.xml content to extract item categorization patterns
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Provides stateless XML parsing utilities with complex interdependent methods
 export class XMLDataParser {
   /**
    * Parse XML content and extract structured item data

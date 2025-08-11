@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/web-components-vite";
 import { html } from "lit";
 
 // Event action logging for stories
-const action = (name: string) => (detail?: any) => {
+const action = (name: string) => (detail?: unknown) => {
   console.log(`[Story Event] ${name}:`, detail);
 };
 import "./game-link.lit";

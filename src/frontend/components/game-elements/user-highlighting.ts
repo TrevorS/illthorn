@@ -324,9 +324,12 @@ export class UserHighlightManager {
     try {
       const regex = this.parsePattern(pattern);
       const matches: Array<RegExpMatchArray> = [];
-      let match;
+      let match: RegExpExecArray | null = null;
 
-      while ((match = regex.exec(text)) !== null) {
+      // Use explicit assignment to avoid linting issues
+      while (true) {
+        match = regex.exec(text);
+        if (match === null) break;
         matches.push(match);
         if (!regex.global) break;
       }
@@ -341,18 +344,19 @@ export class UserHighlightManager {
   /**
    * Import patterns from legacy format
    */
-  async importLegacyPatterns(legacyPatterns: Record<string, any>): Promise<void> {
+  async importLegacyPatterns(legacyPatterns: Record<string, unknown>): Promise<void> {
     const newPatterns: Record<string, string> = {};
     const newGroups: Record<string, Record<string, string>> = {};
 
     // Convert legacy format to new format
     Object.entries(legacyPatterns).forEach(([group, data]) => {
-      if (typeof data === "object" && data.patterns && data.styles) {
+      if (typeof data === "object" && data && "patterns" in data && "styles" in data) {
         // New format already
-        data.patterns.forEach((pattern: string) => {
+        const typedData = data as { patterns: Array<string>; styles: Record<string, string> };
+        typedData.patterns.forEach((pattern: string) => {
           newPatterns[pattern] = group;
         });
-        newGroups[group] = data.styles;
+        newGroups[group] = typedData.styles;
       } else if (Array.isArray(data)) {
         // Legacy format: array of patterns
         data.forEach((pattern) => {

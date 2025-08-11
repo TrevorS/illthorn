@@ -91,14 +91,7 @@ export class ComponentRenderer {
     const children = this.renderChildren(tag.children);
 
     return {
-      template: html`<illthorn-game-link
-        .tag=${tag}
-        .exist=${tag.attrs.exist as string}
-        .noun=${tag.attrs.noun as string}
-        .coord=${tag.attrs.coord as string}
-      >
-        ${children}
-      </illthorn-game-link>`,
+      template: html`<illthorn-game-link .tag=${tag} .exist=${tag.attrs.exist as string} .noun=${tag.attrs.noun as string} .coord=${tag.attrs.coord as string}>${tag.text || ""}${children}</illthorn-game-link>`,
     };
   }
 
@@ -106,19 +99,14 @@ export class ComponentRenderer {
    * Render <b> wrapped monsters as GameMonster components
    */
   private renderGameMonster(tag: GameTag): { template: TemplateResult } {
-    const children = this.renderChildren(tag.children);
-
     // Extract exist/noun from nested <a> tags if present
     const { exist, noun } = this.extractLinkAttributes(tag);
 
+    // Extract text content from nested <a> tags (don't render children as components)
+    const textContent = this.extractTextFromChildren(tag.children);
+
     return {
-      template: html`<illthorn-game-monster
-        .tag=${tag}
-        .exist=${exist}
-        .noun=${noun}
-      >
-        ${children}
-      </illthorn-game-monster>`,
+      template: html`<illthorn-game-monster .tag=${tag} .exist=${exist} .noun=${noun}>${tag.text || ""}${textContent}</illthorn-game-monster>`,
     };
   }
 
@@ -129,12 +117,7 @@ export class ComponentRenderer {
     const children = this.renderChildren(tag.children);
 
     return {
-      template: html`<illthorn-game-command
-        .tag=${tag}
-        .cmd=${tag.attrs.cmd as string}
-      >
-        ${children}
-      </illthorn-game-command>`,
+      template: html`<illthorn-game-command .tag=${tag} .cmd=${tag.attrs.cmd as string}>${tag.text || ""}${children}</illthorn-game-command>`,
     };
   }
 
@@ -161,12 +144,12 @@ export class ComponentRenderer {
     if (!presetId) {
       // Fallback: render without class
       return {
-        template: html`<span>${children}</span>`,
+        template: html`<span>${tag.text || ""}${children}</span>`,
       };
     }
 
     return {
-      template: html`<span class=${presetId}>${children}</span>`,
+      template: html`<span class=${presetId}>${tag.text || ""}${children}</span>`,
     };
   }
 
@@ -178,7 +161,7 @@ export class ComponentRenderer {
     const classes = this.buildClassString(tag.attrs);
 
     return {
-      template: html`<pre class=${classes}>${children}</pre>`,
+      template: html`<pre class=${classes}>${tag.text || ""}${children}</pre>`,
     };
   }
 
@@ -187,7 +170,8 @@ export class ComponentRenderer {
    */
   private renderStream(tag: GameTag): { template?: TemplateResult } {
     // Filter out duplicate streams (matches existing logic in dom.ts)
-    const duplicatedStreamIds = ["speech", "bounty", "inv", "room"];
+    // Note: Removed "room" to allow room descriptions to display in feed
+    const duplicatedStreamIds = ["speech", "bounty", "inv"];
     const streamId = tag.attrs.id as string;
 
     if (duplicatedStreamIds.includes(streamId) || tag.gameName === "popStream") {
@@ -198,14 +182,14 @@ export class ComponentRenderer {
     const classes = this.buildStreamClasses(tag.attrs);
 
     return {
-      template: html`<pre class=${classes}>${children}</pre>`,
+      template: html`<pre class=${classes}>${tag.text || ""}${children}</pre>`,
     };
   }
 
   /**
    * Build CSS class string from attributes
    */
-  private buildClassString(attrs: Record<string, any>): string {
+  private buildClassString(attrs: Record<string, unknown>): string {
     return Object.values(attrs)
       .filter((val) => val && typeof val === "string")
       .join(" ");
@@ -214,7 +198,7 @@ export class ComponentRenderer {
   /**
    * Build CSS classes for stream elements
    */
-  private buildStreamClasses(attrs: Record<string, any>): string {
+  private buildStreamClasses(attrs: Record<string, unknown>): string {
     const baseClasses = ["stream"];
     const attrClasses = Object.values(attrs).filter((val) => val && typeof val === "string");
 
@@ -250,6 +234,25 @@ export class ComponentRenderer {
     };
 
     return findLinkAttributes(tag.children);
+  }
+
+  /**
+   * Extract text content from nested tags without rendering them as components
+   * Used by GameMonster to prevent nested GameLink components
+   */
+  private extractTextFromChildren(children: Array<GameTag>): string {
+    let textContent = "";
+
+    for (const child of children) {
+      if (child.text) {
+        textContent += child.text;
+      }
+      if (child.children.length > 0) {
+        textContent += this.extractTextFromChildren(child.children);
+      }
+    }
+
+    return textContent;
   }
 
   /**

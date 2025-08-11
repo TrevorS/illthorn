@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/web-components-vite";
 import { html } from "lit";
 
 // Event action logging for stories
-const action = (name: string) => (detail?: any) => {
+const action = (name: string) => (detail?: unknown) => {
   console.log(`[Story Event] ${name}:`, detail);
 };
 import "./game-command.lit";
@@ -235,7 +235,7 @@ export const ExecutingState: Story = {
   render: () => {
     // Simulate executing state
     const simulateExecution = (element: Element) => {
-      const cmd = element as any;
+      const cmd = element as unknown as { _executing: boolean; requestUpdate: () => void };
       cmd._executing = true;
       cmd.requestUpdate();
 

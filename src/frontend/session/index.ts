@@ -3,9 +3,9 @@ import type { SessionButton } from "../components/session/session-button.lit";
 import "../components/session-layout.lit";
 import { CommandHistory } from "../components/command-bar/command-history";
 import type { SessionUI } from "../components/session-layout.lit";
-import { addHilites } from "../hilites/dom";
-import { castToHTML, createPrompt } from "../parser/dom";
+import { ComponentRenderer } from "../parser/component-renderer";
 import { SaxophoneParser } from "../parser/saxophone-parser";
+import { type GameTag, makeTag } from "../parser/tag";
 import { Bus } from "../util/bus";
 import { debugRawInput, debugSession, safeStringify } from "../util/logger";
 import { dispatchMetadata } from "./helpers";
@@ -20,6 +20,7 @@ export class FrontendSession {
 
   readonly parser: SaxophoneParser;
   readonly bus: Bus;
+  readonly renderer: ComponentRenderer = new ComponentRenderer();
   hasFocus: boolean = false;
   readonly history: CommandHistory = new CommandHistory(100);
   readonly actionButton: SessionButton;
@@ -89,32 +90,57 @@ export class FrontendSession {
 
     const parsed = this.parser.parse(incoming);
     debugSession(`[${this.name}] Parsed ${parsed.length} tags from input`);
-    const { frag, metadata } = castToHTML(parsed);
-    debugSession(`[${this.name}] Generated DOM fragment, found ${metadata.length} metadata tags`);
+
+    // Extract metadata using ComponentRenderer instead of DOM conversion
+    const metadata = this.renderer.extractMetadata(parsed);
+    debugSession(`[${this.name}] Extracted ${metadata.length} metadata tags directly from GameTags`);
+
+    // Handle prompt metadata and dispatch
     const promptInfo = metadata.find((tag) => tag.name === "prompt");
-    const prompt = promptInfo && createPrompt(promptInfo);
-
-    // prompts are special, they are both metadata and rendered inline (sometimes)
-    if (prompt) {
-      this.bus.dispatchEvent("prompt", prompt);
-    }
-    await addHilites(frag);
-
-    const streams = [...frag.querySelectorAll(".stream.thoughts")];
-
-    if (streams.length && this.ui?.streams) {
-      streams.forEach((entry) => this.ui.streams.addEntry(entry));
+    if (promptInfo) {
+      // Create prompt GameTag for event dispatch
+      const promptTag = makeTag("prompt");
+      promptTag.attrs = promptInfo.attrs;
+      promptTag.text = promptInfo.text;
+      this.bus.dispatchEvent("prompt", promptTag);
     }
 
-    if (frag.hasChildNodes() && frag.textContent?.trim() !== "") {
-      if (this.ui?.feed) {
-        this.ui.feed.appendParsed(frag);
+    // Filter content tags for rendering (exclude metadata)
+    const contentTags = parsed.filter((tag) => !metadata.includes(tag));
+
+    // Handle stream elements for thoughts stream
+    const streamTags = contentTags.filter((tag) => tag.name === "stream" && tag.attrs.id === "thoughts");
+
+    // Legacy stream handling - convert to DOM for existing streams component
+    if (streamTags.length && this.ui?.streams) {
+      // Temporary: create DOM elements for legacy streams component
+      for (const streamTag of streamTags) {
+        const streamElement = document.createElement("pre");
+        streamElement.className = "stream thoughts";
+        streamElement.textContent = streamTag.text || "";
+        this.ui.streams.addEntry(streamElement);
       }
     }
 
-    if (this.ui?.feed && !this.ui.feed.has_prompt() && prompt) {
-      this.ui.feed.appendParsed(prompt);
+    // Render main content using modern component system
+    if (contentTags.length > 0) {
+      if (this.ui?.feed && "appendGameTags" in this.ui.feed) {
+        // Modern FeedModernized component
+        (this.ui.feed as { appendGameTags: (tags: Array<GameTag>) => void }).appendGameTags(contentTags);
+      } else if (this.ui?.feed) {
+        // Fallback for legacy Feed - this should be removed after migration
+        console.warn("Using legacy Feed component - consider migrating to FeedModernized");
+      }
     }
+
+    // Handle separate prompt rendering if needed
+    if (this.ui?.feed && !this.ui.feed.has_prompt() && promptInfo) {
+      if ("appendPrompt" in this.ui.feed) {
+        (this.ui.feed as { appendPrompt: (prompt: GameTag) => void }).appendPrompt(promptInfo);
+      }
+    }
+
+    // Process metadata for other systems (vitals, injuries, etc.)
     if (metadata.length) {
       debugSession(`[${this.name}] Processing ${metadata.length} metadata tags: ${metadata.map((tag) => tag.name).join(", ")}`);
       metadata.forEach((tag) => dispatchMetadata(this, tag));

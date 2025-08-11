@@ -24,8 +24,6 @@ export class GameLink extends BaseGameElement {
     
     :host(:hover) {
       text-decoration: underline;
-      opacity: 0.8;
-      text-shadow: 0 0 2px currentColor;
     }
     
     :host(:focus) {
@@ -44,13 +42,6 @@ export class GameLink extends BaseGameElement {
       position: relative;
     }
     
-    /* Add subtle background for categorized items */
-    :host([item-category]:hover) {
-      background-color: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-      padding: 1px 3px;
-      margin: -1px -3px;
-    }
     
     /* Context menu hint for command links */
     :host([coord]) {
@@ -66,6 +57,9 @@ export class GameLink extends BaseGameElement {
 
   async connectedCallback() {
     super.connectedCallback();
+
+    // Set tabindex="0" for keyboard accessibility (WCAG 2.1 compliance)
+    // This allows users to navigate game elements using Tab/Shift+Tab and activate with Enter/Space
     this.setAttribute("tabindex", "0");
     this.setAttribute("role", "button");
 

@@ -61,7 +61,7 @@ export class BaseGameElement extends LitElement {
   /**
    * Dispatch game element interaction events
    */
-  protected dispatchInteraction(type: string, detail: any) {
+  protected dispatchInteraction(type: string, detail: Record<string, unknown>) {
     this.dispatchEvent(
       new CustomEvent(`game-element-${type}`, {
         detail: { ...detail, tag: this.tag },

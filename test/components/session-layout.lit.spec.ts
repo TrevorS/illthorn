@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { CommandHistory } from "../../src/frontend/components/command-bar/command-history";
 import type { CLI } from "../../src/frontend/components/session/cli.lit";
 import type { CompassContainer } from "../../src/frontend/components/session/compass";
-import type { Feed } from "../../src/frontend/components/session/feed/feed.lit";
+import type { FeedModernized } from "../../src/frontend/components/session/feed/feed-modernized.lit";
 import type { Panel } from "../../src/frontend/components/session/panel.lit";
 import type { Prompt } from "../../src/frontend/components/session/prompt.lit";
 import type { Room } from "../../src/frontend/components/session/room.lit";
@@ -189,7 +189,7 @@ describe("SessionLayout", () => {
 
       const hands = main?.querySelector("illthorn-hands-container");
       const streams = main?.querySelector("illthorn-streams-lit");
-      const feed = main?.querySelector("illthorn-feed-lit");
+      const feed = main?.querySelector("illthorn-feed-modernized-lit");
       const cliWrapper = main?.querySelector(".cli-wrapper");
 
       expect(hands).toBeTruthy();
@@ -215,7 +215,7 @@ describe("SessionLayout", () => {
     it("should render feed component with session", async () => {
       await setup();
 
-      const feed = sessionUI.shadowRoot?.querySelector("illthorn-feed-lit") as Feed;
+      const feed = sessionUI.shadowRoot?.querySelector("illthorn-feed-modernized-lit") as FeedModernized;
       expect(feed).toBeTruthy();
       expect(feed.session).toBe(mockSession);
     });
@@ -321,7 +321,7 @@ describe("SessionLayout", () => {
 
       expect(sessionUIObj.context.tagName.toLowerCase()).toBe("illthorn-session-layout-lit");
       expect(sessionUIObj.cli?.tagName.toLowerCase()).toBe("illthorn-cli-lit");
-      expect(sessionUIObj.feed?.tagName.toLowerCase()).toBe("illthorn-feed-lit");
+      expect(sessionUIObj.feed?.tagName.toLowerCase()).toBe("illthorn-feed-modernized-lit");
       expect(sessionUIObj.prompt?.tagName.toLowerCase()).toBe("illthorn-prompt");
       expect(sessionUIObj.vitals?.tagName.toLowerCase()).toBe("illthorn-vitals-container");
       expect(sessionUIObj.streams?.tagName.toLowerCase()).toBe("illthorn-streams-lit");
@@ -390,7 +390,7 @@ describe("SessionLayout", () => {
       expect(sessionUI.shadowRoot?.querySelector("illthorn-vitals-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-effects-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-streams-lit")).toBeTruthy();
-      expect(sessionUI.shadowRoot?.querySelector("illthorn-feed-lit")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-feed-modernized-lit")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-prompt")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-cli-lit")).toBeTruthy();
     });

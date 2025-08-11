@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { CLI } from "../../src/frontend/components/command-bar/cli.lit";
 import { CommandHistory } from "../../src/frontend/components/command-bar/command-history";
-import { Feed } from "../../src/frontend/components/session/feed/feed.lit";
+import type { FeedModernized } from "../../src/frontend/components/session/feed/feed-modernized.lit";
 import { SaxophoneParser } from "../../src/frontend/parser/saxophone-parser";
 import type { FrontendSession } from "../../src/frontend/session";
 import { Bus } from "../../src/frontend/util/bus";
@@ -36,13 +36,13 @@ const createMockSession = (): FrontendSession => {
 
 describe("Command Echo Integration", () => {
   let cli: CLI;
-  let feed: Feed;
+  let feed: FeedModernized;
   let session: FrontendSession;
 
   beforeEach(() => {
     // Create components
     cli = new CLI();
-    feed = new Feed();
+    feed = document.createElement("illthorn-feed-modernized-lit") as FeedModernized;
     session = createMockSession();
 
     // Set up the session on both components

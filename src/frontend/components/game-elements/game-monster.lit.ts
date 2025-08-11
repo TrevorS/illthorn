@@ -22,17 +22,10 @@ export class GameMonster extends BaseGameElement {
       font-weight: bold;
       cursor: pointer;
       position: relative;
-      border-radius: 3px;
-      transition: all 0.3s ease;
-      text-shadow: 0 0 2px currentColor;
     }
     
     :host(:hover) {
-      text-shadow: 0 0 8px currentColor;
       text-decoration: underline;
-      background-color: rgba(255, 107, 107, 0.1);
-      padding: 2px 4px;
-      margin: -2px -4px;
     }
     
     :host(:focus) {
@@ -185,6 +178,9 @@ export class GameMonster extends BaseGameElement {
 
   connectedCallback() {
     super.connectedCallback();
+
+    // Set tabindex="0" for keyboard accessibility (WCAG 2.1 compliance)
+    // This allows users to navigate monsters using Tab/Shift+Tab and target with Enter/Space
     this.setAttribute("tabindex", "0");
     this.setAttribute("role", "button");
 

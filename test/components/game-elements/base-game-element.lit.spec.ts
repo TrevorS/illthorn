@@ -117,8 +117,8 @@ describe("BaseGameElement", () => {
           resolve();
         });
 
-        // Access protected method via any cast for testing
-        (element as any).dispatchInteraction("test", { testData: "value" });
+        // Access protected method via type assertion for testing
+        (element as unknown as { dispatchInteraction: (type: string, detail: Record<string, unknown>) => void }).dispatchInteraction("test", { testData: "value" });
       });
     });
 
@@ -132,7 +132,7 @@ describe("BaseGameElement", () => {
           resolve();
         });
 
-        (element as any).dispatchInteraction("action", { action: "click" });
+        (element as unknown as { dispatchInteraction: (type: string, detail: Record<string, unknown>) => void }).dispatchInteraction("action", { action: "click" });
       });
     });
   });
