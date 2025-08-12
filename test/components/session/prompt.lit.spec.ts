@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Prompt } from "../../../src/frontend/components/session/prompt.lit";
-import { createMockSession } from "../../mocks";
+import { createMockSession, createPromptTag } from "../../mocks";
 
 describe("Prompt", () => {
   const setup = () => {
@@ -105,13 +105,12 @@ describe("Prompt", () => {
       prompt.session = mockSession;
       await prompt.updateComplete;
 
-      // Create mock prompt element
-      const mockPromptElement = document.createElement("span");
-      mockPromptElement.textContent = "HP:100 MP:50>";
-      mockPromptElement.setAttribute("time", "1234567890");
+      // Create mock prompt GameTag
+      const mockPromptTag = createPromptTag("1234567890");
+      mockPromptTag.text = "HP:100 MP:50>";
 
       // Dispatch prompt event
-      mockSession.bus.dispatchEvent("prompt", mockPromptElement);
+      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
       await prompt.updateComplete;
 
       const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
@@ -130,12 +129,12 @@ describe("Prompt", () => {
       prompt.session = mockSession;
       await prompt.updateComplete;
 
-      // Create mock prompt element with no content
-      const mockPromptElement = document.createElement("span");
-      mockPromptElement.textContent = "";
+      // Create mock prompt GameTag with no content
+      const mockPromptTag = createPromptTag();
+      mockPromptTag.text = "";
 
       // Dispatch prompt event
-      mockSession.bus.dispatchEvent("prompt", mockPromptElement);
+      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
       await prompt.updateComplete;
 
       const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
@@ -154,15 +153,12 @@ describe("Prompt", () => {
       prompt.session = mockSession;
       await prompt.updateComplete;
 
-      // Create mock prompt element with null textContent
-      const mockPromptElement = document.createElement("span");
-      Object.defineProperty(mockPromptElement, "textContent", {
-        value: null,
-        writable: true,
-      });
+      // Create mock prompt GameTag with null text
+      const mockPromptTag = createPromptTag();
+      mockPromptTag.text = "";
 
       // Dispatch prompt event
-      mockSession.bus.dispatchEvent("prompt", mockPromptElement);
+      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
       await prompt.updateComplete;
 
       const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
@@ -181,13 +177,12 @@ describe("Prompt", () => {
       prompt.session = mockSession;
       await prompt.updateComplete;
 
-      // Create mock prompt element with time attribute
-      const mockPromptElement = document.createElement("span");
-      mockPromptElement.textContent = "Health: 100>";
-      mockPromptElement.setAttribute("time", "1640995200");
+      // Create mock prompt GameTag with time attribute
+      const mockPromptTag = createPromptTag("1640995200");
+      mockPromptTag.text = "Health: 100>";
 
       // Dispatch prompt event
-      mockSession.bus.dispatchEvent("prompt", mockPromptElement);
+      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
       await prompt.updateComplete;
 
       const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
@@ -207,8 +202,8 @@ describe("Prompt", () => {
       await prompt.updateComplete;
 
       // First prompt
-      const mockPrompt1 = document.createElement("span");
-      mockPrompt1.textContent = "HP:100>";
+      const mockPrompt1 = createPromptTag();
+      mockPrompt1.text = "HP:100>";
       mockSession.bus.dispatchEvent("prompt", mockPrompt1);
       await prompt.updateComplete;
       const textContent1 = Array.from(prompt.shadowRoot?.childNodes || [])
@@ -219,8 +214,8 @@ describe("Prompt", () => {
       expect(textContent1).toBe("HP:100>");
 
       // Second prompt
-      const mockPrompt2 = document.createElement("span");
-      mockPrompt2.textContent = "HP:90 MP:75>";
+      const mockPrompt2 = createPromptTag();
+      mockPrompt2.text = "HP:90 MP:75>";
       mockSession.bus.dispatchEvent("prompt", mockPrompt2);
       await prompt.updateComplete;
       const textContent2 = Array.from(prompt.shadowRoot?.childNodes || [])
@@ -239,13 +234,12 @@ describe("Prompt", () => {
       prompt.session = mockSession;
       await prompt.updateComplete;
 
-      // Create mock prompt element with HTML entities
-      const mockPromptElement = document.createElement("span");
-      mockPromptElement.textContent = "HP:100 MP:50&gt;";
-      mockPromptElement.setAttribute("time", "1234567890");
+      // Create mock prompt GameTag with HTML entities
+      const mockPromptTag = createPromptTag("1234567890");
+      mockPromptTag.text = "HP:100 MP:50&gt;";
 
       // Dispatch prompt event
-      mockSession.bus.dispatchEvent("prompt", mockPromptElement);
+      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
       await prompt.updateComplete;
 
       const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
@@ -331,9 +325,9 @@ describe("Prompt", () => {
       await prompt.updateComplete;
 
       // Should still work correctly without duplicate listeners
-      const mockPromptElement = document.createElement("span");
-      mockPromptElement.textContent = "Test>";
-      mockSession.bus.dispatchEvent("prompt", mockPromptElement);
+      const mockPromptTag = createPromptTag();
+      mockPromptTag.text = "Test>";
+      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
       await prompt.updateComplete;
 
       const textContent = Array.from(prompt.shadowRoot?.childNodes || [])

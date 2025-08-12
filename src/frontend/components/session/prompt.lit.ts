@@ -49,19 +49,12 @@ export class Prompt extends LitElement {
       return;
     }
 
-    this.session.bus.subscribeEvent<GameTag | Element>("prompt", ({ detail: prompt }) => {
+    this.session.bus.subscribeEvent<GameTag>("prompt", ({ detail: prompt }) => {
       //console.trace(prompt)
 
-      // Handle both GameTag and legacy DOM element formats for test compatibility
-      let promptText = "";
-      if (prompt && typeof prompt === "object" && "text" in prompt) {
-        // New GameTag format
-        const _time = prompt.attrs?.time as string;
-        promptText = prompt.text || "";
-      } else if (prompt && "textContent" in prompt) {
-        // Legacy DOM element format (for tests)
-        promptText = (prompt as Element).textContent || "";
-      }
+      // Extract text and time from GameTag
+      const _time = prompt.attrs?.time as string;
+      let promptText = prompt.text || "";
 
       // Decode HTML entities (e.g., &gt; -> >)
       if (promptText) {
