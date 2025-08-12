@@ -101,7 +101,19 @@ export class FrontendSession {
       // Create prompt GameTag for event dispatch
       const promptTag = makeTag("prompt");
       promptTag.attrs = promptInfo.attrs;
-      promptTag.text = promptInfo.text;
+
+      // Extract text from prompt children if main text is empty
+      let promptText = promptInfo.text;
+      if (!promptText && promptInfo.children.length > 0) {
+        // Find first text child and use its text content
+        const textChild = promptInfo.children.find((child) => child.name === ":text");
+        promptText = textChild?.text || "";
+        debugSession(`[${this.name}] Extracted prompt text from children: "${promptText}"`);
+      } else if (promptText) {
+        debugSession(`[${this.name}] Using direct prompt text: "${promptText}"`);
+      }
+      promptTag.text = promptText;
+
       this.bus.dispatchEvent("prompt", promptTag);
     }
 

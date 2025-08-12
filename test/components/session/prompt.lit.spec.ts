@@ -232,6 +232,31 @@ describe("Prompt", () => {
 
       teardown(prompt);
     });
+
+    it("should decode HTML entities in prompt text", async () => {
+      const { prompt, mockSession } = setup();
+
+      prompt.session = mockSession;
+      await prompt.updateComplete;
+
+      // Create mock prompt element with HTML entities
+      const mockPromptElement = document.createElement("span");
+      mockPromptElement.textContent = "HP:100 MP:50&gt;";
+      mockPromptElement.setAttribute("time", "1234567890");
+
+      // Dispatch prompt event
+      mockSession.bus.dispatchEvent("prompt", mockPromptElement);
+      await prompt.updateComplete;
+
+      const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
+        .filter((node) => node.nodeType === Node.TEXT_NODE || (node.nodeType === Node.ELEMENT_NODE && node.nodeName !== "STYLE"))
+        .map((node) => node.textContent)
+        .join("")
+        .trim();
+      expect(textContent).toBe("HP:100 MP:50>");
+
+      teardown(prompt);
+    });
   });
 
   describe("Component lifecycle", () => {

@@ -170,8 +170,8 @@ export class ComponentRenderer {
    */
   private renderStream(tag: GameTag): { template?: TemplateResult } {
     // Filter out duplicate streams (matches existing logic in dom.ts)
-    // Note: Removed "room" to allow room descriptions to display in feed
-    const duplicatedStreamIds = ["speech", "bounty", "inv"];
+    // Room streams are filtered to prevent duplication with inline room content
+    const duplicatedStreamIds = ["speech", "bounty", "inv", "room"];
     const streamId = tag.attrs.id as string;
 
     if (duplicatedStreamIds.includes(streamId) || tag.gameName === "popStream") {

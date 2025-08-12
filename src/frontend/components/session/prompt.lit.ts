@@ -49,11 +49,28 @@ export class Prompt extends LitElement {
       return;
     }
 
-    this.session.bus.subscribeEvent<GameTag>("prompt", ({ detail: prompt }) => {
+    this.session.bus.subscribeEvent<GameTag | Element>("prompt", ({ detail: prompt }) => {
       //console.trace(prompt)
-      const _time = prompt.attrs.time as string;
-      // todo: handle server time offset
-      this._promptText = prompt.text || "";
+
+      // Handle both GameTag and legacy DOM element formats for test compatibility
+      let promptText = "";
+      if (prompt && typeof prompt === "object" && "text" in prompt) {
+        // New GameTag format
+        const _time = prompt.attrs?.time as string;
+        promptText = prompt.text || "";
+      } else if (prompt && "textContent" in prompt) {
+        // Legacy DOM element format (for tests)
+        promptText = (prompt as Element).textContent || "";
+      }
+
+      // Decode HTML entities (e.g., &gt; -> >)
+      if (promptText) {
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = promptText;
+        promptText = tempDiv.textContent || tempDiv.innerText || promptText;
+      }
+
+      this._promptText = promptText;
       this.requestUpdate();
     });
   }
