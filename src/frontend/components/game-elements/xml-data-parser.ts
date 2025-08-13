@@ -217,24 +217,42 @@ let cachedXMLData: ParsedXMLData | null = null;
  */
 export async function loadGameObjectData(): Promise<ParsedXMLData> {
   if (cachedXMLData) {
+    console.log("[XML] Using cached XML data");
     return cachedXMLData;
   }
 
+  console.log("[XML] Loading game object data via Electron IPC");
+
   try {
-    // Load the XML file from docs directory
-    const response = await fetch("/docs/gameobj-data.xml");
-    if (!response.ok) {
-      throw new Error(`Failed to load XML data: ${response.statusText}`);
+    // Load the XML file via Electron IPC (idiomatic approach)
+    const result = await window.App.loadGameObjectXML();
+
+    if (!result.success || !result.content) {
+      throw new Error(`Failed to load XML data via IPC: ${result.error || "No content returned"}`);
     }
 
-    const xmlContent = await response.text();
-    cachedXMLData = await XMLDataParser.parseGameObjectData(xmlContent);
+    console.log(`[XML] Loaded XML content via IPC (${result.content.length} characters) from ${result.path}`);
 
-    console.log(`Loaded ${cachedXMLData.types.size} item categories with ${cachedXMLData.categories.size} quick lookups`);
+    cachedXMLData = await XMLDataParser.parseGameObjectData(result.content);
+
+    console.log(`[XML] Successfully parsed ${cachedXMLData.types.size} item categories with ${cachedXMLData.categories.size} quick lookups`);
+
+    // Log some sample categories for debugging
+    const sampleCategories = Array.from(cachedXMLData.types.keys()).slice(0, 5);
+    console.log(`[XML] Sample categories: ${sampleCategories.join(", ")}`);
+
     return cachedXMLData;
   } catch (error) {
-    console.error("Failed to load game object data:", error);
+    console.error("[XML] Failed to load game object data:", error);
+    console.error("[XML] This will cause item highlighting to fail");
     // Return empty data as fallback
     return { types: new Map(), categories: new Map() };
   }
+}
+
+/**
+ * Clear cached XML data (useful for testing)
+ */
+export function clearXMLCache(): void {
+  cachedXMLData = null;
 }

@@ -297,8 +297,8 @@ describe("FeedModernized Component", () => {
       feed.appendGameTags([textTag]);
       await feed.updateComplete;
 
-      // Allow for async scroll scheduling
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      // Allow for async scroll scheduling with double requestAnimationFrame
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
       expect(scrollSpy).toHaveBeenCalled();
       scrollSpy.mockRestore();
@@ -363,30 +363,15 @@ describe("FeedModernized Component", () => {
     });
   });
 
-  describe("Legacy compatibility", () => {
-    test("should handle appendParsed with DocumentFragment", async () => {
-      const fragment = document.createDocumentFragment();
-      const textNode = document.createTextNode("Legacy content");
-      fragment.appendChild(textNode);
+  describe("Modern API only", () => {
+    test("should only use appendGameTags for content", () => {
+      // Verify legacy appendParsed method has been removed
+      // biome-ignore lint/suspicious/noExplicitAny: Checking legacy method removal
+      expect((feed as any).appendParsed).toBeUndefined();
 
-      // Should not throw
-      feed.appendParsed(fragment);
-      await feed.updateComplete;
-
-      // Should be handled as command echo (temporary during migration)
-      const stats = feed.getRenderStats();
-      expect(stats.commandEchoes).toBe(1);
-    });
-
-    test("should handle appendParsed with Element", async () => {
-      const element = document.createElement("div");
-      element.textContent = "Legacy element";
-
-      feed.appendParsed(element);
-      await feed.updateComplete;
-
-      const stats = feed.getRenderStats();
-      expect(stats.commandEchoes).toBe(1);
+      // Modern API should be available
+      expect(feed.appendGameTags).toBeDefined();
+      expect(typeof feed.appendGameTags).toBe("function");
     });
   });
 

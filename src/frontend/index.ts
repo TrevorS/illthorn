@@ -3,6 +3,7 @@ import "./illthorn";
 import "./components/app.lit";
 import "./components/timers/roundtime-timer.lit";
 import "./components/timers/casttime-timer.lit";
+import "./components/session/feed/command-echo.lit";
 
 // Shoelace Web Components integration
 import { setBasePath } from "@shoelace-style/shoelace/dist/utilities/base-path.js";
@@ -12,6 +13,8 @@ import { renderAllSessions } from "./session/connect-all";
 import "@shoelace-style/shoelace/dist/themes/dark.css";
 import "@shoelace-style/shoelace/dist/components/progress-bar/progress-bar.js";
 import "@shoelace-style/shoelace/dist/components/input/input.js";
+import "@shoelace-style/shoelace/dist/components/tag/tag.js";
+import "@shoelace-style/shoelace/dist/components/tooltip/tooltip.js";
 
 (async function __illthorn_main() {
   // Configure Shoelace base path for assets

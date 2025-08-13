@@ -32,14 +32,6 @@ type FeedElement = HTMLElement & {
   _handleCommandEcho?: (event: CommandEchoEvent) => void;
 };
 
-// Type for game element components
-type GameElement = HTMLElement & {
-  noun?: string;
-  exist?: string;
-  itemCategory?: string;
-  highlightClass?: string;
-};
-
 // Mock the item highlighting system to avoid XML loading issues
 const mockItemHighlighter = {
   // Common item noun to category mappings for realistic Storybook testing
@@ -82,40 +74,77 @@ const mockItemHighlighter = {
     topaz: "gem",
     pearl: "gem",
     opal: "gem",
-    crystal: "gem",
 
-    // Reagents (herbs/potions) - map to 'herbal' since there's no 'reagent' CSS
-    potion: "herbal",
-    herb: "herbal",
-    tincture: "herbal",
-    salve: "herbal",
-    elixir: "herbal",
-    remedy: "herbal",
-    medicine: "herbal",
-    vial: "herbal",
+    // Herbs and reagents - use XML 'herb' category
+    potion: "herb",
+    herb: "herb",
+    tincture: "herb",
+    salve: "herb",
+    elixir: "herb",
+    remedy: "herb",
+    medicine: "herb",
+    vial: "herb",
+    stem: "herb",
+    moss: "herb",
+    leaf: "herb",
+    lichen: "herb",
 
-    // Jewelry - map to 'magic' since there's no 'jewelry' CSS
-    ring: "magic",
-    amulet: "magic",
-    necklace: "magic",
-    bracelet: "magic",
-    earring: "magic",
-    pendant: "magic",
-    chain: "magic",
+    // Jewelry - use 'jewelry' category
+    ring: "jewelry",
+    amulet: "jewelry",
+    necklace: "jewelry",
+    bracelet: "jewelry",
+    earring: "jewelry",
+    pendant: "jewelry",
+    chain: "jewelry",
 
-    // Food
-    bread: "food",
-    meat: "food",
+    // Magic items - specific XML categories
+    scroll: "scroll",
+    parchment: "scroll",
+    wand: "wand",
+    rod: "wand",
+    orb: "magic",
+    talisman: "magic",
+    crystal: "magic",
+
+    // Food - distinguish between regular food and manna bread
+    tart: "food",
     fruit: "food",
+    meat: "food",
     cheese: "food",
     pie: "food",
+    cake: "food",
 
-    // Containers - map to 'container' to match CSS
-    box: "container",
-    chest: "container",
-    bag: "container",
-    pouch: "container",
-    pack: "container",
+    // Manna bread - specific XML category
+    loaf: "manna bread",
+    bread: "manna bread",
+
+    // Containers - use 'box' category to match XML
+    box: "box",
+    chest: "box",
+    bag: "box",
+    pouch: "box",
+    pack: "box",
+
+    // Clothing items
+    backpack: "clothing",
+    harness: "clothing",
+    robe: "clothing",
+    cloak: "clothing",
+    tunic: "clothing",
+
+    // Skins and pelts
+    skin: "skin",
+    hide: "skin",
+    pelt: "skin",
+
+    // NPCs
+    merchant: "passive npc",
+    shopkeeper: "passive npc",
+    clerk: "passive npc",
+    bandit: "aggressive npc",
+    warrior: "aggressive npc",
+    assassin: "aggressive npc",
   } as Record<string, string>,
 
   // Items that should not be highlighted (exits, etc.)
@@ -196,24 +225,40 @@ const mockItemHighlighter = {
   async getAllCategories() {
     return [
       { key: "weapon", name: "Weapons", color: "#ff6b6b" },
-      { key: "forgeable", name: "Armor & Shields", color: "#74c0fc" },
+      { key: "armor", name: "Armor & Shields", color: "#74c0fc" },
+      { key: "clothing", name: "Clothing", color: "#51cf66" },
       { key: "gem", name: "Gems & Stones", color: "#ffd43b" },
-      { key: "herbal", name: "Herbs & Reagents", color: "#51cf66" },
-      { key: "magic", name: "Magic Items", color: "#9775fa" },
-      { key: "food", name: "Food & Consumables", color: "#ffa94d" },
-      { key: "container", name: "Containers", color: "#868e96" },
+      { key: "jewelry", name: "Jewelry", color: "#9775fa" },
+      { key: "herb", name: "Herbs & Reagents", color: "#9775fa" },
+      { key: "food", name: "Food", color: "#ffa94d" },
+      { key: "manna bread", name: "Manna Bread", color: "#ffa94d" },
+      { key: "scroll", name: "Scrolls", color: "#e599f7" },
+      { key: "wand", name: "Wands", color: "#e599f7" },
+      { key: "magic", name: "Magic Items", color: "#e599f7" },
+      { key: "skin", name: "Skins & Pelts", color: "#ff8787" },
+      { key: "box", name: "Containers", color: "#868e96" },
+      { key: "passive npc", name: "Passive NPCs", color: "#40c057" },
+      { key: "aggressive npc", name: "Aggressive NPCs", color: "#fa5252" },
     ];
   },
 
   getCategoryColor(category: string) {
     const colorMap: Record<string, string> = {
       weapon: "var(--color-item-weapon, #ff6b6b)",
-      forgeable: "var(--color-item-forgeable, #74c0fc)",
+      armor: "var(--color-item-armor, #74c0fc)",
+      clothing: "var(--color-item-clothing, #51cf66)",
       gem: "var(--color-item-gem, #ffd43b)",
-      herbal: "var(--color-item-herbal, #51cf66)",
-      magic: "var(--color-item-magic, #9775fa)",
+      jewelry: "var(--color-item-jewelry, #9775fa)",
+      herb: "var(--color-item-reagent, #9775fa)",
       food: "var(--color-item-food, #ffa94d)",
-      container: "var(--color-item-container, #868e96)",
+      "manna bread": "var(--color-item-food, #ffa94d)",
+      scroll: "var(--color-item-magic, #e599f7)",
+      wand: "var(--color-item-magic, #e599f7)",
+      magic: "var(--color-item-magic, #e599f7)",
+      skin: "var(--color-item-valuable, #ff8787)",
+      box: "var(--color-item-container, #868e96)",
+      "passive npc": "var(--color-npc-passive, #40c057)",
+      "aggressive npc": "var(--color-npc-aggressive, #fa5252)",
     };
     return colorMap[category] || "var(--color-item-default, #a0a0a0)";
   },
@@ -304,7 +349,9 @@ const createPromptTag = (time: string = Date.now().toString()) => {
 const createCombatScenario = () => [
   createTextTag("A "),
   createGameMonsterTag("orc12345", "orc", "massive orc warrior"),
-  createTextTag(" charges into the room! The orc warrior swings a war hammer at you! You can "),
+  createTextTag(" charges into the room!"),
+  createTextTag("The orc warrior swings a war hammer at you!"),
+  createTextTag("You can "),
   createGameCommandTag("dodge", "dodge"),
   createTextTag(" or "),
   createGameCommandTag("block", "block"),
@@ -425,51 +472,39 @@ export const RoomDescription: Story = {
     focused: false,
   },
   render: (args) => {
-    // Add content after component renders with more debugging
+    // Use real GameTag data for room scenario with realistic message flow
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="room"]') as FeedElement;
       if (feed?.appendGameTags) {
-        console.log("Adding room scenario content to feed");
-        const roomContent = createRoomScenario();
-        console.log("Room scenario content:", roomContent);
+        // Simulate how room content typically arrives as separate messages
+        feed.appendGameTags([createPresetTag("roomName", "The Town Square")]);
 
-        // Debug individual GameTags
-        roomContent.forEach((tag, i) => {
-          if (tag.name === "a") {
-            console.log(`GameLink ${i}:`, {
-              name: tag.name,
-              text: tag.text,
-              attrs: tag.attrs,
-              children: tag.children,
-            });
-          }
-        });
-        feed.appendGameTags(roomContent);
-
-        // Check what was rendered with better debugging
         setTimeout(() => {
-          console.log("Feed shadow root:", feed.shadowRoot);
-          const content = feed.shadowRoot?.querySelector(".content");
-          console.log("Feed content div:", content);
-          console.log("Content innerHTML:", content?.innerHTML);
+          feed.appendGameTags([createPresetTag("roomDesc", "This is the heart of the main square of Wehnimer's Landing. The town square is bustling with people.")]);
+        }, 200);
 
-          // Check GameLink components specifically
-          const gameLinks = feed.shadowRoot?.querySelectorAll("illthorn-game-link");
-          console.log("Found game links:", gameLinks?.length);
-          gameLinks?.forEach((link: GameElement, i: number) => {
-            console.log(`Link ${i}:`, {
-              noun: link.getAttribute("noun") || link.noun,
-              exist: link.getAttribute("exist") || link.exist,
-              itemCategory: link.getAttribute("item-category") || link.itemCategory,
-              highlightClass: link.getAttribute("highlight-class") || link.highlightClass,
-              textContent: link.textContent,
-            });
-          });
+        setTimeout(() => {
+          feed.appendGameTags([
+            createTextTag("Obvious exits: "),
+            createGameLinkTag("exit_n", "exit", "north"),
+            createTextTag(", "),
+            createGameLinkTag("exit_s", "exit", "south"),
+            createTextTag(", "),
+            createGameLinkTag("exit_e", "exit", "east"),
+            createTextTag(", "),
+            createGameLinkTag("exit_w", "exit", "west"),
+          ]);
+        }, 400);
 
-          console.log("Render stats:", feed.getRenderStats());
-        }, 500);
-      } else {
-        console.log("Feed not found or method not available:", feed);
+        setTimeout(() => {
+          feed.appendGameTags([
+            createTextTag(" You see "),
+            createGameLinkTag("sword123", "sword", "a steel longsword"),
+            createTextTag(" and "),
+            createGameLinkTag("shield456", "shield", "a wooden shield"),
+            createTextTag(" here."),
+          ]);
+        }, 600);
       }
     }, 200);
 
@@ -495,11 +530,26 @@ export const CombatScenario: Story = {
     focused: false,
   },
   render: (args) => {
-    // Use real GameTag data for combat scenario
+    // Use real GameTag data for combat scenario with realistic message flow
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="combat"]') as FeedElement;
       if (feed) {
-        feed.appendGameTags(createCombatScenario());
+        // Simulate how the game would send this as separate messages
+        feed.appendGameTags([createTextTag("A "), createGameMonsterTag("orc12345", "orc", "massive orc warrior"), createTextTag(" charges into the room!")]);
+
+        setTimeout(() => {
+          feed.appendGameTags([createTextTag("The orc warrior swings a war hammer at you!")]);
+        }, 300);
+
+        setTimeout(() => {
+          feed.appendGameTags([
+            createTextTag("You can "),
+            createGameCommandTag("dodge", "dodge"),
+            createTextTag(" or "),
+            createGameCommandTag("block", "block"),
+            createTextTag(" the attack."),
+          ]);
+        }, 600);
       }
     }, 100);
 
@@ -524,11 +574,42 @@ export const ShopInteraction: Story = {
     focused: false,
   },
   render: (args) => {
-    // Use real GameTag data for shop scenario
+    // Use real GameTag data for shop scenario with realistic message flow
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="shop"]') as FeedElement;
       if (feed) {
-        feed.appendGameTags(createShopScenario());
+        // Simulate how the game would send shop content as separate messages
+        feed.appendGameTags([createPresetTag("roomName", "Weaponsmith Shop")]);
+
+        setTimeout(() => {
+          feed.appendGameTags([createPresetTag("roomDesc", "The shop is filled with weapons and armor of all kinds.")]);
+        }, 200);
+
+        setTimeout(() => {
+          feed.appendGameTags([
+            createTextTag('The weaponsmith says, "Would you like to '),
+            createGameCommandTag("buy", "buy"),
+            createTextTag(" something or "),
+            createGameCommandTag("sell", "sell"),
+            createTextTag(' your old gear?"'),
+          ]);
+        }, 400);
+
+        setTimeout(() => {
+          feed.appendGameTags([createTextTag("Items for sale:")]);
+        }, 600);
+
+        setTimeout(() => {
+          feed.appendGameTags([createTextTag("• "), createGameLinkTag("dagger999", "dagger", "a sharp dagger"), createTextTag(" (50 silver)")]);
+        }, 800);
+
+        setTimeout(() => {
+          feed.appendGameTags([createTextTag("• "), createGameLinkTag("armor888", "armor", "studded leather armor"), createTextTag(" (200 silver)")]);
+        }, 1000);
+
+        setTimeout(() => {
+          feed.appendGameTags([createTextTag("• "), createGameLinkTag("potion777", "potion", "a healing potion"), createTextTag(" (25 silver)")]);
+        }, 1200);
       }
     }, 100);
 
@@ -553,11 +634,28 @@ export const CommunicationStreams: Story = {
     focused: false,
   },
   render: (args) => {
-    // Use real GameTag data for communication scenario
+    // Use real GameTag data for communication scenario with realistic message flow
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="communication"]') as FeedElement;
       if (feed) {
-        feed.appendGameTags(createCommunicationScenario());
+        // Simulate how communication messages arrive separately in the game
+        feed.appendGameTags([createPresetTag("speech", 'Player says, "Hello everyone!"')]);
+
+        setTimeout(() => {
+          feed.appendGameTags([createPresetTag("whisper", 'Player whispers, "Meet me at the bank."')]);
+        }, 300);
+
+        setTimeout(() => {
+          feed.appendGameTags([createPresetTag("thoughts", 'You think to yourself, "What should I do next?"')]);
+        }, 600);
+
+        setTimeout(() => {
+          feed.appendGameTags([createTextTag("Adventurer Bob arrives.")]);
+        }, 900);
+
+        setTimeout(() => {
+          feed.appendGameTags([createPresetTag("speech", 'Adventurer Bob says, "Anyone want to form a group?"')]);
+        }, 1200);
       }
     }, 100);
 
@@ -582,11 +680,38 @@ export const MixedContentScenario: Story = {
     focused: false,
   },
   render: (args) => {
-    // Use real GameTag data for mixed content scenario
+    // Use real GameTag data for mixed content scenario with realistic message flow
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="mixed"]') as FeedElement;
       if (feed) {
-        feed.appendGameTags(createMixedContentScenario());
+        // Simulate how the game would send this as separate messages
+        feed.appendGameTags([createTextTag("You enter the abandoned mine.")]);
+
+        setTimeout(() => {
+          feed.appendGameTags([createPresetTag("roomName", "Abandoned Mine Entrance")]);
+        }, 200);
+
+        setTimeout(() => {
+          feed.appendGameTags([createTextTag("A "), createGameMonsterTag("bat123", "bat", "vampire bat"), createTextTag(" swoops down from the ceiling!")]);
+        }, 400);
+
+        setTimeout(() => {
+          feed.appendGameTags([
+            createTextTag("You can "),
+            createGameCommandTag("attack bat", "attack"),
+            createTextTag(" the bat or "),
+            createGameCommandTag("flee", "flee"),
+            createTextTag(" to safety."),
+          ]);
+        }, 600);
+
+        setTimeout(() => {
+          feed.appendGameTags([createTextTag("You notice "), createGameLinkTag("torch555", "torch", "a flickering torch"), createTextTag(" on the wall that might be useful.")]);
+        }, 800);
+
+        setTimeout(() => {
+          feed.appendGameTags([createPromptTag()]);
+        }, 1000);
       }
     }, 100);
 
@@ -655,7 +780,7 @@ export const ScrollingAndMemoryDemo: Story = {
 
         // Add more content to demonstrate memory management
         for (let i = 0; i < 10; i++) {
-          feed.appendGameTags([createTextTag(`Additional game message ${i + 1}\n`)]);
+          feed.appendGameTags([createTextTag(`Additional game message ${i + 1}`)]);
         }
       }
     }, 100);
@@ -697,25 +822,46 @@ export const RealComponentInteractivity: Story = {
         const mockSession = { bus: { subscribeEvent: () => {} } }; // Mock session for event handling
         feed.session = mockSession;
 
-        feed.appendGameTags([
-          createTextTag("=== Interactive Component Demo ===\n"),
-          createTextTag("Try hovering and clicking on the elements below:\n\n"),
+        // Show interactive elements as separate messages for realistic flow
+        feed.appendGameTags([createTextTag("=== Interactive Component Demo ===")]);
 
-          ...createRoomScenario().slice(0, 2), // Room name and description
-          createTextTag("\nClick on this "),
-          createGameLinkTag("sword123", "sword", "steel longsword"),
-          createTextTag(" to examine it.\n"),
+        setTimeout(() => {
+          feed.appendGameTags([createTextTag("Try hovering and clicking on the elements below:")]);
+        }, 200);
 
-          createTextTag("Use "),
-          createGameCommandTag("dodge", "dodge"),
-          createTextTag(" or "),
-          createGameCommandTag("block", "block"),
-          createTextTag(" commands.\n\n"),
+        setTimeout(() => {
+          feed.appendGameTags([...createRoomScenario().slice(0, 2)]); // Room name and description
+        }, 400);
 
-          createTextTag("A "),
-          createGameMonsterTag("dragon456", "dragon", "fierce dragon"),
-          createTextTag(" appears!\n"),
-        ]);
+        setTimeout(() => {
+          feed.appendGameTags([createTextTag("Click on this "), createGameLinkTag("125592513", "gladius", "matte black golvern gladius"), createTextTag(" to examine it.")]);
+        }, 600);
+
+        setTimeout(() => {
+          feed.appendGameTags([
+            createTextTag("Herbs available: "),
+            createGameLinkTag("127527554", "stem", "some aloeas stem"),
+            createTextTag(", "),
+            createGameLinkTag("127527553", "moss", "some ephlox moss"),
+            createTextTag(", "),
+            createGameLinkTag("127527552", "potion", "rose-marrow potion"),
+            createTextTag("."),
+          ]);
+        }, 800);
+
+        setTimeout(() => {
+          feed.appendGameTags([
+            createTextTag("Use "),
+            createGameCommandTag("dodge", "dodge"),
+            createTextTag(" or "),
+            createGameCommandTag("block", "block"),
+            createTextTag(" commands."),
+          ]);
+        }, 1000);
+
+        setTimeout(() => {
+          feed.appendGameTags([createTextTag("A "), createGameMonsterTag("dragon456", "dragon", "fierce dragon"), createTextTag(" appears!")]);
+        }, 1200);
       }
     }, 100);
 
@@ -761,8 +907,12 @@ export const WithCommandEcho: Story = {
         };
         feed.session = mockSession;
 
-        // Add some game content
-        feed.appendGameTags(createRoomScenario());
+        // Add some game content with realistic message flow
+        feed.appendGameTags([createPresetTag("roomName", "The Town Square")]);
+
+        setTimeout(() => {
+          feed.appendGameTags([createPresetTag("roomDesc", "This is the heart of the main square of Wehnimer's Landing. The town square is bustling with people.")]);
+        }, 200);
 
         // Simulate command echoes after a delay
         setTimeout(() => {

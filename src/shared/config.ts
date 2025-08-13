@@ -18,14 +18,14 @@ export const CONFIG = {
        * Game object categorization data (items, weapons, herbs, etc.)
        */
       gameObjects: "data/gameobj-data.xml",
-      
+
       /**
        * Spell definitions with stats and effects
        */
       spells: "data/spell-list.xml",
     },
   },
-  
+
   /**
    * Future configuration sections can be added here
    * Examples:
@@ -55,13 +55,13 @@ export function getXMLFilePath(type: keyof typeof CONFIG.data.xmlFiles): string 
 export function validateConfig(): boolean {
   // Basic validation - ensure all required paths are defined
   const requiredPaths = Object.values(CONFIG.data.xmlFiles);
-  
+
   for (const path of requiredPaths) {
     if (!path || typeof path !== "string" || path.trim().length === 0) {
       console.error(`Invalid configuration: empty or invalid path detected`);
       return false;
     }
   }
-  
+
   return true;
 }

@@ -15,13 +15,19 @@ export class ItemHighlighter {
    * Initialize the highlighter with XML data
    */
   static async initialize(): Promise<void> {
-    if (ItemHighlighter.xmlData) return;
+    if (ItemHighlighter.xmlData) {
+      console.log("[ItemHighlighter] Already initialized with XML data");
+      return;
+    }
+
+    console.log("[ItemHighlighter] Initializing with XML data...");
 
     if (!ItemHighlighter.loading) {
       ItemHighlighter.loading = loadGameObjectData();
     }
 
     ItemHighlighter.xmlData = await ItemHighlighter.loading;
+    console.log("[ItemHighlighter] Initialization complete");
   }
 
   /**
@@ -195,49 +201,68 @@ export class ItemHighlighter {
     source: "noun" | "name" | "exist" | "fallback";
   }> {
     const { noun, exist, name } = attributes;
+    console.log(`[ItemHighlighter] categorizeGameElement called with: noun="${noun}", exist="${exist}", name="${name}"`);
+
+    await ItemHighlighter.initialize();
 
     // Try noun first (highest confidence)
     if (noun) {
+      console.log(`[ItemHighlighter] Trying noun-based categorization for "${noun}"`);
       const nounCategory = await ItemHighlighter.getItemCategory(noun, name);
       if (nounCategory) {
+        console.log(`[ItemHighlighter] Found noun-based category "${nounCategory}" for "${noun}"`);
         return {
           category: nounCategory,
           confidence: "high",
           source: "noun",
         };
+      } else {
+        console.log(`[ItemHighlighter] No noun-based category found for "${noun}"`);
       }
     }
 
     // Try exist attribute (medium confidence)
     if (exist) {
+      console.log(`[ItemHighlighter] Trying exist-based categorization for "${exist}"`);
       const existCategory = await ItemHighlighter.getItemCategory(exist, name);
       if (existCategory) {
+        console.log(`[ItemHighlighter] Found exist-based category "${existCategory}" for "${exist}"`);
         return {
           category: existCategory,
           confidence: "medium",
           source: "exist",
         };
+      } else {
+        console.log(`[ItemHighlighter] No exist-based category found for "${exist}"`);
       }
     }
 
     // Try full name pattern matching (low confidence)
     if (name) {
-      await ItemHighlighter.initialize();
+      console.log(`[ItemHighlighter] Trying name-based categorization for "${name}"`);
       if (ItemHighlighter.xmlData) {
         for (const [categoryName, categoryData] of ItemHighlighter.xmlData.types) {
           if (categoryData.namePatterns.some((pattern) => pattern.test(name))) {
+            console.log(`[ItemHighlighter] Name "${name}" matches pattern for category "${categoryName}"`);
             if (!XMLDataParser.isExcluded(name, categoryData)) {
+              console.log(`[ItemHighlighter] Found name-based category "${categoryName}" for "${name}"`);
               return {
                 category: categoryName,
                 confidence: "low",
                 source: "name",
               };
+            } else {
+              console.log(`[ItemHighlighter] Name "${name}" excluded from category "${categoryName}"`);
             }
           }
         }
+        console.log(`[ItemHighlighter] No name-based category found for "${name}"`);
+      } else {
+        console.log(`[ItemHighlighter] XML data not available for name-based categorization`);
       }
     }
 
+    console.log(`[ItemHighlighter] No category found for item with noun="${noun}", exist="${exist}", name="${name}"`);
     return {
       category: null,
       confidence: "low",

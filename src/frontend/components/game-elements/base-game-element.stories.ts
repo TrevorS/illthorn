@@ -43,8 +43,28 @@ const meta: Meta = {
     },
     itemCategory: {
       control: "select",
-      options: ["", "weapon", "gem", "herbal", "magic", "forgeable", "food", "container"],
-      description: "Automatic item category for themed styling",
+      options: [
+        "",
+        "weapon",
+        "armor",
+        "clothing",
+        "gem",
+        "jewelry",
+        "reagent",
+        "food",
+        "valuable",
+        "box",
+        "junk",
+        "herb",
+        "manna bread",
+        "scroll",
+        "wand",
+        "skin",
+        "magic",
+        "passive npc",
+        "aggressive npc",
+      ],
+      description: "Automatic item category for themed styling from XML data",
     },
   },
 };
@@ -83,7 +103,7 @@ export const Default: Story = {
 
 export const WeaponCategory: Story = {
   args: {
-    tag: createMockTag("a", { noun: "sword", exist: "sword123" }, "a sharp longsword"),
+    tag: createMockTag("a", { noun: "gladius", exist: "125592513" }, "matte black golvern gladius"),
     highlighted: false,
     highlightClass: "",
     itemCategory: "weapon",
@@ -123,12 +143,12 @@ export const GemCategory: Story = {
   `,
 };
 
-export const HerbalCategory: Story = {
+export const HerbCategory: Story = {
   args: {
-    tag: createMockTag("a", { noun: "lichen", exist: "lichen789" }, "some ayana lichen"),
+    tag: createMockTag("a", { noun: "stem", exist: "127527554" }, "some aloeas stem"),
     highlighted: false,
     highlightClass: "",
-    itemCategory: "herbal",
+    itemCategory: "herb",
   },
   render: (args) => html`
     <illthorn-base-game-element
@@ -146,7 +166,7 @@ export const HerbalCategory: Story = {
 
 export const MagicCategory: Story = {
   args: {
-    tag: createMockTag("a", { noun: "orb", exist: "orb101" }, "a swirling crystal orb"),
+    tag: createMockTag("a", { noun: "amulet", exist: "127527523" }, "crystal amulet"),
     highlighted: false,
     highlightClass: "",
     itemCategory: "magic",
@@ -207,12 +227,12 @@ export const FoodCategory: Story = {
   `,
 };
 
-export const ContainerCategory: Story = {
+export const ClothingCategory: Story = {
   args: {
-    tag: createMockTag("a", { noun: "backpack", exist: "pack404" }, "a sturdy leather backpack"),
+    tag: createMockTag("a", { noun: "backpack", exist: "127527516" }, "forest green backpack"),
     highlighted: false,
     highlightClass: "",
-    itemCategory: "container",
+    itemCategory: "clothing",
   },
   render: (args) => html`
     <illthorn-base-game-element
@@ -280,9 +300,94 @@ export const CustomHighlightClass: Story = {
   `,
 };
 
+// XML-specific category stories
+export const MannaBreadCategory: Story = {
+  args: {
+    tag: createMockTag("a", { noun: "loaf", exist: "127527555" }, "sweet pineapple-glazed pumpkin loaf"),
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "manna bread",
+  },
+  render: (args) => html`
+    <illthorn-base-game-element
+      .tag=${args.tag}
+      ?highlighted=${args.highlighted}
+      .highlightClass=${args.highlightClass}
+      .itemCategory=${args.itemCategory}
+      @game-element-test=${action("game-element-test")}
+      @game-element-action=${action("game-element-action")}
+    >
+      ${args.tag.text}
+    </illthorn-base-game-element>
+  `,
+};
+
+export const ScrollCategory: Story = {
+  args: {
+    tag: createMockTag("a", { noun: "scroll", exist: "scroll123" }, "glowing scroll of healing"),
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "scroll",
+  },
+  render: (args) => html`
+    <illthorn-base-game-element
+      .tag=${args.tag}
+      ?highlighted=${args.highlighted}
+      .highlightClass=${args.highlightClass}
+      .itemCategory=${args.itemCategory}
+      @game-element-test=${action("game-element-test")}
+      @game-element-action=${action("game-element-action")}
+    >
+      ${args.tag.text}
+    </illthorn-base-game-element>
+  `,
+};
+
+export const WandCategory: Story = {
+  args: {
+    tag: createMockTag("a", { noun: "wand", exist: "wand456" }, "enchanted oak wand"),
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "wand",
+  },
+  render: (args) => html`
+    <illthorn-base-game-element
+      .tag=${args.tag}
+      ?highlighted=${args.highlighted}
+      .highlightClass=${args.highlightClass}
+      .itemCategory=${args.itemCategory}
+      @game-element-test=${action("game-element-test")}
+      @game-element-action=${action("game-element-action")}
+    >
+      ${args.tag.text}
+    </illthorn-base-game-element>
+  `,
+};
+
+export const SkinCategory: Story = {
+  args: {
+    tag: createMockTag("a", { noun: "skin", exist: "skin789" }, "supple troll skin"),
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "skin",
+  },
+  render: (args) => html`
+    <illthorn-base-game-element
+      .tag=${args.tag}
+      ?highlighted=${args.highlighted}
+      .highlightClass=${args.highlightClass}
+      .itemCategory=${args.itemCategory}
+      @game-element-test=${action("game-element-test")}
+      @game-element-action=${action("game-element-action")}
+    >
+      ${args.tag.text}
+    </illthorn-base-game-element>
+  `,
+};
+
 export const InteractionTest: Story = {
   args: {
-    tag: createMockTag("a", { noun: "dagger", exist: "dagger606" }, "a wicked sharp dagger"),
+    tag: createMockTag("a", { noun: "dagger", exist: "125592512" }, "hefty mithril dagger"),
     highlighted: false,
     highlightClass: "",
     itemCategory: "weapon",
@@ -319,68 +424,127 @@ export const InteractionTest: Story = {
 
 export const CategoryComparison: Story = {
   render: () => html`
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 16px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; padding: 16px;">
       <div>
-        <h4>Weapons</h4>
-        <illthorn-base-game-element
-          .tag=${createMockTag("a", { noun: "sword" }, "a sharp longsword")}
-          itemCategory="weapon"
-        >a sharp longsword</illthorn-base-game-element>
+        <h4>Weapons (Red)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "gladius" }, "matte black golvern gladius")}
+            itemCategory="weapon"
+          >matte black golvern gladius</illthorn-base-game-element><br>
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "dagger" }, "hefty mithril dagger")}
+            itemCategory="weapon"
+          >hefty mithril dagger</illthorn-base-game-element>
+        </div>
       </div>
       
       <div>
-        <h4>Gems</h4>
-        <illthorn-base-game-element
-          .tag=${createMockTag("a", { noun: "ruby" }, "a glimmering ruby")}
-          itemCategory="gem"
-        >a glimmering ruby</illthorn-base-game-element>
+        <h4>Herbs (Purple)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "stem" }, "some aloeas stem")}
+            itemCategory="herb"
+          >some aloeas stem</illthorn-base-game-element><br>
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "moss" }, "some ephlox moss")}
+            itemCategory="herb"
+          >some ephlox moss</illthorn-base-game-element><br>
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "potion" }, "rose-marrow potion")}
+            itemCategory="herb"
+          >rose-marrow potion</illthorn-base-game-element>
+        </div>
       </div>
       
       <div>
-        <h4>Herbals</h4>
-        <illthorn-base-game-element
-          .tag=${createMockTag("a", { noun: "lichen" }, "some ayana lichen")}
-          itemCategory="herbal"
-        >some ayana lichen</illthorn-base-game-element>
+        <h4>Clothing (Green)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "backpack" }, "forest green backpack")}
+            itemCategory="clothing"
+          >forest green backpack</illthorn-base-game-element><br>
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "harness" }, "maroon harness")}
+            itemCategory="clothing"
+          >maroon harness</illthorn-base-game-element>
+        </div>
       </div>
       
       <div>
-        <h4>Magic Items</h4>
-        <illthorn-base-game-element
-          .tag=${createMockTag("a", { noun: "orb" }, "a swirling crystal orb")}
-          itemCategory="magic"
-        >a swirling crystal orb</illthorn-base-game-element>
+        <h4>Magic Items (Pink)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "amulet" }, "crystal amulet")}
+            itemCategory="magic"
+          >crystal amulet</illthorn-base-game-element><br>
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "scroll" }, "glowing scroll")}
+            itemCategory="scroll"
+          >glowing scroll</illthorn-base-game-element><br>
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "wand" }, "enchanted wand")}
+            itemCategory="wand"
+          >enchanted wand</illthorn-base-game-element>
+        </div>
       </div>
       
       <div>
-        <h4>Forgeable</h4>
-        <illthorn-base-game-element
-          .tag=${createMockTag("a", { noun: "ore" }, "some mithril ore")}
-          itemCategory="forgeable"
-        >some mithril ore</illthorn-base-game-element>
+        <h4>Food & Manna (Orange)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "tart" }, "iceberry tart")}
+            itemCategory="food"
+          >iceberry tart</illthorn-base-game-element><br>
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "fruit" }, "some calamia fruit")}
+            itemCategory="food"
+          >some calamia fruit</illthorn-base-game-element><br>
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "loaf" }, "pumpkin loaf")}
+            itemCategory="manna bread"
+          >pumpkin loaf</illthorn-base-game-element>
+        </div>
       </div>
       
       <div>
-        <h4>Food</h4>
-        <illthorn-base-game-element
-          .tag=${createMockTag("a", { noun: "apple" }, "a juicy red apple")}
-          itemCategory="food"
-        >a juicy red apple</illthorn-base-game-element>
+        <h4>Gems (Yellow)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "ruby" }, "a glimmering ruby")}
+            itemCategory="gem"
+          >a glimmering ruby</illthorn-base-game-element><br>
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "diamond" }, "a brilliant diamond")}
+            itemCategory="gem"
+          >a brilliant diamond</illthorn-base-game-element>
+        </div>
       </div>
       
       <div>
-        <h4>Containers</h4>
-        <illthorn-base-game-element
-          .tag=${createMockTag("a", { noun: "backpack" }, "a sturdy leather backpack")}
-          itemCategory="container"
-        >a sturdy leather backpack</illthorn-base-game-element>
+        <h4>Valuables (Pink)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "skin" }, "supple troll skin")}
+            itemCategory="skin"
+          >supple troll skin</illthorn-base-game-element><br>
+          <illthorn-base-game-element
+            .tag=${createMockTag("a", { noun: "fang" }, "curved tiger fang")}
+            itemCategory="valuable"
+          >curved tiger fang</illthorn-base-game-element>
+        </div>
       </div>
       
       <div>
-        <h4>No Category</h4>
-        <illthorn-base-game-element
-          .tag=${createMockTag("span", {}, "basic text")}
-        >basic text</illthorn-base-game-element>
+        <h4>No Category (Gray)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-base-game-element
+            .tag=${createMockTag("span", {}, "basic text")}
+          >basic text</illthorn-base-game-element><br>
+          <illthorn-base-game-element
+            .tag=${createMockTag("span", {}, "unknown item")}
+          >unknown item</illthorn-base-game-element>
+        </div>
       </div>
     </div>
   `,

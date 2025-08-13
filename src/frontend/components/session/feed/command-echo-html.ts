@@ -1,5 +1,6 @@
-// ABOUTME: Static HTML generator for command echo elements
-// ABOUTME: Converts command echo data to themed HTML without Lit component overhead
+// DEPRECATED: This file has been replaced by command-echo.lit.ts
+// ABOUTME: Static HTML generator for command echo elements - DEPRECATED
+// ABOUTME: Use CommandEchoLit component instead - this file can be removed in future versions
 
 export interface CommandEchoOptions {
   command: string;
@@ -7,6 +8,7 @@ export interface CommandEchoOptions {
 }
 
 /**
+ * @deprecated Use CommandEchoLit component instead
  * Generates static HTML for command echo display in the feed
  * Uses DOM creation for clean, maintainable code and proper CSS classes for theming
  */

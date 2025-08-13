@@ -2,14 +2,13 @@
 // ABOUTME: Eliminates double conversion (GameTag→DOM→HTML→DOM) for 50-75% performance improvement
 import { css, html, LitElement, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { IllthornEvent } from "../../../events";
 import { ComponentRenderer, type RenderResult } from "../../../parser/component-renderer";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
 import { debugFeed } from "../../../util/logger";
 import type { CommandEchoEvent } from "../../command-bar/command-echo";
-import { createCommandEchoHTML } from "./command-echo-html";
+import "./command-echo.lit";
 
 @customElement("illthorn-feed-modernized-lit")
 export class FeedModernized extends LitElement {
@@ -144,16 +143,7 @@ export class FeedModernized extends LitElement {
       color: var(--color-whisper);
     }
 
-    /* Item and monster highlighting */
-    .content a[exist],
-    .content .b {
-      color: var(--hilite-color, #a0a0a0);
-    }
-
-    .content b,
-    .content b a[exist] {
-      color: var(--color-monster);
-    }
+    /* Legacy item/monster highlighting removed - modern Lit components handle coloring */
 
     /* Links and interactive elements */
     .content .external-link,
@@ -195,36 +185,7 @@ export class FeedModernized extends LitElement {
       text-decoration: none;
     }
 
-    /* Command echo styling */
-    .content .command-echo {
-      display: block;
-      font-family: var(--font-family-monospace, "MonoLisa", monospace);
-      font-size: 0.9em;
-      line-height: 1.8;
-      margin: 4px 0;
-      color: var(--color-command-echo, var(--color-text-secondary, #ccc));
-      padding: 2px 0;
-      border-left: 1px solid var(--color-command-echo-border, var(--color-border, #666));
-      background-color: var(--color-command-echo-bg, var(--color-surface-secondary, rgba(255, 255, 255, 0.05)));
-    }
-
-    .content .command-echo.replay {
-      color: var(--color-command-echo-replay, var(--color-text-secondary, #ffcc00));
-      border-left-color: var(--color-command-echo-replay-border, var(--color-border, #ff9900));
-      background-color: var(--color-command-echo-replay-bg, var(--color-surface-secondary, rgba(255, 204, 0, 0.1)));
-      font-style: italic;
-    }
-
-    .content .command-echo .prefix {
-      opacity: 0.8;
-      margin-left: 5px;
-      margin-right: 5px;
-    }
-
-    .content .command-echo .command-text {
-      font-weight: normal;
-      font-style: italic;
-    }
+    /* Command echo styling is now handled by illthorn-command-echo-lit component */
 
     /* Preset styling for inline elements */
     .content span {
@@ -242,10 +203,10 @@ export class FeedModernized extends LitElement {
   private _contentTags: Array<Array<GameTag>> = [];
 
   @state()
-  private _commandEchoes: Array<string> = [];
+  private _commandEchoes: Array<CommandEchoEvent> = [];
 
   @state()
-  private _allContent: Array<{ type: "tags"; data: Array<GameTag> } | { type: "echo"; data: string }> = [];
+  private _allContent: Array<{ type: "tags"; data: Array<GameTag> } | { type: "echo"; data: CommandEchoEvent }> = [];
 
   @state()
   private _shouldAutoScroll = true;
@@ -339,9 +300,7 @@ export class FeedModernized extends LitElement {
 
     // Schedule scroll after render if not manually scrolling
     if (!wasScrolling && this._shouldAutoScroll) {
-      this.updateComplete.then(() => {
-        this.scrollToNow();
-      });
+      this._scheduleAutoScroll();
     }
   }
 
@@ -353,38 +312,6 @@ export class FeedModernized extends LitElement {
   }
 
   /**
-   * Legacy compatibility - convert DocumentFragment to GameTags
-   * This bridges the gap during migration but should be avoided
-   */
-  appendParsed(ele: DocumentFragment | Element) {
-    debugFeed("appendParsed called with legacy content: %o", ele);
-
-    // For now, convert back to HTML string for command echoes
-    // This is temporary during migration
-    let htmlContent: string;
-    if (ele instanceof DocumentFragment) {
-      const div = document.createElement("div");
-      div.appendChild(ele.cloneNode(true));
-      htmlContent = div.innerHTML;
-    } else {
-      htmlContent = ele.outerHTML;
-    }
-
-    // Store as command echo for now
-    this._commandEchoes = [...this._commandEchoes, htmlContent];
-
-    // Trigger re-render
-    this.requestUpdate();
-
-    // Schedule scroll
-    if (!this.isScrolling && this._shouldAutoScroll) {
-      this.updateComplete.then(() => {
-        this.scrollToNow();
-      });
-    }
-  }
-
-  /**
    * Scroll to the HEAD position (bottom)
    */
   scrollToNow() {
@@ -393,6 +320,18 @@ export class FeedModernized extends LitElement {
       this._shouldAutoScroll = true;
     }
     return this;
+  }
+
+  /**
+   * Schedule auto-scroll with proper timing using requestAnimationFrame
+   * Double RAF ensures DOM has fully updated before scrolling
+   */
+  private _scheduleAutoScroll() {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.scrollToNow();
+      });
+    });
   }
 
   /**
@@ -488,16 +427,13 @@ export class FeedModernized extends LitElement {
    * Handle command echo events from the CLI component
    */
   private _handleCommandEcho(event: CustomEvent<CommandEchoEvent>) {
-    const { command, isReplay } = event.detail;
-
-    // Generate static HTML for the command echo
-    const echoHTML = createCommandEchoHTML({ command, isReplay });
+    const echoData = event.detail;
 
     // Add to command echoes array (keep for compatibility)
-    this._commandEchoes = [...this._commandEchoes, echoHTML];
+    this._commandEchoes = [...this._commandEchoes, echoData];
 
     // Add to unified content array
-    this._allContent = [...this._allContent, { type: "echo", data: echoHTML }];
+    this._allContent = [...this._allContent, { type: "echo", data: echoData }];
 
     // Trigger memory management and re-render
     this.flush();
@@ -505,9 +441,7 @@ export class FeedModernized extends LitElement {
 
     // Auto-scroll if appropriate
     if (!this.isScrolling && this._shouldAutoScroll) {
-      this.updateComplete.then(() => {
-        this.scrollToNow();
-      });
+      this._scheduleAutoScroll();
     }
   }
 
@@ -531,7 +465,11 @@ export class FeedModernized extends LitElement {
         }
       } else if (item.type === "echo") {
         results.push(html`<div class="message-block">
-          ${unsafeHTML(item.data)}
+          <illthorn-command-echo-lit
+            .command=${item.data.command}
+            .isReplay=${item.data.isReplay}
+            .timestamp=${item.data.timestamp}
+          ></illthorn-command-echo-lit>
         </div>`);
       }
     }

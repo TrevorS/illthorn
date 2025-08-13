@@ -129,7 +129,7 @@ export class Streams extends LitElement {
 
     /* Links in streams */
     a {
-      color: var(--link-color, #27a4fd);
+      color: var(--color-link);
       cursor: pointer;
     }
 
@@ -140,7 +140,7 @@ export class Streams extends LitElement {
     /* Interactive elements */
     d[cmd] {
       cursor: pointer;
-      color: var(--link-color, #27a4fd);
+      color: var(--color-link);
     }
 
     d[cmd]:hover {

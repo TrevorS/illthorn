@@ -38,6 +38,25 @@
   --color-monster: #fb5d2d;
   --color-macro: #de5aff;
   
+  // Item category colors for modern game element components
+  --color-item-weapon: #ff6b6b;                // Weapons - red
+  --color-item-armor: #74c0fc;                 // Armor - light blue
+  --color-item-clothing: #69db7c;              // Clothing - green
+  --color-item-gem: #ffd43b;                   // Gems - golden yellow
+  --color-item-jewelry: #e599f7;              // Jewelry - light purple
+  --color-item-reagent: #9775fa;              // Reagents/herbs - purple
+  --color-item-food: #ffa94d;                 // Food - orange
+  --color-item-valuable: #f783ac;             // Valuable items - pink
+  --color-item-box: #868e96;                  // Containers/boxes - gray
+  --color-item-junk: #6c757d;                 // Junk items - dark gray
+  --color-item-default: #a0a0a0;              // Default item color - medium gray
+  
+  // Legacy item category mappings for backward compatibility
+  --color-item-herbal: var(--color-item-reagent);      // Map herbal to reagent
+  --color-item-magic: var(--color-item-valuable);      // Map magic to valuable  
+  --color-item-forgeable: var(--color-item-reagent);   // Map forgeable to reagent
+  --color-item-container: var(--color-item-box);       // Map container to box
+  
   // Legacy color mappings for backward compatibility (deprecated)
   --main-bg-color: var(--color-background-primary);
   --text-color: var(--color-text-primary);

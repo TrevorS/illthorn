@@ -57,7 +57,27 @@ const meta: Meta = {
     },
     itemCategory: {
       control: "select",
-      options: ["", "weapon", "gem", "reagent", "jewelry", "valuable", "armor", "clothing", "food", "box"],
+      options: [
+        "",
+        "weapon",
+        "armor",
+        "clothing",
+        "gem",
+        "jewelry",
+        "reagent",
+        "food",
+        "valuable",
+        "box",
+        "junk",
+        "herb",
+        "manna bread",
+        "scroll",
+        "wand",
+        "skin",
+        "magic",
+        "passive npc",
+        "aggressive npc",
+      ],
       description: "Automatic item category from XML data",
     },
   },
@@ -68,9 +88,9 @@ type Story = StoryObj;
 
 export const BasicItemLink: Story = {
   args: {
-    tag: createLinkTag("sword123", "sword", undefined, "a sharp longsword"),
-    exist: "sword123",
-    noun: "sword",
+    tag: createLinkTag("125592513", "gladius", undefined, "matte black golvern gladius"),
+    exist: "125592513",
+    noun: "gladius",
     highlighted: false,
     highlightClass: "",
     itemCategory: "weapon",
@@ -148,14 +168,14 @@ export const GemLink: Story = {
   `,
 };
 
-export const ReagentLink: Story = {
+export const HerbLink: Story = {
   args: {
-    tag: createLinkTag("lichen101", "lichen", undefined, "some ayana lichen"),
-    exist: "lichen101",
-    noun: "lichen",
+    tag: createLinkTag("127527554", "stem", undefined, "some aloeas stem"),
+    exist: "127527554",
+    noun: "stem",
     highlighted: false,
     highlightClass: "",
-    itemCategory: "reagent",
+    itemCategory: "herb",
   },
   render: (args) => html`
     <illthorn-game-link
@@ -258,9 +278,9 @@ export const ArmorLink: Story = {
 
 export const ClothingLink: Story = {
   args: {
-    tag: createLinkTag("robe505", "robe", undefined, "a flowing silk robe"),
-    exist: "robe505",
-    noun: "robe",
+    tag: createLinkTag("127527516", "backpack", undefined, "forest green backpack"),
+    exist: "127527516",
+    noun: "backpack",
     highlighted: false,
     highlightClass: "",
     itemCategory: "clothing",
@@ -285,9 +305,9 @@ export const ClothingLink: Story = {
 
 export const FoodLink: Story = {
   args: {
-    tag: createLinkTag("apple606", "apple", undefined, "a juicy red apple"),
-    exist: "apple606",
-    noun: "apple",
+    tag: createLinkTag("127527536", "tart", undefined, "iceberry tart"),
+    exist: "127527536",
+    noun: "tart",
     highlighted: false,
     highlightClass: "",
     itemCategory: "food",
@@ -337,10 +357,119 @@ export const ContainerLink: Story = {
   `,
 };
 
+// XML-specific category stories
+export const MannaBreadLink: Story = {
+  args: {
+    tag: createLinkTag("127527555", "loaf", undefined, "sweet pineapple-glazed pumpkin loaf"),
+    exist: "127527555",
+    noun: "loaf",
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "manna bread",
+  },
+  render: (args) => html`
+    <illthorn-game-link
+      .tag=${args.tag}
+      .exist=${args.exist}
+      .noun=${args.noun}
+      .coord=${args.coord}
+      ?highlighted=${args.highlighted}
+      .highlightClass=${args.highlightClass}
+      .itemCategory=${args.itemCategory}
+      @game-element-menu=${action("game-element-menu")}
+      @game-element-context-menu=${action("game-element-context-menu")}
+      @game-element-command=${action("game-element-command")}
+    >
+      ${args.tag.text}
+    </illthorn-game-link>
+  `,
+};
+
+export const ScrollLink: Story = {
+  args: {
+    tag: createLinkTag("scroll123", "scroll", undefined, "glowing scroll of healing"),
+    exist: "scroll123",
+    noun: "scroll",
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "scroll",
+  },
+  render: (args) => html`
+    <illthorn-game-link
+      .tag=${args.tag}
+      .exist=${args.exist}
+      .noun=${args.noun}
+      .coord=${args.coord}
+      ?highlighted=${args.highlighted}
+      .highlightClass=${args.highlightClass}
+      .itemCategory=${args.itemCategory}
+      @game-element-menu=${action("game-element-menu")}
+      @game-element-context-menu=${action("game-element-context-menu")}
+      @game-element-command=${action("game-element-command")}
+    >
+      ${args.tag.text}
+    </illthorn-game-link>
+  `,
+};
+
+export const WandLink: Story = {
+  args: {
+    tag: createLinkTag("wand456", "wand", undefined, "enchanted oak wand"),
+    exist: "wand456",
+    noun: "wand",
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "wand",
+  },
+  render: (args) => html`
+    <illthorn-game-link
+      .tag=${args.tag}
+      .exist=${args.exist}
+      .noun=${args.noun}
+      .coord=${args.coord}
+      ?highlighted=${args.highlighted}
+      .highlightClass=${args.highlightClass}
+      .itemCategory=${args.itemCategory}
+      @game-element-menu=${action("game-element-menu")}
+      @game-element-context-menu=${action("game-element-context-menu")}
+      @game-element-command=${action("game-element-command")}
+    >
+      ${args.tag.text}
+    </illthorn-game-link>
+  `,
+};
+
+export const SkinLink: Story = {
+  args: {
+    tag: createLinkTag("skin789", "skin", undefined, "supple troll skin"),
+    exist: "skin789",
+    noun: "skin",
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "skin",
+  },
+  render: (args) => html`
+    <illthorn-game-link
+      .tag=${args.tag}
+      .exist=${args.exist}
+      .noun=${args.noun}
+      .coord=${args.coord}
+      ?highlighted=${args.highlighted}
+      .highlightClass=${args.highlightClass}
+      .itemCategory=${args.itemCategory}
+      @game-element-menu=${action("game-element-menu")}
+      @game-element-context-menu=${action("game-element-context-menu")}
+      @game-element-command=${action("game-element-command")}
+    >
+      ${args.tag.text}
+    </illthorn-game-link>
+  `,
+};
+
 export const HighlightedLink: Story = {
   args: {
-    tag: createLinkTag("dagger808", "dagger", undefined, "a wicked sharp dagger"),
-    exist: "dagger808",
+    tag: createLinkTag("125592512", "dagger", undefined, "hefty mithril dagger"),
+    exist: "125592512",
     noun: "dagger",
     highlighted: true,
     highlightClass: "",
@@ -490,38 +619,70 @@ export const CategoryShowcase: Story = {
   render: () => html`
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; padding: 16px;">
       <div>
-        <h4>Weapons</h4>
+        <h4>Weapons (Red)</h4>
         <div style="line-height: 1.6;">
-          <illthorn-game-link .tag=${createLinkTag("sword1", "sword")} exist="sword1" noun="sword" itemCategory="weapon">a sharp longsword</illthorn-game-link><br>
-          <illthorn-game-link .tag=${createLinkTag("dagger2", "dagger")} exist="dagger2" noun="dagger" itemCategory="weapon">a wicked dagger</illthorn-game-link><br>
-          <illthorn-game-link .tag=${createLinkTag("bow3", "bow")} exist="bow3" noun="bow" itemCategory="weapon">a sturdy oak bow</illthorn-game-link>
+          <illthorn-game-link .tag=${createLinkTag("125592513", "gladius")} exist="125592513" noun="gladius" itemCategory="weapon">matte black golvern gladius</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("125592512", "dagger")} exist="125592512" noun="dagger" itemCategory="weapon">hefty mithril dagger</illthorn-game-link>
         </div>
       </div>
       
       <div>
-        <h4>Gems & Stones</h4>
+        <h4>Herbs (Purple)</h4>
         <div style="line-height: 1.6;">
-          <illthorn-game-link .tag=${createLinkTag("ruby1", "ruby")} exist="ruby1" noun="ruby" itemCategory="gem">a glimmering ruby</illthorn-game-link><br>
-          <illthorn-game-link .tag=${createLinkTag("sapphire2", "sapphire")} exist="sapphire2" noun="sapphire" itemCategory="gem">a brilliant sapphire</illthorn-game-link><br>
-          <illthorn-game-link .tag=${createLinkTag("diamond3", "diamond")} exist="diamond3" noun="diamond" itemCategory="gem">a flawless diamond</illthorn-game-link>
+          <illthorn-game-link .tag=${createLinkTag("127527554", "stem")} exist="127527554" noun="stem" itemCategory="herb">some aloeas stem</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("127527553", "moss")} exist="127527553" noun="moss" itemCategory="herb">some basal moss</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("127527547", "leaf")} exist="127527547" noun="leaf" itemCategory="herb">some acantha leaf</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("127527552", "potion")} exist="127527552" noun="potion" itemCategory="herb">rose-marrow potion</illthorn-game-link>
         </div>
       </div>
       
       <div>
-        <h4>Reagents</h4>
+        <h4>Clothing (Green)</h4>
         <div style="line-height: 1.6;">
-          <illthorn-game-link .tag=${createLinkTag("lichen1", "lichen")} exist="lichen1" noun="lichen" itemCategory="reagent">some ayana lichen</illthorn-game-link><br>
-          <illthorn-game-link .tag=${createLinkTag("root2", "root")} exist="root2" noun="root" itemCategory="reagent">some pepperthorn root</illthorn-game-link><br>
-          <illthorn-game-link .tag=${createLinkTag("essence3", "essence")} exist="essence3" noun="essence" itemCategory="reagent">glowing essence shard</illthorn-game-link>
+          <illthorn-game-link .tag=${createLinkTag("127527516", "backpack")} exist="127527516" noun="backpack" itemCategory="clothing">forest green backpack</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("125592511", "harness")} exist="125592511" noun="harness" itemCategory="clothing">maroon harness</illthorn-game-link>
         </div>
       </div>
       
       <div>
-        <h4>Jewelry</h4>
+        <h4>Magic Items (Pink)</h4>
         <div style="line-height: 1.6;">
-          <illthorn-game-link .tag=${createLinkTag("ring1", "ring")} exist="ring1" noun="ring" itemCategory="jewelry">an ornate gold ring</illthorn-game-link><br>
-          <illthorn-game-link .tag=${createLinkTag("pendant2", "pendant")} exist="pendant2" noun="pendant" itemCategory="jewelry">a silver pendant</illthorn-game-link><br>
-          <illthorn-game-link .tag=${createLinkTag("bracelet3", "bracelet")} exist="bracelet3" noun="bracelet" itemCategory="jewelry">a jeweled bracelet</illthorn-game-link>
+          <illthorn-game-link .tag=${createLinkTag("127527523", "amulet")} exist="127527523" noun="amulet" itemCategory="magic">crystal amulet</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("scroll123", "scroll")} exist="scroll123" noun="scroll" itemCategory="scroll">glowing scroll</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("wand456", "wand")} exist="wand456" noun="wand" itemCategory="wand">enchanted wand</illthorn-game-link>
+        </div>
+      </div>
+      
+      <div>
+        <h4>Food & Manna (Orange)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-game-link .tag=${createLinkTag("127527536", "tart")} exist="127527536" noun="tart" itemCategory="food">iceberry tart</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("127527533", "fruit")} exist="127527533" noun="fruit" itemCategory="food">some calamia fruit</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("127527555", "loaf")} exist="127527555" noun="loaf" itemCategory="manna bread">sweet pumpkin loaf</illthorn-game-link>
+        </div>
+      </div>
+      
+      <div>
+        <h4>Gems (Yellow)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-game-link .tag=${createLinkTag("ruby456", "ruby")} exist="ruby456" noun="ruby" itemCategory="gem">a glimmering ruby</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("diamond789", "diamond")} exist="diamond789" noun="diamond" itemCategory="gem">a brilliant diamond</illthorn-game-link>
+        </div>
+      </div>
+      
+      <div>
+        <h4>Jewelry (Purple)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-game-link .tag=${createLinkTag("ring202", "ring")} exist="ring202" noun="ring" itemCategory="jewelry">an ornate gold ring</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("pendant303", "pendant")} exist="pendant303" noun="pendant" itemCategory="jewelry">a silver pendant</illthorn-game-link>
+        </div>
+      </div>
+      
+      <div>
+        <h4>Valuables (Pink)</h4>
+        <div style="line-height: 1.6;">
+          <illthorn-game-link .tag=${createLinkTag("skin789", "skin")} exist="skin789" noun="skin" itemCategory="skin">supple troll skin</illthorn-game-link><br>
+          <illthorn-game-link .tag=${createLinkTag("fang404", "fang")} exist="fang404" noun="fang" itemCategory="valuable">curved tiger fang</illthorn-game-link>
         </div>
       </div>
     </div>

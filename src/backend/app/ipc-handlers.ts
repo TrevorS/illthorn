@@ -1,9 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { app, ipcMain as Backend, BrowserWindow } from "electron";
+import { CONFIG } from "../../shared/config";
 import { log } from "../logger";
 import { AppMethods } from "./methods";
-import { CONFIG } from "../../shared/config";
 
 log("attaching app ipc handlers");
 

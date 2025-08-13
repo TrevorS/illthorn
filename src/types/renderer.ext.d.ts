@@ -16,6 +16,12 @@ export interface ISessionAPI {
 
 export interface IAppAPI {
   setTitle(config: { title: string }): void;
+  loadGameObjectXML(): Promise<{
+    success: boolean;
+    content: string | null;
+    error?: string;
+    path?: string | null;
+  }>;
 }
 
 export interface ISettingsAPI<T = Record<string, unknown>> {

@@ -88,11 +88,15 @@ describe("Command Echo Integration", () => {
     const finalFeedContent = feed.shadowRoot?.querySelector(".content");
     const finalHTML = finalFeedContent?.innerHTML || "";
 
-    // Should contain the command echo with proper formatting
-    expect(finalHTML).toContain("look");
-    expect(finalHTML).toContain(">");
+    // Should contain the command echo component with proper formatting
+    expect(finalHTML).toContain("illthorn-command-echo-lit");
     expect(finalHTML).toContain("command-echo");
-    expect(finalHTML).not.toContain("replay"); // Should not be marked as replay
+
+    // Check that the command echo component was created with correct properties
+    const commandEchoComponent = feed.shadowRoot?.querySelector("illthorn-command-echo-lit");
+    expect(commandEchoComponent).toBeDefined();
+    expect(commandEchoComponent?.getAttribute("command") || commandEchoComponent?.command).toBe("look");
+    expect(commandEchoComponent?.hasAttribute("is-replay")).toBe(false);
 
     // Should be different from initial HTML (new content added)
     expect(finalHTML).not.toBe(initialHTML);
@@ -122,10 +126,18 @@ describe("Command Echo Integration", () => {
     // Check that replay command echo HTML was added
     const finalHTML = feed.shadowRoot?.querySelector(".content")?.innerHTML || "";
 
-    // Should contain the replay echo with proper formatting
-    expect(finalHTML).toContain("inventory");
-    expect(finalHTML).toContain("[Replay]");
-    expect(finalHTML).toContain("command-echo replay");
+    // Should contain the replay echo component with proper formatting
+    expect(finalHTML).toContain("illthorn-command-echo-lit");
+    expect(finalHTML).toContain("is-replay");
+
+    // Check that replay command echo components were created
+    const replayComponents = feed.shadowRoot?.querySelectorAll("illthorn-command-echo-lit[is-replay]");
+    expect(replayComponents?.length).toBeGreaterThan(0);
+
+    // Check the last replay component has correct properties
+    const lastReplayComponent = replayComponents?.[replayComponents.length - 1];
+    expect(lastReplayComponent?.getAttribute("command") || lastReplayComponent?.command).toBe("inventory");
+    expect(lastReplayComponent?.hasAttribute("is-replay")).toBe(true);
 
     // Should be different from HTML after first command (new content added)
     expect(finalHTML).not.toBe(afterFirstCommandHTML);

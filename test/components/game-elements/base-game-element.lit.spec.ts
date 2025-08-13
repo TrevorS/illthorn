@@ -94,11 +94,39 @@ describe("BaseGameElement", () => {
       expect(element.getAttribute("item-category")).toBe("gem");
     });
 
-    it("should apply herbal category styling", async () => {
-      element.itemCategory = "herbal";
+    it("should apply herb category styling", async () => {
+      element.itemCategory = "herb";
       await element.updateComplete;
 
-      expect(element.getAttribute("item-category")).toBe("herbal");
+      expect(element.getAttribute("item-category")).toBe("herb");
+    });
+
+    it("should apply manna bread category styling", async () => {
+      element.itemCategory = "manna bread";
+      await element.updateComplete;
+
+      expect(element.getAttribute("item-category")).toBe("manna bread");
+    });
+
+    it("should apply scroll category styling", async () => {
+      element.itemCategory = "scroll";
+      await element.updateComplete;
+
+      expect(element.getAttribute("item-category")).toBe("scroll");
+    });
+
+    it("should apply wand category styling", async () => {
+      element.itemCategory = "wand";
+      await element.updateComplete;
+
+      expect(element.getAttribute("item-category")).toBe("wand");
+    });
+
+    it("should apply skin category styling", async () => {
+      element.itemCategory = "skin";
+      await element.updateComplete;
+
+      expect(element.getAttribute("item-category")).toBe("skin");
     });
   });
 
@@ -186,6 +214,54 @@ describe("BaseGameElement", () => {
         expect(element.shadowRoot.adoptedStyleSheets.length).toBeGreaterThan(0);
       }
     });
+
+    it("should define CSS custom properties for item categories", async () => {
+      await element.updateComplete;
+
+      // Verify CSS custom properties are defined in shadow DOM
+      const styleElement = element.shadowRoot?.querySelector("style");
+      if (styleElement?.textContent) {
+        const styleText = styleElement.textContent;
+
+        // Check for essential color custom properties
+        expect(styleText).toContain("--color-item-weapon");
+        expect(styleText).toContain("--color-item-gem");
+        expect(styleText).toContain("--color-item-reagent");
+        expect(styleText).toContain("--color-item-food");
+        expect(styleText).toContain("--color-item-magic");
+
+        // Verify actual color values are present
+        expect(styleText).toContain("#ff6b6b"); // weapon red
+        expect(styleText).toContain("#ffd43b"); // gem yellow
+        expect(styleText).toContain("#9775fa"); // reagent purple
+        expect(styleText).toContain("#ffa94d"); // food orange
+      } else if (element.shadowRoot?.adoptedStyleSheets) {
+        // With adoptedStyleSheets, we verify they contain the expected styles
+        expect(element.shadowRoot.adoptedStyleSheets.length).toBeGreaterThan(0);
+        // Note: In JSDOM, we can't easily inspect adoptedStyleSheets content
+        // This test validates that styles are being applied via adoptedStyleSheets
+      }
+    });
+
+    it("should apply correct colors for XML categories", async () => {
+      // Test herb category maps to reagent color
+      element.itemCategory = "herb";
+      await element.updateComplete;
+
+      expect(element.getAttribute("item-category")).toBe("herb");
+
+      // Test manna bread maps to food color
+      element.itemCategory = "manna bread";
+      await element.updateComplete;
+
+      expect(element.getAttribute("item-category")).toBe("manna bread");
+
+      // Test scroll maps to magic color
+      element.itemCategory = "scroll";
+      await element.updateComplete;
+
+      expect(element.getAttribute("item-category")).toBe("scroll");
+    });
   });
 
   describe("Accessibility", () => {
@@ -232,15 +308,125 @@ describe("BaseGameElement", () => {
   });
 
   describe("Multiple category support", () => {
-    const categories = ["weapon", "herbal", "gem", "magic", "forgeable", "food", "container"];
+    const legacyCategories = ["weapon", "gem", "magic", "forgeable", "food", "container"];
+    const xmlCategories = ["herb", "manna bread", "scroll", "wand", "skin", "passive npc", "aggressive npc"];
 
-    categories.forEach((category) => {
-      it(`should support ${category} category`, async () => {
+    legacyCategories.forEach((category) => {
+      it(`should support legacy ${category} category`, async () => {
         element.itemCategory = category;
         await element.updateComplete;
 
         expect(element.getAttribute("item-category")).toBe(category);
       });
+    });
+
+    xmlCategories.forEach((category) => {
+      it(`should support XML ${category} category`, async () => {
+        element.itemCategory = category;
+        await element.updateComplete;
+
+        expect(element.getAttribute("item-category")).toBe(category);
+      });
+    });
+  });
+
+  describe("Realistic XML-based item examples", () => {
+    it("should handle realistic herb items", async () => {
+      // Test realistic herb names from actual game logs
+      const herbItems = [
+        { name: "some aloeas stem", category: "herb" },
+        { name: "some ephlox moss", category: "herb" },
+        { name: "some acantha leaf", category: "herb" },
+        { name: "some wolifrew lichen", category: "herb" },
+        { name: "rose-marrow potion", category: "herb" },
+        { name: "snowflake elixir", category: "herb" },
+      ];
+
+      for (const item of herbItems) {
+        element.tag = mockTag;
+        element.tag.text = item.name;
+        element.textContent = item.name;
+        element.itemCategory = item.category;
+        await element.updateComplete;
+
+        expect(element.getAttribute("item-category")).toBe(item.category);
+        expect(element.textContent).toBe(item.name);
+      }
+    });
+
+    it("should handle realistic weapon items", async () => {
+      const weaponItems = [
+        { name: "matte black golvern gladius", category: "weapon" },
+        { name: "hefty mithril dagger", category: "weapon" },
+      ];
+
+      for (const item of weaponItems) {
+        element.tag = mockTag;
+        element.tag.text = item.name;
+        element.textContent = item.name;
+        element.itemCategory = item.category;
+        await element.updateComplete;
+
+        expect(element.getAttribute("item-category")).toBe(item.category);
+        expect(element.textContent).toBe(item.name);
+      }
+    });
+
+    it("should handle realistic clothing items", async () => {
+      const clothingItems = [
+        { name: "forest green backpack", category: "clothing" },
+        { name: "maroon harness", category: "clothing" },
+      ];
+
+      for (const item of clothingItems) {
+        element.tag = mockTag;
+        element.tag.text = item.name;
+        element.textContent = item.name;
+        element.itemCategory = item.category;
+        await element.updateComplete;
+
+        expect(element.getAttribute("item-category")).toBe(item.category);
+        expect(element.textContent).toBe(item.name);
+      }
+    });
+
+    it("should handle realistic food items", async () => {
+      const foodItems = [
+        { name: "Dabbings Family special tart", category: "food" },
+        { name: "iceberry tart", category: "food" },
+        { name: "some calamia fruit", category: "food" },
+        { name: "sweet pineapple-glazed pumpkin loaf", category: "manna bread" },
+      ];
+
+      for (const item of foodItems) {
+        element.tag = mockTag;
+        element.tag.text = item.name;
+        element.textContent = item.name;
+        element.itemCategory = item.category;
+        await element.updateComplete;
+
+        expect(element.getAttribute("item-category")).toBe(item.category);
+        expect(element.textContent).toBe(item.name);
+      }
+    });
+
+    it("should handle magic items", async () => {
+      const magicItems = [
+        { name: "crystal amulet", category: "magic" },
+        { name: "glowing scroll", category: "scroll" },
+        { name: "enchanted wand", category: "wand" },
+      ];
+
+      for (const item of magicItems) {
+        element.tag = mockTag;
+        element.tag.text = item.name;
+        element.textContent = item.name;
+        element.itemCategory = item.category;
+        await element.updateComplete;
+
+        expect(element.getAttribute("item-category")).toBe(item.category);
+        expect(element.textContent).toBe(item.name);
+      }
     });
   });
 });

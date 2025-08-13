@@ -122,15 +122,19 @@ export class ComponentRenderer {
   }
 
   /**
-   * Render text nodes
+   * Render text nodes with HTML entity decoding
    */
-  private renderText(tag: GameTag): { template: TemplateResult } {
-    if (!tag.text) {
-      return { template: html`` };
+  private renderText(tag: GameTag): { template?: TemplateResult } {
+    if (tag.text === undefined || tag.text === null) {
+      return {};
     }
 
+    // Decode HTML entities (e.g., &gt; -> >, &lt; -> <)
+    // Uses same pattern as prompt and command-echo components
+    const decodedText = this._decodeHTMLEntities(tag.text);
+
     return {
-      template: html`${tag.text}`,
+      template: html`${decodedText}`,
     };
   }
 
@@ -363,5 +367,17 @@ export class ComponentRenderer {
       d: "illthorn-game-command",
     };
     return componentMap[tagName] || null;
+  }
+
+  /**
+   * Decode HTML entities in text content (e.g., &gt; -> >, &lt; -> <)
+   * Uses same pattern as prompt and command-echo components for consistency
+   */
+  private _decodeHTMLEntities(text: string): string {
+    if (!text) return text;
+
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = text;
+    return tempDiv.textContent || tempDiv.innerText || text;
   }
 }

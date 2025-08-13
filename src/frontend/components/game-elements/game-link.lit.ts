@@ -81,6 +81,8 @@ export class GameLink extends BaseGameElement {
 
   private async _setupItemHighlighting() {
     if (this.noun) {
+      console.log(`[ItemHighlighting] Attempting to categorize item: noun="${this.noun}", exist="${this.exist}", text="${this.textContent}"`);
+
       try {
         const result = await ItemHighlighter.categorizeGameElement({
           noun: this.noun,
@@ -88,17 +90,22 @@ export class GameLink extends BaseGameElement {
           name: this.textContent || undefined,
         });
 
+        console.log(`[ItemHighlighting] Categorization result for "${this.noun}":`, result);
+
         if (result.category && (await ItemHighlighter.isCategoryEnabled(result.category))) {
           this.itemCategory = result.category;
+          console.log(`[ItemHighlighting] Applied category "${result.category}" to item "${this.noun}"`);
 
           // Set up accessibility label
           const categoryDisplay = (await ItemHighlighter.getAllCategories()).find((cat) => cat.key === result.category)?.name || result.category;
 
           const baseLabel = this.textContent?.trim() || this.noun;
           this.setAttribute("aria-label", `${baseLabel} (${categoryDisplay}${this.coord ? ", clickable" : ""})`);
+        } else {
+          console.log(`[ItemHighlighting] No valid category found for "${this.noun}" or category disabled`);
         }
       } catch (error) {
-        console.warn("Failed to categorize game link:", error);
+        console.error(`[ItemHighlighting] Failed to categorize game link "${this.noun}":`, error);
       }
     } else if (this.coord) {
       // Command link without item categorization
