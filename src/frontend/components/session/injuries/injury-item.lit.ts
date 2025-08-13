@@ -10,9 +10,9 @@ export class InjuryItem extends LitElement {
       display: block;
       --injury-text-primary: var(--color-text-primary);
       --injury-text-secondary: var(--color-text-secondary);
-      --injury-severity-minor: var(--color-warning);     /* Yellow */
-      --injury-severity-moderate: #ff9800;               /* Orange */
-      --injury-severity-severe: var(--color-danger);     /* Red */
+      --injury-severity-minor: var(--color-injury-minor);      /* Yellow */
+      --injury-severity-moderate: var(--color-injury-moderate); /* Orange */
+      --injury-severity-severe: var(--color-injury-severe);     /* Red */
       --injury-line-height: 14px;
     }
 

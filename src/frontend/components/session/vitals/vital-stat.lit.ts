@@ -50,19 +50,19 @@ export class VitalStat extends LitElement {
 
     sl-progress-bar {
       --height: 0.8rem;
-      --track-color: rgba(255, 255, 255, 0.2);
-      --indicator-color: #4caf50;
+      --track-color: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
+      --indicator-color: var(--color-vital-health);
       width: 100%;
       margin-top: 0.125rem;
       display: block;
       
       /* Force override any inherited styles */
-      --sl-color-primary-600: #4caf50;
+      --sl-color-primary-600: var(--color-vital-health);
       background: transparent;
       
       /* Force visible track background */
       --track-width: 100%;
-      --track-border-color: rgba(255, 255, 255, 0.3);
+      --track-border-color: color-mix(in srgb, var(--color-text-primary) 30%, transparent);
       min-height: 0.8rem;
     }
 
@@ -83,13 +83,13 @@ export class VitalStat extends LitElement {
 
     /* Ensure the progress bar parts are visible with explicit colors */
     sl-progress-bar::part(base) {
-      background-color: rgba(255, 255, 255, 0.2);
+      background-color: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
       border-radius: 0.25rem;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid color-mix(in srgb, var(--color-text-primary) 30%, transparent);
     }
 
     sl-progress-bar::part(indicator) {
-      background-color: var(--indicator-color, #4caf50);
+      background-color: var(--indicator-color, var(--color-vital-health));
       border-radius: 0.25rem;
     }
 

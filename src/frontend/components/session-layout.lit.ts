@@ -107,9 +107,9 @@ export class SessionLayout extends LitElement {
     .streams {
       overflow: hidden;
       width: 100%;
-      background-color: var(--streams-background, var(--color-surface, #2a2a2a));
-      border-top: 1px solid var(--color-border, #444444);
-      border-bottom: 1px solid var(--color-border, #444444);
+      background-color: var(--streams-background, var(--color-surface));
+      border-top: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--color-border);
       height: var(--stream-height, 8em);
       max-height: var(--stream-height, 8em);
       display: flex;
@@ -157,9 +157,9 @@ export class SessionLayout extends LitElement {
       border: none;
       width: 100%;
       padding: 0.5em;
-      color: #fff;
+      color: var(--color-text-primary);
       font-size: 1em;
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: var(--color-surface);
       z-index: 1;
     }
 
@@ -168,7 +168,7 @@ export class SessionLayout extends LitElement {
     }
 
     illthorn-cli-lit input#cli-suggestions {
-      background-color: rgba(0, 0, 0, 0.2);
+      background-color: color-mix(in srgb, var(--color-background-secondary) 80%, transparent);
     }
 
     .timers {
@@ -182,7 +182,7 @@ export class SessionLayout extends LitElement {
       border: 0;
       overflow: hidden;
       text-indent: -9999px;
-      background-color: rgba(255, 255, 255, 0.33);
+      background-color: color-mix(in srgb, var(--color-text-primary) 33%, transparent);
       width: 22px;
       height: 22px;
       cursor: pointer;
@@ -193,7 +193,7 @@ export class SessionLayout extends LitElement {
     }
 
     button.ui-help-button:hover {
-      background-color: rgba(255, 255, 255, 0.66);
+      background-color: color-mix(in srgb, var(--color-text-primary) 66%, transparent);
     }
   `;
 

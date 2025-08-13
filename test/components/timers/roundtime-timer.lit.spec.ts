@@ -330,7 +330,7 @@ describe("RoundtimeTimer", () => {
   describe("Progress Bar Styling", () => {
     it("should apply correct CSS custom properties", () => {
       const styles = RoundtimeTimer.styles;
-      expect(styles.cssText).toContain("--track-color: rgba(255, 255, 255, 0.1)");
+      expect(styles.cssText).toContain("--track-color: color-mix(in srgb, var(--color-text-primary) 10%, transparent)");
       expect(styles.cssText).toContain("height: 3px");
       expect(styles.cssText).toContain("opacity: 0");
       expect(styles.cssText).toContain(":host(.active)");
@@ -340,7 +340,7 @@ describe("RoundtimeTimer", () => {
       await timer.updateComplete;
       const progressBar = timer.shadowRoot?.querySelector("sl-progress-bar");
       const styleAttr = progressBar?.getAttribute("style");
-      expect(styleAttr).toContain("--indicator-color: var(--color-danger, red)");
+      expect(styleAttr).toContain("--indicator-color: var(--color-danger)");
     });
   });
 });

@@ -35,14 +35,14 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
       --sl-input-border-width: 0;
       --sl-input-border-radius-medium: 0;
       --sl-input-focus-ring-width: 0;
-      --sl-input-background-color: rgba(255, 255, 255, 0.1);
-      --sl-input-background-color-focus: rgba(255, 255, 255, 0.15);
-      --sl-input-color: #fff;
+      --sl-input-background-color: var(--color-surface);
+      --sl-input-background-color-focus: color-mix(in srgb, var(--color-surface) 85%, var(--color-text-primary) 15%);
+      --sl-input-color: var(--color-text-primary);
       --sl-input-font-family: "MonoLisa", monospace;
       --sl-input-font-size-medium: 1em;
       --sl-input-height-medium: auto;
       --sl-input-spacing-medium: 0.5em;
-      --sl-input-placeholder-color: rgba(255, 255, 255, 0.5);
+      --sl-input-placeholder-color: var(--color-text-secondary);
     }
 
     sl-input::part(base) {
@@ -68,7 +68,7 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
 
     /* Support for suggestions styling if needed */
     sl-input.suggestions::part(base) {
-      background-color: rgba(0, 0, 0, 0.2);
+      background-color: color-mix(in srgb, var(--color-background-secondary) 80%, transparent);
     }
 
     /* Timer components styling - always reserve space to prevent layout jumping */

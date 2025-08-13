@@ -16,7 +16,7 @@ export class Streams extends LitElement {
       font-size: var(--stream-font-size, var(--base-font-size, 15px));
       padding: 0.5em 1em;
       box-sizing: border-box;
-      background-color: var(--streams-background, var(--color-surface, #2a2a2a));
+      background-color: var(--streams-background, var(--color-surface));
       flex: 1;
       position: relative;
     }
@@ -28,7 +28,7 @@ export class Streams extends LitElement {
 
     :host(.scroll) {
       scrollbar-width: thin;
-      scrollbar-color: var(--color-border, #666) transparent;
+      scrollbar-color: var(--color-border) transparent;
     }
 
     :host(.scroll)::-webkit-scrollbar {
@@ -40,12 +40,12 @@ export class Streams extends LitElement {
     }
 
     :host(.scroll)::-webkit-scrollbar-thumb {
-      background-color: var(--color-border, #666);
+      background-color: var(--color-border);
       border-radius: 4px;
     }
 
     :host(.scroll)::-webkit-scrollbar-thumb:hover {
-      background-color: var(--color-success, #888);
+      background-color: var(--color-success);
     }
 
     /* Stream content styling */
@@ -61,16 +61,16 @@ export class Streams extends LitElement {
     .stream-channel {
       font-weight: bold;
       text-transform: uppercase;
-      color: var(--stream-channel-color, #91d686);
+      color: var(--stream-channel-color, var(--color-success));
     }
 
     .stream-channel.death {
-      color: var(--color-danger, #ff3b00);
+      color: var(--color-danger);
     }
 
     .stream-channel[data-stream-channel="[PrivateTo]"],
     .stream-channel[data-stream-channel="[Private]"] {
-      background: var(--color-danger, #ff3b00);
+      background: var(--color-danger);
       color: white;
     }
 
@@ -84,17 +84,17 @@ export class Streams extends LitElement {
     .stream-channel {
       font-weight: bold;
       text-transform: uppercase;
-      color: var(--stream-channel-color, #91d686);
+      color: var(--stream-channel-color, var(--color-success));
     }
 
     .stream-channel.death {
-      color: var(--color-danger, #ff3b00);
+      color: var(--color-danger);
     }
 
     /* Private message styling */
     .stream-channel[data-stream-channel="[PrivateTo]"],
     .stream-channel[data-stream-channel="[Private]"] {
-      background: var(--color-danger, #ff3b00);
+      background: var(--color-danger);
       color: white;
       padding: 0.1em 0.3em;
       border-radius: 2px;
@@ -103,7 +103,7 @@ export class Streams extends LitElement {
     /* Merchant and special channel styling */
     .stream-channel[data-stream-channel="[Merchant]"],
     .stream-channel[data-stream-channel="[Dreavening]"] {
-      color: var(--color-warning, #efca6a);
+      color: var(--color-warning);
     }
 
     /* Loaded from storage message */
@@ -116,15 +116,15 @@ export class Streams extends LitElement {
 
     /* Stream-specific content styling */
     pre.thoughts.stream {
-      color: var(--thoughts-color, var(--color-text-primary, white));
+      color: var(--thoughts-color, var(--color-text-primary));
     }
 
     pre.speech {
-      color: var(--speech-color, #1ce21c);
+      color: var(--speech-color, var(--color-speech));
     }
 
     pre.whisper {
-      color: var(--whisper-color, var(--speech-color, #00921f));
+      color: var(--whisper-color, var(--color-whisper));
     }
 
     /* Links in streams */
@@ -149,7 +149,7 @@ export class Streams extends LitElement {
 
     /* Empty state styling */
     .streams-empty {
-      color: var(--streams-text, var(--color-text-secondary, #cccccc));
+      color: var(--streams-text, var(--color-text-secondary));
       font-style: italic;
       text-align: left;
       padding: 0.5em;

@@ -11,7 +11,7 @@ export class RoundtimeTimer extends BaseTimerComponent {
   }
 
   get indicatorColor(): string {
-    return "var(--color-danger, red)";
+    return "var(--color-danger)";
   }
 
   get ariaLabel(): string {

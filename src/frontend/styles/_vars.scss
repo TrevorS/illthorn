@@ -29,6 +29,11 @@
   // Interactive colors
   --color-link: #27a4fd;                   // Hyperlinks
   --color-focus: #0a84ff;                  // Focus indicators
+
+  // Injury severity colors
+  --color-injury-minor: #ffd43b;           // Minor injuries (yellow)
+  --color-injury-moderate: #ff9800;       // Moderate injuries (orange)
+  --color-injury-severe: #f44336;         // Severe injuries (red)
   
   // Game-specific colors
   --color-room-name: var(--color-text-primary);
@@ -37,6 +42,10 @@
   --color-whisper: #00921f;
   --color-monster: #fb5d2d;
   --color-macro: #de5aff;
+  
+  // Stream and communication colors  
+  --color-thoughts: var(--color-text-primary);
+  --color-stream-channel: var(--color-success);
   
   // Item category colors for modern game element components
   --color-item-weapon: #ff6b6b;                // Weapons - red

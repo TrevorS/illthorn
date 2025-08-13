@@ -11,7 +11,7 @@ export class CasttimeTimer extends BaseTimerComponent {
   }
 
   get indicatorColor(): string {
-    return "var(--color-warning, orange)";
+    return "var(--color-warning)";
   }
 
   get ariaLabel(): string {

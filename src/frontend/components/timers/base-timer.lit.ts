@@ -22,7 +22,7 @@ export abstract class BaseTimerComponent extends LitElement {
 
     sl-progress-bar {
       width: 100%;
-      --track-color: rgba(255, 255, 255, 0.1);
+      --track-color: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
       --track-width: 100%;
     }
 

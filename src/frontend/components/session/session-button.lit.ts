@@ -23,7 +23,7 @@ export class SessionButton extends LitElement {
       position: relative;
       width: 48px;
       height: 48px;
-      border: 2px solid var(--color-border, #444444);
+      border: 2px solid var(--color-border);
       border-radius: 8px;
       display: flex;
       align-items: center;
@@ -37,8 +37,8 @@ export class SessionButton extends LitElement {
       height: 34px;
       border-radius: 50%;
       border: none;
-      background-color: rgba(0, 0, 0, 0.4);
-      color: var(--color-text-primary, white);
+      background-color: color-mix(in srgb, var(--color-background-primary) 60%, transparent);
+      color: var(--color-text-primary);
       font-size: 1em;
       font-weight: bold;
       cursor: pointer;
@@ -69,8 +69,8 @@ export class SessionButton extends LitElement {
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background-color: var(--color-text-secondary, #cccccc);
-      color: var(--color-background-primary, black);
+      background-color: var(--color-text-secondary);
+      color: var(--color-background-primary);
       font-size: 0.6em;
       font-weight: bold;
       display: flex;
