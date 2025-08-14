@@ -215,26 +215,26 @@ describe("BaseGameElement", () => {
       }
     });
 
-    it("should define CSS custom properties for item categories", async () => {
+    it("should use CSS custom properties without hardcoded values for proper theming", async () => {
       await element.updateComplete;
 
-      // Verify CSS custom properties are defined in shadow DOM
+      // Verify CSS custom properties are used correctly (inherit from global theme)
       const styleElement = element.shadowRoot?.querySelector("style");
       if (styleElement?.textContent) {
         const styleText = styleElement.textContent;
 
-        // Check for essential color custom properties
-        expect(styleText).toContain("--color-item-weapon");
-        expect(styleText).toContain("--color-item-gem");
-        expect(styleText).toContain("--color-item-reagent");
-        expect(styleText).toContain("--color-item-food");
-        expect(styleText).toContain("--color-item-magic");
+        // Check that component uses var() functions for theme colors (not hardcoded values)
+        expect(styleText).toContain("var(--color-item-weapon)");
+        expect(styleText).toContain("var(--color-item-gem)");
+        expect(styleText).toContain("var(--color-item-reagent)");
+        expect(styleText).toContain("var(--color-item-food)");
+        expect(styleText).toContain("var(--color-item-valuable)");
 
-        // Verify actual color values are present
-        expect(styleText).toContain("#ff6b6b"); // weapon red
-        expect(styleText).toContain("#ffd43b"); // gem yellow
-        expect(styleText).toContain("#9775fa"); // reagent purple
-        expect(styleText).toContain("#ffa94d"); // food orange
+        // Verify no hardcoded color values (should inherit from global theme)
+        expect(styleText).not.toContain("#ff6b6b"); // No hardcoded weapon red
+        expect(styleText).not.toContain("#ffd43b"); // No hardcoded gem yellow
+        expect(styleText).not.toContain("#9775fa"); // No hardcoded reagent purple
+        expect(styleText).not.toContain("#ffa94d"); // No hardcoded food orange
       } else if (element.shadowRoot?.adoptedStyleSheets) {
         // With adoptedStyleSheets, we verify they contain the expected styles
         expect(element.shadowRoot.adoptedStyleSheets.length).toBeGreaterThan(0);

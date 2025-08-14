@@ -2,7 +2,7 @@
 // ABOUTME: Tests XML loading, parsing, caching, error handling, and item categorization patterns
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadGameObjectData, type ParsedXMLData, XMLDataParser } from "../../../src/frontend/components/game-elements/xml-data-parser";
+import { clearXMLCache, loadGameObjectData, type ParsedXMLData, XMLDataParser } from "../../../src/frontend/components/game-elements/xml-data-parser";
 
 // Mock the window.App API for IPC calls
 const mockLoadGameObjectXML = vi.fn();
@@ -176,62 +176,32 @@ describe("XMLDataParser", () => {
 });
 
 describe("loadGameObjectData", () => {
-  it("should handle IPC loading failure gracefully when no cache exists", async () => {
-    // Test failure case first (before cache is populated)
-    mockLoadGameObjectXML.mockResolvedValue({
-      success: false,
-      error: "File not found",
-      content: null,
-      path: null,
-    });
-
+  it("should load XML data successfully using Vite raw import", async () => {
+    // With the new Vite raw import approach, loading should always succeed
+    // since the XML file is bundled with the application
     const result = await loadGameObjectData();
 
-    expect(result.types.size).toBe(0);
-    expect(result.categories.size).toBe(0);
+    // Should have successfully parsed the real XML data
+    expect(result.types.size).toBeGreaterThan(0);
+    expect(result.categories.size).toBeGreaterThan(0);
+
+    // Verify we have some expected categories from the real XML
+    expect(result.types.has("gem")).toBe(true);
+    expect(result.types.has("weapon")).toBe(true);
+    expect(result.types.has("valuable")).toBe(true);
   });
 
-  it("should handle IPC network errors gracefully when no cache exists", async () => {
-    // Reset and test network error
-    mockLoadGameObjectXML.mockRejectedValue(new Error("Network error"));
-
-    const result = await loadGameObjectData();
-
-    expect(result.types.size).toBe(0);
-    expect(result.categories.size).toBe(0);
-  });
-
-  it("should load XML data via IPC and cache results", async () => {
-    // Reset mock for successful load
-    mockLoadGameObjectXML.mockResolvedValue({
-      success: true,
-      content: mockXMLContent,
-      path: "/app/data/gameobj-data.xml",
-    });
+  it("should cache results and return same instance on subsequent calls", async () => {
+    // Clear any existing cache first
+    clearXMLCache();
 
     const result1 = await loadGameObjectData();
     const result2 = await loadGameObjectData();
 
-    // Should only call IPC once due to caching
-    expect(mockLoadGameObjectXML).toHaveBeenCalledTimes(1);
-    expect(result1).toBe(result2); // Should return the same cached instance
-    expect(result1.types.size).toBe(8);
-  });
-
-  it("should return cached data even after failed IPC calls", async () => {
-    // After a successful load above, even failed IPC calls should return cached data
-    mockLoadGameObjectXML.mockResolvedValue({
-      success: false,
-      error: "File not found",
-      content: null,
-      path: null,
-    });
-
-    const result = await loadGameObjectData();
-
-    // Should return cached data from previous successful load
-    expect(result.types.size).toBe(8);
-    expect(result.categories.size).toBeGreaterThan(0);
+    // Should return the same cached instance
+    expect(result1).toBe(result2);
+    expect(result1.types.size).toBeGreaterThan(0);
+    expect(result1.categories.size).toBeGreaterThan(0);
   });
 });
 

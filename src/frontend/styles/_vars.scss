@@ -60,19 +60,7 @@
   --color-item-junk: #6c757d;                 // Junk items - dark gray
   --color-item-default: #a0a0a0;              // Default item color - medium gray
   
-  // Legacy item category mappings for backward compatibility
-  --color-item-herbal: var(--color-item-reagent);      // Map herbal to reagent
-  --color-item-magic: var(--color-item-valuable);      // Map magic to valuable  
-  --color-item-forgeable: var(--color-item-reagent);   // Map forgeable to reagent
-  --color-item-container: var(--color-item-box);       // Map container to box
   
-  // Legacy color mappings for backward compatibility (deprecated)
-  --main-bg-color: var(--color-background-primary);
-  --text-color: var(--color-text-primary);
-  --info: var(--color-border);
-  --ok: var(--color-success);
-  --warn: var(--color-danger);
-  --gentle-warn: var(--color-warning);
   
   // Layout dimensions
   --actions-width: 5em;            // Left pane width

@@ -238,9 +238,17 @@ Node.js/TypeScript Electron project
 
 - **Node.js**: `yarn`
 
+### Validation Commands
+
+- **Format**: `yarn format` (Biome formatter)
+- **Lint**: `yarn lint` (Biome linter with auto-fix)
+- **Type Check**: `yarn typecheck` (TypeScript compiler)
+- **Test**: `yarn test` (Vitest test suite)
+- **Complete Pipeline**: `yarn check` (runs all validation steps in sequence)
+
 ### Last Updated
 
-2025-08-01
+2025-08-13
 
 ## Component Architecture Details
 

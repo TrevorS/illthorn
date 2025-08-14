@@ -13,3 +13,14 @@ declare namespace Illthorn {
     }
   }
 }
+
+// Module declarations for Vite asset imports
+declare module "*.xml" {
+  const value: string;
+  export default value;
+}
+
+declare module "*.xml?raw" {
+  const value: string;
+  export default value;
+}

@@ -15,8 +15,12 @@ export class GameLink extends BaseGameElement {
   static styles = [
     BaseGameElement.styles,
     css`
-    :host {
+    /* Default link styling - only apply when no item category is set */
+    :host(:not([item-category])), :host([item-category=""]) {
       color: var(--color-link, #a0a0a0);
+    }
+    
+    :host {
       cursor: pointer;
       text-decoration: none;
       transition: all 0.2s ease;
@@ -142,18 +146,30 @@ export class GameLink extends BaseGameElement {
   };
 
   private _handleContextMenu = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Always show context menu on right-click
-    this.dispatchInteraction("context-menu", {
-      exist: this.exist,
-      noun: this.noun,
-      text: this.textContent?.trim(),
-      x: e.clientX,
-      y: e.clientY,
-      hasCommand: !!this.coord,
+    // Create and dispatch custom context menu event
+    const contextEvent = new CustomEvent("game-element-context-menu", {
+      detail: {
+        exist: this.exist,
+        noun: this.noun,
+        text: this.textContent?.trim(),
+        x: e.clientX,
+        y: e.clientY,
+        hasCommand: !!this.coord,
+        tag: this.tag,
+      },
+      bubbles: true,
+      composed: true,
+      cancelable: true,
     });
+
+    this.dispatchEvent(contextEvent);
+
+    // Only prevent native context menu if someone handled our custom event
+    if (contextEvent.defaultPrevented) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    // Otherwise, let the browser show its native context menu
   };
 
   private _handleKeydown = (e: KeyboardEvent) => {

@@ -1,6 +1,6 @@
 body {
-  background-color: var(--main-bg-color, black);
-  color: var(--text-color, white);
+  background-color: var(--color-background-primary, black);
+  color: var(--color-text-primary, white);
 }
 
 ::-webkit-scrollbar {
@@ -12,7 +12,7 @@ body {
 ::-webkit-scrollbar-thumb {
   background-color: var(
     --scrollbar-thumb-color,
-    var(--info, #184f3f)
+    var(--color-border, #184f3f)
   );
 }
 

@@ -5,7 +5,7 @@
 /* Legacy a[exist] selectors removed - modern Lit components handle item highlighting */
 
 .thoughts {
-  color: var(--thoughts-color, var(--text-color, white));
+  color: var(--thoughts-color, var(--color-text-primary, white));
 }
 .speech {
   color: var(--speech-color, #1ce21c);

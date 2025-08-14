@@ -153,15 +153,35 @@ const edgeCaseMockHighlighter = {
   },
 };
 
-// Apply the mock
-ItemHighlighter.categorizeGameElement = edgeCaseMockHighlighter.categorizeGameElement.bind(edgeCaseMockHighlighter);
-ItemHighlighter.getItemCategory = edgeCaseMockHighlighter.getItemCategory.bind(edgeCaseMockHighlighter);
-ItemHighlighter.initialize = edgeCaseMockHighlighter.initialize.bind(edgeCaseMockHighlighter);
-ItemHighlighter.isCategoryEnabled = edgeCaseMockHighlighter.isCategoryEnabled.bind(edgeCaseMockHighlighter);
-Object.defineProperty(ItemHighlighter, "isReady", {
-  get: () => true,
-  configurable: true,
-});
+// Store original methods for restoration
+const originalMethods = {
+  categorizeGameElement: ItemHighlighter.categorizeGameElement,
+  getItemCategory: ItemHighlighter.getItemCategory,
+  initialize: ItemHighlighter.initialize,
+  isCategoryEnabled: ItemHighlighter.isCategoryEnabled,
+  isReady: Object.getOwnPropertyDescriptor(ItemHighlighter, "isReady") || { get: () => ItemHighlighter.isReady },
+};
+
+// Helper to apply mock temporarily (only for this story)
+const applyEdgeCaseMock = () => {
+  ItemHighlighter.categorizeGameElement = edgeCaseMockHighlighter.categorizeGameElement.bind(edgeCaseMockHighlighter);
+  ItemHighlighter.getItemCategory = edgeCaseMockHighlighter.getItemCategory.bind(edgeCaseMockHighlighter);
+  ItemHighlighter.initialize = edgeCaseMockHighlighter.initialize.bind(edgeCaseMockHighlighter);
+  ItemHighlighter.isCategoryEnabled = edgeCaseMockHighlighter.isCategoryEnabled.bind(edgeCaseMockHighlighter);
+  Object.defineProperty(ItemHighlighter, "isReady", {
+    get: () => true,
+    configurable: true,
+  });
+};
+
+// Helper to restore original methods
+const restoreOriginalMethods = () => {
+  ItemHighlighter.categorizeGameElement = originalMethods.categorizeGameElement;
+  ItemHighlighter.getItemCategory = originalMethods.getItemCategory;
+  ItemHighlighter.initialize = originalMethods.initialize;
+  ItemHighlighter.isCategoryEnabled = originalMethods.isCategoryEnabled;
+  Object.defineProperty(ItemHighlighter, "isReady", originalMethods.isReady);
+};
 
 // Import game element components
 import "../game-elements/game-link.lit";
@@ -342,11 +362,16 @@ export const FailedCategorization: Story = {
     focused: false,
   },
   render: (args) => {
+    // Apply edge case mock for this story only
+    applyEdgeCaseMock();
+
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="failed-categorization"]') as FeedElement;
       if (feed?.appendGameTags) {
         feed.appendGameTags(createFailedCategorizationScenario());
       }
+      // Restore original methods after feed is populated
+      setTimeout(() => restoreOriginalMethods(), 500);
     }, 100);
 
     return html`
@@ -376,11 +401,16 @@ export const UndefinedNameHandling: Story = {
     focused: false,
   },
   render: (args) => {
+    // Apply edge case mock for this story only
+    applyEdgeCaseMock();
+
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="undefined-names"]') as FeedElement;
       if (feed?.appendGameTags) {
         feed.appendGameTags(createUndefinedNameScenario());
       }
+      // Restore original methods after feed is populated
+      setTimeout(() => restoreOriginalMethods(), 500);
     }, 100);
 
     return html`
@@ -404,11 +434,16 @@ export const MalformedDataHandling: Story = {
     focused: false,
   },
   render: (args) => {
+    // Apply edge case mock for this story only
+    applyEdgeCaseMock();
+
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="malformed-data"]') as FeedElement;
       if (feed?.appendGameTags) {
         feed.appendGameTags(createMalformedDataScenario());
       }
+      // Restore original methods after feed is populated
+      setTimeout(() => restoreOriginalMethods(), 500);
     }, 100);
 
     return html`
@@ -438,11 +473,16 @@ export const PerformanceStressTest: Story = {
     focused: false,
   },
   render: (args) => {
+    // Apply edge case mock for this story only
+    applyEdgeCaseMock();
+
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="performance-stress"]') as FeedElement;
       if (feed?.appendGameTags) {
         feed.appendGameTags(createPerformanceStressScenario());
       }
+      // Restore original methods after feed is populated
+      setTimeout(() => restoreOriginalMethods(), 500);
     }, 100);
 
     return html`
@@ -472,11 +512,16 @@ export const DebugOutputSimulation: Story = {
     focused: false,
   },
   render: (args) => {
+    // Apply edge case mock for this story only
+    applyEdgeCaseMock();
+
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="debug-output"]') as FeedElement;
       if (feed?.appendGameTags) {
         feed.appendGameTags(createDebugOutputSimulation());
       }
+      // Restore original methods after feed is populated
+      setTimeout(() => restoreOriginalMethods(), 500);
     }, 100);
 
     return html`
@@ -500,11 +545,16 @@ export const ConcurrentCategorization: Story = {
     focused: false,
   },
   render: (args) => {
+    // Apply edge case mock for this story only
+    applyEdgeCaseMock();
+
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="concurrent"]') as FeedElement;
       if (feed?.appendGameTags) {
         feed.appendGameTags(createConcurrentCategorizationScenario());
       }
+      // Restore original methods after feed is populated
+      setTimeout(() => restoreOriginalMethods(), 500);
     }, 100);
 
     return html`
@@ -528,6 +578,9 @@ export const ProgressiveFailureRecovery: Story = {
     focused: false,
   },
   render: (args) => {
+    // Apply edge case mock for this story only
+    applyEdgeCaseMock();
+
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="failure-recovery"]') as FeedElement;
       if (feed?.appendGameTags) {
@@ -557,6 +610,9 @@ export const ProgressiveFailureRecovery: Story = {
         setTimeout(() => {
           feed.appendGameTags([createTextTag("Final success: "), createGameLinkTag("good3", "leaf", "healing herbs")]);
         }, 1700);
+
+        // Restore original methods after all content is populated
+        setTimeout(() => restoreOriginalMethods(), 2000);
       }
     }, 100);
 
@@ -581,6 +637,9 @@ export const ErrorBoundaryTest: Story = {
     focused: false,
   },
   render: (args) => {
+    // Apply edge case mock for this story only
+    applyEdgeCaseMock();
+
     setTimeout(() => {
       const feed = document.querySelector('illthorn-feed-modernized-lit[data-story="error-boundary"]') as FeedElement;
       if (feed?.appendGameTags) {
@@ -606,6 +665,9 @@ export const ErrorBoundaryTest: Story = {
         setTimeout(() => {
           feed.appendGameTags([createTextTag("Normal item after chaos: "), createGameLinkTag("normal1", "sword", "normal sword")]);
         }, 1400);
+
+        // Restore original methods after all content is populated
+        setTimeout(() => restoreOriginalMethods(), 1700);
       }
     }, 100);
 

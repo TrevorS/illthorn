@@ -213,7 +213,8 @@ export class XMLDataParser {
 let cachedXMLData: ParsedXMLData | null = null;
 
 /**
- * Load and cache the XML data
+ * Load and cache the XML data using Vite raw import
+ * Works in all contexts: Electron, Storybook, and browser environments
  */
 export async function loadGameObjectData(): Promise<ParsedXMLData> {
   if (cachedXMLData) {
@@ -221,19 +222,16 @@ export async function loadGameObjectData(): Promise<ParsedXMLData> {
     return cachedXMLData;
   }
 
-  console.log("[XML] Loading game object data via Electron IPC");
+  console.log("[XML] Loading game object data via Vite raw import");
 
   try {
-    // Load the XML file via Electron IPC (idiomatic approach)
-    const result = await window.App.loadGameObjectXML();
+    // Use Vite's raw import to load XML content as string
+    const xmlModule = await import("../../../../data/gameobj-data.xml?raw");
+    const xmlContent = xmlModule.default;
 
-    if (!result.success || !result.content) {
-      throw new Error(`Failed to load XML data via IPC: ${result.error || "No content returned"}`);
-    }
+    console.log(`[XML] Loaded XML content (${xmlContent.length} characters)`);
 
-    console.log(`[XML] Loaded XML content via IPC (${result.content.length} characters) from ${result.path}`);
-
-    cachedXMLData = await XMLDataParser.parseGameObjectData(result.content);
+    cachedXMLData = await XMLDataParser.parseGameObjectData(xmlContent);
 
     console.log(`[XML] Successfully parsed ${cachedXMLData.types.size} item categories with ${cachedXMLData.categories.size} quick lookups`);
 

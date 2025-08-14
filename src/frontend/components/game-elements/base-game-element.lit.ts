@@ -18,22 +18,7 @@ export class BaseGameElement extends LitElement {
       display: inline;
       font-family: "MonoLisa", monospace;
       
-      /* Import CSS custom properties for theming within shadow DOM */
-      --color-item-weapon: #ff6b6b;
-      --color-item-armor: #74c0fc;
-      --color-item-clothing: #69db7c;
-      --color-item-gem: #ffd43b;
-      --color-item-jewelry: #e599f7;
-      --color-item-reagent: #9775fa;
-      --color-item-food: #ffa94d;
-      --color-item-valuable: #f783ac;
-      --color-item-box: #868e96;
-      --color-item-junk: #6c757d;
-      --color-item-default: #a0a0a0;
-      --color-item-magic: var(--color-item-valuable);
-      --color-item-herbal: var(--color-item-reagent);
-      --color-item-forgeable: var(--color-item-reagent);
-      --color-item-container: var(--color-item-box);
+      /* CSS custom properties are inherited from global theme - no redefinition needed */
     }
     
     :host([highlighted]) {
@@ -84,19 +69,19 @@ export class BaseGameElement extends LitElement {
     
     /* Legacy category mappings for backward compatibility */
     :host([item-category="herbal"]) {
-      color: var(--color-item-herbal);
+      color: var(--color-item-reagent);
     }
     
     :host([item-category="magic"]) {
-      color: var(--color-item-magic);
+      color: var(--color-item-valuable);
     }
     
     :host([item-category="forgeable"]) {
-      color: var(--color-item-forgeable);
+      color: var(--color-item-reagent);
     }
     
     :host([item-category="container"]) {
-      color: var(--color-item-container);
+      color: var(--color-item-box);
     }
     
     /* XML-based category mappings */
@@ -109,11 +94,11 @@ export class BaseGameElement extends LitElement {
     }
     
     :host([item-category="scroll"]) {
-      color: var(--color-item-magic);
+      color: var(--color-item-valuable);
     }
     
     :host([item-category="wand"]) {
-      color: var(--color-item-magic);
+      color: var(--color-item-valuable);
     }
     
     :host([item-category="skin"]) {
@@ -125,11 +110,6 @@ export class BaseGameElement extends LitElement {
     }
     
     :host([item-category="aggressive npc"]) {
-      color: var(--color-item-default);
-    }
-    
-    /* Default category styling */
-    :host([item-category]:not([item-category=""])) {
       color: var(--color-item-default);
     }
   `,

@@ -574,3 +574,251 @@ export const SlotContentTest: Story = {
     </div>
   `,
 };
+
+// Legacy category verification stories to ensure backward compatibility after cleanup
+export const LegacyHerbalCategory: Story = {
+  args: {
+    tag: createMockTag("a", { noun: "leaf", exist: "herb001" }, "some acantha leaf"),
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "herbal",
+  },
+  render: (args) => html`
+    <div style="padding: 1rem; background: var(--color-surface); border-radius: 8px;">
+      <p style="margin: 0 0 1rem 0; color: var(--color-text-primary);"><strong>Legacy "herbal" category test</strong></p>
+      <p style="margin: 0 0 1rem 0; color: var(--color-text-secondary); font-size: 0.9rem;">
+        Should show purple color (--color-item-reagent) after legacy cleanup
+      </p>
+      <illthorn-base-game-element
+        .tag=${args.tag}
+        ?highlighted=${args.highlighted}
+        .highlightClass=${args.highlightClass}
+        .itemCategory=${args.itemCategory}
+        @game-element-test=${action("game-element-test")}
+        @game-element-action=${action("game-element-action")}
+      >
+        ${args.tag.text}
+      </illthorn-base-game-element>
+    </div>
+  `,
+};
+
+export const LegacyMagicCategory: Story = {
+  args: {
+    tag: createMockTag("a", { noun: "orb", exist: "magic001" }, "glowing crystal orb"),
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "magic",
+  },
+  render: (args) => html`
+    <div style="padding: 1rem; background: var(--color-surface); border-radius: 8px;">
+      <p style="margin: 0 0 1rem 0; color: var(--color-text-primary);"><strong>Legacy "magic" category test</strong></p>
+      <p style="margin: 0 0 1rem 0; color: var(--color-text-secondary); font-size: 0.9rem;">
+        Should show pink color (--color-item-valuable) after legacy cleanup
+      </p>
+      <illthorn-base-game-element
+        .tag=${args.tag}
+        ?highlighted=${args.highlighted}
+        .highlightClass=${args.highlightClass}
+        .itemCategory=${args.itemCategory}
+        @game-element-test=${action("game-element-test")}
+        @game-element-action=${action("game-element-action")}
+      >
+        ${args.tag.text}
+      </illthorn-base-game-element>
+    </div>
+  `,
+};
+
+export const LegacyForgeableCategory: Story = {
+  args: {
+    tag: createMockTag("a", { noun: "ore", exist: "ore001" }, "chunk of mithril ore"),
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "forgeable",
+  },
+  render: (args) => html`
+    <div style="padding: 1rem; background: var(--color-surface); border-radius: 8px;">
+      <p style="margin: 0 0 1rem 0; color: var(--color-text-primary);"><strong>Legacy "forgeable" category test</strong></p>
+      <p style="margin: 0 0 1rem 0; color: var(--color-text-secondary); font-size: 0.9rem;">
+        Should show purple color (--color-item-reagent) after legacy cleanup
+      </p>
+      <illthorn-base-game-element
+        .tag=${args.tag}
+        ?highlighted=${args.highlighted}
+        .highlightClass=${args.highlightClass}
+        .itemCategory=${args.itemCategory}
+        @game-element-test=${action("game-element-test")}
+        @game-element-action=${action("game-element-action")}
+      >
+        ${args.tag.text}
+      </illthorn-base-game-element>
+    </div>
+  `,
+};
+
+export const LegacyContainerCategory: Story = {
+  args: {
+    tag: createMockTag("a", { noun: "coffer", exist: "container001" }, "ornate silver coffer"),
+    highlighted: false,
+    highlightClass: "",
+    itemCategory: "container",
+  },
+  render: (args) => html`
+    <div style="padding: 1rem; background: var(--color-surface); border-radius: 8px;">
+      <p style="margin: 0 0 1rem 0; color: var(--color-text-primary);"><strong>Legacy "container" category test</strong></p>
+      <p style="margin: 0 0 1rem 0; color: var(--color-text-secondary); font-size: 0.9rem;">
+        Should show gray color (--color-item-box) after legacy cleanup
+      </p>
+      <illthorn-base-game-element
+        .tag=${args.tag}
+        ?highlighted=${args.highlighted}
+        .highlightClass=${args.highlightClass}
+        .itemCategory=${args.itemCategory}
+        @game-element-test=${action("game-element-test")}
+        @game-element-action=${action("game-element-action")}
+      >
+        ${args.tag.text}
+      </illthorn-base-game-element>
+    </div>
+  `,
+};
+
+// Comprehensive herb showcase showing various herb types
+export const ComprehensiveHerbShowcase: Story = {
+  render: () => html`
+    <div style="padding: 1rem; background: var(--color-surface); border-radius: 8px;">
+      <h3 style="margin: 0 0 1.5rem 0; color: var(--color-text-primary);">Complete Herb & Reagent Showcase</h3>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <!-- Raw Herbs -->
+        <div>
+          <h4 style="color: var(--color-text-primary); margin: 0 0 1rem 0; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">Raw Herbs & Plants</h4>
+          <div style="line-height: 1.8;">
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "stem" }, "some aloeas stem")}
+              itemCategory="herb"
+            >some aloeas stem</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "moss" }, "some ephlox moss")}
+              itemCategory="herb"
+            >some ephlox moss</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "leaf" }, "some acantha leaf")}
+              itemCategory="herb"
+            >some acantha leaf</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "root" }, "some wolifrew root")}
+              itemCategory="herb"
+            >some wolifrew root</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "clove" }, "some sovyn clove")}
+              itemCategory="herb"
+            >some sovyn clove</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "bark" }, "some brostheras bark")}
+              itemCategory="herb"
+            >some brostheras bark</illthorn-base-game-element>
+          </div>
+        </div>
+
+        <!-- Prepared Reagents -->
+        <div>
+          <h4 style="color: var(--color-text-primary); margin: 0 0 1rem 0; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">Prepared Reagents</h4>
+          <div style="line-height: 1.8;">
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "potion" }, "rose-marrow potion")}
+              itemCategory="herb"
+            >rose-marrow potion</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "tincture" }, "gleaming moonstone tincture")}
+              itemCategory="herb"
+            >gleaming moonstone tincture</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "salve" }, "crystalline healing salve")}
+              itemCategory="herb"
+            >crystalline healing salve</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "elixir" }, "shimmering blue elixir")}
+              itemCategory="herb"
+            >shimmering blue elixir</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "remedy" }, "herbal healing remedy")}
+              itemCategory="herb"
+            >herbal healing remedy</illthorn-base-game-element>
+          </div>
+        </div>
+
+        <!-- Forageables -->
+        <div>
+          <h4 style="color: var(--color-text-primary); margin: 0 0 1rem 0; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">Forageable Reagents</h4>
+          <div style="line-height: 1.8;">
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "berry" }, "handful of elderberries")}
+              itemCategory="herb"
+            >handful of elderberries</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "flower" }, "wild rose blossom")}
+              itemCategory="herb"
+            >wild rose blossom</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "acorn" }, "handful of acorns")}
+              itemCategory="herb"
+            >handful of acorns</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "mushroom" }, "spotted mushroom")}
+              itemCategory="herb"
+            >spotted mushroom</illthorn-base-game-element><br>
+            
+            <illthorn-base-game-element
+              .tag=${createMockTag("a", { noun: "lichen" }, "pale green lichen")}
+              itemCategory="herb"
+            >pale green lichen</illthorn-base-game-element>
+          </div>
+        </div>
+
+        <!-- Legacy Categories -->
+        <div>
+          <h4 style="color: var(--color-text-primary); margin: 0 0 1rem 0; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">Legacy Category Tests</h4>
+          <div style="line-height: 1.8;">
+            <div style="margin-bottom: 0.5rem;">
+              <illthorn-base-game-element
+                .tag=${createMockTag("a", { noun: "herb" }, "bundle of herbs")}
+                itemCategory="herbal"
+              >bundle of herbs</illthorn-base-game-element>
+              <span style="color: var(--color-text-secondary); font-size: 0.8rem; margin-left: 0.5rem;">(herbal→reagent)</span>
+            </div>
+            
+            <div style="margin-bottom: 0.5rem;">
+              <illthorn-base-game-element
+                .tag=${createMockTag("a", { noun: "ore" }, "mithril ore")}
+                itemCategory="forgeable"
+              >mithril ore</illthorn-base-game-element>
+              <span style="color: var(--color-text-secondary); font-size: 0.8rem; margin-left: 0.5rem;">(forgeable→reagent)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-top: 2rem; padding: 1rem; background: rgba(0,0,0,0.1); border-radius: 6px;">
+        <p style="margin: 0; color: var(--color-text-secondary); font-style: italic;">
+          <strong style="color: var(--color-text-primary);">All herbs should show consistent purple color</strong> 
+          (--color-item-reagent) regardless of their specific noun type (stem, leaf, moss, potion, etc.) 
+          or legacy category name (herbal, forgeable).
+        </p>
+      </div>
+    </div>
+  `,
+};
