@@ -7,6 +7,7 @@ import "./components/session/feed/command-echo.lit";
 
 // Shoelace Web Components integration
 import { setBasePath } from "@shoelace-style/shoelace/dist/utilities/base-path.js";
+import { ItemHighlighter } from "./components/game-elements/item-highlighting";
 import { reloadHilites } from "./hilites";
 import { bindMacros } from "./macros";
 import { renderAllSessions } from "./session/connect-all";
@@ -19,6 +20,9 @@ import "@shoelace-style/shoelace/dist/components/tooltip/tooltip.js";
 (async function __illthorn_main() {
   // Configure Shoelace base path for assets
   setBasePath("/node_modules/@shoelace-style/shoelace/dist/");
+
+  // Preload highlighting data for immediate categorization
+  await ItemHighlighter.preload();
 
   // Replace imperative layout with Lit app component
   const app = document.querySelector("#app") as HTMLDivElement;

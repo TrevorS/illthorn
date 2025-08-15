@@ -10,46 +10,30 @@ import { loadGameObjectData, type ParsedXMLData, XMLDataParser } from "./xml-dat
 export class ItemHighlighter {
   private static xmlData: ParsedXMLData | null = null;
   private static loading: Promise<ParsedXMLData> | null = null;
+  private static settingsCache: Record<string, boolean> | null = null;
 
   /**
    * Initialize the highlighter with XML data
    */
   static async initialize(): Promise<void> {
     if (ItemHighlighter.xmlData) {
-      console.log("[ItemHighlighter] Already initialized with XML data");
       return;
     }
-
-    console.log("[ItemHighlighter] Initializing with XML data...");
 
     if (!ItemHighlighter.loading) {
       ItemHighlighter.loading = loadGameObjectData();
     }
 
     ItemHighlighter.xmlData = await ItemHighlighter.loading;
-    console.log("[ItemHighlighter] Initialization complete");
+
+    // Also preload settings for synchronous access
+    await ItemHighlighter._loadSettings();
   }
 
   /**
-   * Determine the category of an item based on its noun and full name
+   * Get the category of an item based on its noun and full name
    */
-  static async getItemCategory(noun: string, fullName?: string): Promise<string | null> {
-    await ItemHighlighter.initialize();
-
-    if (!ItemHighlighter.xmlData || !noun) {
-      return null;
-    }
-
-    // Use full name if available, otherwise use noun
-    const searchName = fullName || noun;
-
-    return XMLDataParser.findBestCategory(noun, searchName, ItemHighlighter.xmlData);
-  }
-
-  /**
-   * Synchronous version for cases where data is already loaded
-   */
-  static getItemCategorySync(noun: string, fullName?: string): string | null {
+  static getItemCategory(noun: string, fullName?: string): string | null {
     if (!ItemHighlighter.xmlData || !noun) {
       return null;
     }
@@ -61,9 +45,7 @@ export class ItemHighlighter {
   /**
    * Check if an item should be excluded from highlighting
    */
-  static async shouldExclude(_noun: string, fullName: string, category: string): Promise<boolean> {
-    await ItemHighlighter.initialize();
-
+  static shouldExclude(_noun: string, fullName: string, category: string): boolean {
     if (!ItemHighlighter.xmlData) return false;
 
     const categoryData = ItemHighlighter.xmlData.types.get(category);
@@ -104,15 +86,9 @@ export class ItemHighlighter {
   /**
    * Check if automatic highlighting is enabled for a category
    */
-  static async isCategoryEnabled(category: string): Promise<boolean> {
-    try {
-      // TODO: Integrate with settings system
-      const settings = (await window.Settings?.get("itemHighlighting")) as Record<string, boolean> | undefined;
-      if (settings && typeof settings[category] === "boolean") {
-        return settings[category];
-      }
-    } catch (_e) {
-      // Fall through to default
+  static isCategoryEnabled(category: string): boolean {
+    if (ItemHighlighter.settingsCache && typeof ItemHighlighter.settingsCache[category] === "boolean") {
+      return ItemHighlighter.settingsCache[category];
     }
 
     // Enable all categories by default
@@ -120,11 +96,26 @@ export class ItemHighlighter {
   }
 
   /**
+   * Load and cache settings for synchronous access
+   */
+  private static async _loadSettings(): Promise<void> {
+    if (ItemHighlighter.settingsCache !== null) {
+      return;
+    }
+
+    try {
+      // TODO: Integrate with settings system
+      const settings = (await window.Settings?.get("itemHighlighting")) as Record<string, boolean> | undefined;
+      ItemHighlighter.settingsCache = settings || {};
+    } catch (_e) {
+      ItemHighlighter.settingsCache = {};
+    }
+  }
+
+  /**
    * Get all available categories for settings UI
    */
-  static async getAllCategories(): Promise<Array<{ key: string; name: string; color: string }>> {
-    await ItemHighlighter.initialize();
-
+  static getAllCategories(): Array<{ key: string; name: string; color: string }> {
     const categories: Array<{ key: string; name: string; color: string }> = [];
 
     if (ItemHighlighter.xmlData) {
@@ -151,9 +142,7 @@ export class ItemHighlighter {
   /**
    * Get statistics about loaded data
    */
-  static async getStats(): Promise<{ categories: number; patterns: number; lookups: number }> {
-    await ItemHighlighter.initialize();
-
+  static getStats(): { categories: number; patterns: number; lookups: number } {
     if (!ItemHighlighter.xmlData) {
       return { categories: 0, patterns: 0, lookups: 0 };
     }
@@ -183,86 +172,73 @@ export class ItemHighlighter {
   static clearCache(): void {
     ItemHighlighter.xmlData = null;
     ItemHighlighter.loading = null;
+    ItemHighlighter.settingsCache = null;
   }
 
   /**
-   * Check if the highlighter is ready (data loaded)
+   * Check if the highlighter is ready (data and settings loaded)
    */
   static get isReady(): boolean {
-    return ItemHighlighter.xmlData !== null;
+    return ItemHighlighter.xmlData !== null && ItemHighlighter.settingsCache !== null;
   }
 
   /**
-   * Enhanced categorization that checks multiple attributes
+   * Categorize a game element based on its attributes
    */
-  static async categorizeGameElement(attributes: { noun?: string; exist?: string; name?: string; [key: string]: unknown }): Promise<{
+  static categorizeGameElement(attributes: { noun?: string; exist?: string; name?: string; [key: string]: unknown }): {
     category: string | null;
     confidence: "high" | "medium" | "low";
     source: "noun" | "name" | "exist" | "fallback";
-  }> {
+  } {
     const { noun, exist, name } = attributes;
-    console.log(`[ItemHighlighter] categorizeGameElement called with: noun="${noun}", exist="${exist}", name="${name}"`);
 
-    await ItemHighlighter.initialize();
+    if (!ItemHighlighter.xmlData) {
+      return {
+        category: null,
+        confidence: "low",
+        source: "fallback",
+      };
+    }
 
     // Try noun first (highest confidence)
     if (noun) {
-      console.log(`[ItemHighlighter] Trying noun-based categorization for "${noun}"`);
-      const nounCategory = await ItemHighlighter.getItemCategory(noun, name);
+      const nounCategory = ItemHighlighter.getItemCategory(noun, name);
       if (nounCategory) {
-        console.log(`[ItemHighlighter] Found noun-based category "${nounCategory}" for "${noun}"`);
         return {
           category: nounCategory,
           confidence: "high",
           source: "noun",
         };
-      } else {
-        console.log(`[ItemHighlighter] No noun-based category found for "${noun}"`);
       }
     }
 
     // Try exist attribute (medium confidence)
     if (exist) {
-      console.log(`[ItemHighlighter] Trying exist-based categorization for "${exist}"`);
-      const existCategory = await ItemHighlighter.getItemCategory(exist, name);
+      const existCategory = ItemHighlighter.getItemCategory(exist, name);
       if (existCategory) {
-        console.log(`[ItemHighlighter] Found exist-based category "${existCategory}" for "${exist}"`);
         return {
           category: existCategory,
           confidence: "medium",
           source: "exist",
         };
-      } else {
-        console.log(`[ItemHighlighter] No exist-based category found for "${exist}"`);
       }
     }
 
     // Try full name pattern matching (low confidence)
     if (name) {
-      console.log(`[ItemHighlighter] Trying name-based categorization for "${name}"`);
-      if (ItemHighlighter.xmlData) {
-        for (const [categoryName, categoryData] of ItemHighlighter.xmlData.types) {
-          if (categoryData.namePatterns.some((pattern) => pattern.test(name))) {
-            console.log(`[ItemHighlighter] Name "${name}" matches pattern for category "${categoryName}"`);
-            if (!XMLDataParser.isExcluded(name, categoryData)) {
-              console.log(`[ItemHighlighter] Found name-based category "${categoryName}" for "${name}"`);
-              return {
-                category: categoryName,
-                confidence: "low",
-                source: "name",
-              };
-            } else {
-              console.log(`[ItemHighlighter] Name "${name}" excluded from category "${categoryName}"`);
-            }
+      for (const [categoryName, categoryData] of ItemHighlighter.xmlData.types) {
+        if (categoryData.namePatterns.some((pattern) => pattern.test(name))) {
+          if (!XMLDataParser.isExcluded(name, categoryData)) {
+            return {
+              category: categoryName,
+              confidence: "low",
+              source: "name",
+            };
           }
         }
-        console.log(`[ItemHighlighter] No name-based category found for "${name}"`);
-      } else {
-        console.log(`[ItemHighlighter] XML data not available for name-based categorization`);
       }
     }
 
-    console.log(`[ItemHighlighter] No category found for item with noun="${noun}", exist="${exist}", name="${name}"`);
     return {
       category: null,
       confidence: "low",

@@ -4,7 +4,6 @@
 import { css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { BaseGameElement } from "./base-game-element.lit";
-import { ItemHighlighter } from "./item-highlighting";
 
 @customElement("illthorn-game-link")
 export class GameLink extends BaseGameElement {
@@ -59,7 +58,7 @@ export class GameLink extends BaseGameElement {
   `,
   ];
 
-  async connectedCallback() {
+  connectedCallback() {
     super.connectedCallback();
 
     // Set tabindex="0" for keyboard accessibility (WCAG 2.1 compliance)
@@ -72,8 +71,7 @@ export class GameLink extends BaseGameElement {
     this.addEventListener("contextmenu", this._handleContextMenu);
     this.addEventListener("keydown", this._handleKeydown);
 
-    // Set up automatic item highlighting
-    await this._setupItemHighlighting();
+    // Highlighting is now handled at render time for zero-lag performance
   }
 
   disconnectedCallback() {
@@ -81,40 +79,6 @@ export class GameLink extends BaseGameElement {
     this.removeEventListener("click", this._handleClick);
     this.removeEventListener("contextmenu", this._handleContextMenu);
     this.removeEventListener("keydown", this._handleKeydown);
-  }
-
-  private async _setupItemHighlighting() {
-    if (this.noun) {
-      console.log(`[ItemHighlighting] Attempting to categorize item: noun="${this.noun}", exist="${this.exist}", text="${this.textContent}"`);
-
-      try {
-        const result = await ItemHighlighter.categorizeGameElement({
-          noun: this.noun,
-          exist: this.exist,
-          name: this.textContent || undefined,
-        });
-
-        console.log(`[ItemHighlighting] Categorization result for "${this.noun}":`, result);
-
-        if (result.category && (await ItemHighlighter.isCategoryEnabled(result.category))) {
-          this.itemCategory = result.category;
-          console.log(`[ItemHighlighting] Applied category "${result.category}" to item "${this.noun}"`);
-
-          // Set up accessibility label
-          const categoryDisplay = (await ItemHighlighter.getAllCategories()).find((cat) => cat.key === result.category)?.name || result.category;
-
-          const baseLabel = this.textContent?.trim() || this.noun;
-          this.setAttribute("aria-label", `${baseLabel} (${categoryDisplay}${this.coord ? ", clickable" : ""})`);
-        } else {
-          console.log(`[ItemHighlighting] No valid category found for "${this.noun}" or category disabled`);
-        }
-      } catch (error) {
-        console.error(`[ItemHighlighting] Failed to categorize game link "${this.noun}":`, error);
-      }
-    } else if (this.coord) {
-      // Command link without item categorization
-      this.setAttribute("aria-label", `${this.textContent?.trim() || "Command"} (clickable)`);
-    }
   }
 
   render() {

@@ -6,7 +6,6 @@ import { IllthornEvent } from "../../../events";
 import { ComponentRenderer, type RenderResult } from "../../../parser/component-renderer";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
-import { debugFeed } from "../../../util/logger";
 import type { CommandEchoEvent } from "../../command-bar/command-echo";
 import "./command-echo.lit";
 
@@ -233,7 +232,7 @@ export class FeedModernized extends LitElement {
     // No content scrollable
     if (this._feedContainer.scrollHeight === this._feedContainer.clientHeight) return false;
     // Check the relative scroll offset from the head with a larger buffer for precision
-    return this._feedContainer.scrollHeight - this._feedContainer.scrollTop - this._feedContainer.clientHeight > 10;
+    return this._feedContainer.scrollHeight - this._feedContainer.scrollTop - this._feedContainer.clientHeight > 20;
   }
 
   /**
@@ -278,8 +277,6 @@ export class FeedModernized extends LitElement {
    * Primary method: Append GameTag array directly to feed content
    */
   appendGameTags(tags: Array<GameTag>) {
-    debugFeed("appendGameTags called with %d tags", tags.length);
-
     if (tags.length === 0) {
       return;
     }
@@ -298,7 +295,7 @@ export class FeedModernized extends LitElement {
     // Trigger re-render
     this.requestUpdate();
 
-    // Schedule scroll after render if not manually scrolling
+    // Schedule immediate scroll if not manually scrolling and should auto-scroll
     if (!wasScrolling && this._shouldAutoScroll) {
       this._scheduleAutoScroll();
     }
@@ -410,7 +407,9 @@ export class FeedModernized extends LitElement {
     return false;
   }
 
-  updated() {
+  updated(changedProperties: Map<string | number | symbol, unknown>) {
+    super.updated(changedProperties);
+
     // Cache reference to the feed container after render
     if (!this._feedContainer) {
       this._feedContainer = this.shadowRoot?.querySelector(".feed-container") as HTMLElement;
@@ -420,6 +419,20 @@ export class FeedModernized extends LitElement {
     if (this.session?.bus && !this._hasSubscribedToEcho) {
       this.session.bus.subscribeEvent<CommandEchoEvent>(IllthornEvent.COMMAND_ECHO, this._handleCommandEcho.bind(this));
       this._hasSubscribedToEcho = true;
+    }
+
+    // Auto-scroll when content is added
+    if (changedProperties.has("_contentTags") || changedProperties.has("_allContent")) {
+      if (!this.isScrolling && this._shouldAutoScroll) {
+        // Ensure Lit's update is fully complete, then wait for next paint
+        this.updateComplete.then(() => {
+          requestAnimationFrame(() => {
+            if (this._feedContainer) {
+              this._feedContainer.scrollTop = this._feedContainer.scrollHeight;
+            }
+          });
+        });
+      }
     }
   }
 
