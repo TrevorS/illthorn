@@ -3,6 +3,7 @@
 
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { guard } from "lit/directives/guard.js";
 import { IllthornEvent } from "../../../events";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
@@ -237,6 +238,22 @@ export class FeedModernized extends LitElement {
   }
 
   /**
+   * Get stable identifier for a content item to enable efficient guard caching
+   * This prevents re-rendering of unchanged items when new content is added
+   */
+  private _getItemId(item: ContentItem, index: number): string {
+    if (item.type === "echo") {
+      // Command echoes have timestamps which are unique
+      return `echo-${item.data.timestamp}`;
+    } else {
+      // For tags, use index + first tag name as stable ID
+      // This works because we never modify existing items, only append new ones
+      const firstTag = item.data[0];
+      return `tag-${index}-${firstTag?.name || "empty"}`;
+    }
+  }
+
+  /**
    * Handle scroll events to detect manual scrolling
    */
   private _handleVirtualScroll(e: Event) {
@@ -318,12 +335,14 @@ export class FeedModernized extends LitElement {
   render() {
     return html`
       <div class="feed-container" @scroll=${this._handleVirtualScroll} @click=${this._handleClick}>
-        ${this._allContent.map(
-          (item, index) =>
-            html`<illthorn-message-block-lit 
-            .item=${item}
-            .index=${index}
-          ></illthorn-message-block-lit>`,
+        ${this._allContent.map((item, index) =>
+          guard(
+            [this._getItemId(item, index)], // Dependencies - only re-render if ID changes
+            () => html`<illthorn-message-block-lit
+              .item=${item}
+              .index=${index}
+            ></illthorn-message-block-lit>`,
+          ),
         )}
       </div>
     `;
