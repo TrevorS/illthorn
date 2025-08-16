@@ -1,7 +1,7 @@
 // ABOUTME: Integration test for command echo flow from CLI to Feed component
 // ABOUTME: Tests the complete bus-based echo system end-to-end
 
-import { beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { CLI } from "../../src/frontend/components/command-bar/cli.lit";
 import { CommandHistory } from "../../src/frontend/components/command-bar/command-history";
 import type { FeedModernized } from "../../src/frontend/components/session/feed/feed-modernized.lit";
@@ -9,7 +9,10 @@ import { SaxophoneParser } from "../../src/frontend/parser/saxophone-parser";
 import type { FrontendSession } from "../../src/frontend/session";
 import { Bus } from "../../src/frontend/util/bus";
 
-// No need to import echo component anymore - using HTML generation
+// Import echo component to ensure it's registered
+import "../../src/frontend/components/session/feed/command-echo.lit";
+import "../../src/frontend/components/session/feed/feed-modernized.lit";
+import "../../src/frontend/components/session/feed/message-block.lit";
 
 // Mock session for testing
 const createMockSession = (): FrontendSession => {
@@ -74,29 +77,36 @@ describe("Command Echo Integration", () => {
     await cli.updateComplete;
 
     // Get initial feed content HTML
-    const feedContent = feed.shadowRoot?.querySelector(".content");
+    const feedContent = feed.shadowRoot?.querySelector(".feed-container");
     const initialHTML = feedContent?.innerHTML || "";
 
     // Simulate pressing Enter to submit the command
     cli._submitCommand();
 
     // Wait for the bus event to propagate and feed to update
-    await new Promise((resolve) => setTimeout(resolve, 10)); // Small delay for bus propagation
+    await new Promise((resolve) => setTimeout(resolve, 50)); // Increased delay for bus propagation
     await feed.updateComplete;
 
     // Check that command echo HTML was added to the feed
-    const finalFeedContent = feed.shadowRoot?.querySelector(".content");
+    const finalFeedContent = feed.shadowRoot?.querySelector(".feed-container");
     const finalHTML = finalFeedContent?.innerHTML || "";
 
-    // Should contain the command echo component with proper formatting
-    expect(finalHTML).toContain("illthorn-command-echo-lit");
-    expect(finalHTML).toContain("command-echo");
+    // Check that message blocks were created for command echo
+    const messageBlocks = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
+    expect(messageBlocks?.length).toBeGreaterThan(0);
 
-    // Check that the command echo component was created with correct properties
-    const commandEchoComponent = feed.shadowRoot?.querySelector("illthorn-command-echo-lit");
-    expect(commandEchoComponent).toBeDefined();
+    // Wait for message blocks to render their content
+    await Promise.all(Array.from(messageBlocks || []).map((block) => block.updateComplete));
+
+    // Check the message block contains command echo content
+    const commandEchoComponents = Array.from(messageBlocks || []).flatMap((block) => Array.from(block.shadowRoot?.querySelectorAll("illthorn-command-echo-lit") || []));
+    expect(commandEchoComponents.length).toBeGreaterThan(0);
+    const commandEchoComponent = commandEchoComponents[0];
     expect(commandEchoComponent?.getAttribute("command") || commandEchoComponent?.command).toBe("look");
     expect(commandEchoComponent?.hasAttribute("is-replay")).toBe(false);
+
+    // Should contain the command echo component with proper formatting in the overall HTML
+    expect(finalHTML).toContain("illthorn-message-block-lit");
 
     // Should be different from initial HTML (new content added)
     expect(finalHTML).not.toBe(initialHTML);
@@ -110,34 +120,40 @@ describe("Command Echo Integration", () => {
     // First, submit a command to have something to replay
     cli._inputValue = "inventory";
     cli._submitCommand();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     await feed.updateComplete;
 
     // Get feed content HTML after first command
-    const afterFirstCommandHTML = feed.shadowRoot?.querySelector(".content")?.innerHTML || "";
+    const afterFirstCommandHTML = feed.shadowRoot?.querySelector(".feed-container")?.innerHTML || "";
 
     // Now replay the last command
     cli._replayLastCommand();
 
     // Wait for the replay echo to propagate
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     await feed.updateComplete;
 
     // Check that replay command echo HTML was added
-    const finalHTML = feed.shadowRoot?.querySelector(".content")?.innerHTML || "";
+    const finalHTML = feed.shadowRoot?.querySelector(".feed-container")?.innerHTML || "";
 
-    // Should contain the replay echo component with proper formatting
-    expect(finalHTML).toContain("illthorn-command-echo-lit");
-    expect(finalHTML).toContain("is-replay");
+    // Check that message blocks were created for command echoes
+    const messageBlocks = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
+    expect(messageBlocks?.length).toBeGreaterThan(1); // Should have at least 2 (original + replay)
 
-    // Check that replay command echo components were created
-    const replayComponents = feed.shadowRoot?.querySelectorAll("illthorn-command-echo-lit[is-replay]");
+    // Wait for message blocks to render their content
+    await Promise.all(Array.from(messageBlocks || []).map((block) => block.updateComplete));
+
+    // Check that replay command echo components were created inside message blocks
+    const replayComponents = Array.from(messageBlocks || []).flatMap((block) => Array.from(block.shadowRoot?.querySelectorAll("illthorn-command-echo-lit[is-replay]") || []));
     expect(replayComponents?.length).toBeGreaterThan(0);
 
     // Check the last replay component has correct properties
     const lastReplayComponent = replayComponents?.[replayComponents.length - 1];
     expect(lastReplayComponent?.getAttribute("command") || lastReplayComponent?.command).toBe("inventory");
     expect(lastReplayComponent?.hasAttribute("is-replay")).toBe(true);
+
+    // Should contain the message blocks with content
+    expect(finalHTML).toContain("illthorn-message-block-lit");
 
     // Should be different from HTML after first command (new content added)
     expect(finalHTML).not.toBe(afterFirstCommandHTML);
@@ -149,18 +165,18 @@ describe("Command Echo Integration", () => {
     await feed.updateComplete;
 
     // Get initial feed content HTML
-    const initialHTML = feed.shadowRoot?.querySelector(".content")?.innerHTML || "";
+    const initialHTML = feed.shadowRoot?.querySelector(".feed-container")?.innerHTML || "";
 
     // Try to submit an empty command
     cli._inputValue = "";
     cli._submitCommand();
 
     // Wait a bit
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     await feed.updateComplete;
 
     // Check that no echo was added (HTML should be unchanged)
-    const finalHTML = feed.shadowRoot?.querySelector(".content")?.innerHTML || "";
+    const finalHTML = feed.shadowRoot?.querySelector(".feed-container")?.innerHTML || "";
     expect(finalHTML).toBe(initialHTML);
   });
 });
