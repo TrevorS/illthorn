@@ -4,6 +4,15 @@
 import { css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { BaseGameElement } from "./base-game-element.lit";
+import { ItemHighlighter } from "./item-highlighting";
+
+// Debug logging for highlight performance
+declare global {
+  interface Window {
+    DEBUG?: (namespace: string) => (...args: Array<unknown>) => void;
+  }
+}
+const debug = window.DEBUG?.("illthorn:highlighting") || (() => {});
 
 @customElement("illthorn-game-link")
 export class GameLink extends BaseGameElement {
@@ -22,7 +31,8 @@ export class GameLink extends BaseGameElement {
     :host {
       cursor: pointer;
       text-decoration: none;
-      transition: all 0.2s ease;
+      /* Only transition interactive properties, not colors */
+      transition: transform 0.2s ease, text-decoration 0.2s ease;
     }
     
     :host(:hover) {
@@ -71,7 +81,8 @@ export class GameLink extends BaseGameElement {
     this.addEventListener("contextmenu", this._handleContextMenu);
     this.addEventListener("keydown", this._handleKeydown);
 
-    // Highlighting is now handled at render time for zero-lag performance
+    // Compute highlighting category once when component connects
+    this._computeItemCategoryOnce();
   }
 
   disconnectedCallback() {
@@ -164,6 +175,35 @@ export class GameLink extends BaseGameElement {
       this._handleContextMenu(contextEvent);
     }
   };
+
+  /**
+   * Compute item category once when component is created
+   * This prevents re-highlighting on every render cycle
+   */
+  private _computeItemCategoryOnce() {
+    // Only compute if not already set and we have a noun
+    if (this.itemCategory || !this.noun) {
+      return;
+    }
+
+    if (ItemHighlighter.isReady) {
+      const fullName = this.textContent?.trim();
+      debug(`Computing category for GameLink: ${this.noun} (${fullName})`);
+
+      const category = ItemHighlighter.getItemCategory(this.noun, fullName);
+
+      if (category && ItemHighlighter.isCategoryEnabled(category)) {
+        this.itemCategory = category;
+        debug(`GameLink category set: ${this.noun} -> ${category}`);
+      } else {
+        debug(`GameLink no category: ${this.noun}`);
+      }
+    } else {
+      debug(`ItemHighlighter not ready, retrying for: ${this.noun}`);
+      // If highlighter isn't ready, try again after a short delay
+      setTimeout(() => this._computeItemCategoryOnce(), 100);
+    }
+  }
 
   /**
    * Public API for external highlighting control

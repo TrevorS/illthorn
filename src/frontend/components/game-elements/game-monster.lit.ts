@@ -4,6 +4,15 @@
 import { css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { BaseGameElement } from "./base-game-element.lit";
+import { ItemHighlighter } from "./item-highlighting";
+
+// Debug logging for highlight performance
+declare global {
+  interface Window {
+    DEBUG?: (namespace: string) => (...args: Array<unknown>) => void;
+  }
+}
+const debug = window.DEBUG?.("illthorn:highlighting") || (() => {});
 
 @customElement("illthorn-game-monster")
 export class GameMonster extends BaseGameElement {
@@ -191,6 +200,9 @@ export class GameMonster extends BaseGameElement {
 
     // Set up monster characteristics
     this._setupMonsterData();
+
+    // Compute highlighting category once when component connects
+    this._computeItemCategoryOnce();
   }
 
   disconnectedCallback() {
@@ -198,6 +210,35 @@ export class GameMonster extends BaseGameElement {
     this.removeEventListener("click", this._handleClick);
     this.removeEventListener("contextmenu", this._handleContextMenu);
     this.removeEventListener("keydown", this._handleKeydown);
+  }
+
+  /**
+   * Compute item category once when component is created
+   * This prevents re-highlighting on every render cycle
+   */
+  private _computeItemCategoryOnce() {
+    // Only compute if not already set and we have a noun
+    if (this.itemCategory || !this.noun) {
+      return;
+    }
+
+    if (ItemHighlighter.isReady) {
+      const fullName = this.textContent?.trim();
+      debug(`Computing category for GameMonster: ${this.noun} (${fullName})`);
+
+      const category = ItemHighlighter.getItemCategory(this.noun, fullName);
+
+      if (category && ItemHighlighter.isCategoryEnabled(category)) {
+        this.itemCategory = category;
+        debug(`GameMonster category set: ${this.noun} -> ${category}`);
+      } else {
+        debug(`GameMonster no category: ${this.noun}`);
+      }
+    } else {
+      debug(`ItemHighlighter not ready, retrying for monster: ${this.noun}`);
+      // If highlighter isn't ready, try again after a short delay
+      setTimeout(() => this._computeItemCategoryOnce(), 100);
+    }
   }
 
   private _setupMonsterData() {

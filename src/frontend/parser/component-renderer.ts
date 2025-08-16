@@ -2,7 +2,6 @@
 // ABOUTME: Replaces castToHTML() DOM generation with modern component-based rendering
 
 import { html, type TemplateResult } from "lit";
-import { ItemHighlighter } from "../components/game-elements/item-highlighting";
 import type { GameTag } from "./tag";
 import { TagKind } from "./tag";
 
@@ -93,20 +92,9 @@ export class ComponentRenderer {
    */
   private renderGameLink(tag: GameTag): { template: TemplateResult } {
     const children = this.renderChildren(tag.children);
-    const noun = tag.attrs.noun as string;
-    const fullName = tag.children.find((child) => child.name === ":text")?.text;
-
-    let itemCategory = "";
-    if (noun && ItemHighlighter.isReady) {
-      const category = ItemHighlighter.getItemCategory(noun, fullName);
-      if (category && ItemHighlighter.isCategoryEnabled(category)) {
-        itemCategory = category;
-      }
-    }
 
     return {
       template: html`<illthorn-game-link
-        .itemCategory=${itemCategory}
         .tag=${tag}
         .exist=${tag.attrs.exist as string}
         .noun=${tag.attrs.noun as string}
@@ -126,20 +114,8 @@ export class ComponentRenderer {
     // Extract text content from nested <a> tags (don't render children as components)
     const textContent = this.extractTextFromChildren(tag.children);
 
-    // Apply highlighting at render time for zero-lag performance
-    let itemCategory = "";
-    if (noun && ItemHighlighter.isReady) {
-      const fullName = textContent || tag.text || undefined;
-      const category = ItemHighlighter.getItemCategory(noun, fullName);
-
-      if (category && ItemHighlighter.isCategoryEnabled(category)) {
-        itemCategory = category;
-      }
-    }
-
     return {
       template: html`<illthorn-game-monster
-        .itemCategory=${itemCategory}
         .tag=${tag}
         .exist=${exist}
         .noun=${noun}

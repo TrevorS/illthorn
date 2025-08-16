@@ -2,7 +2,7 @@
 // ABOUTME: Provides highlighting, theming, and interaction patterns for game elements
 
 import { type CSSResultGroup, css, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import type { GameTag } from "../../parser/tag";
 
 @customElement("illthorn-base-game-element")
@@ -11,6 +11,13 @@ export class BaseGameElement extends LitElement {
   @property({ type: Boolean, reflect: true }) highlighted = false;
   @property({ type: String, reflect: true, attribute: "highlight-class" }) highlightClass = "";
   @property({ type: String, reflect: true, attribute: "item-category" }) itemCategory = "";
+
+  // Internal state for highlighting memoization
+  @state()
+  private _computedCategory: string | null = null;
+
+  @state()
+  private _hasCategoryComputed = false;
 
   static styles: CSSResultGroup = [
     css`
@@ -117,6 +124,47 @@ export class BaseGameElement extends LitElement {
 
   render() {
     return html`<slot></slot>`;
+  }
+
+  /**
+   * Get the cached item category, computing it once if needed
+   * This prevents redundant highlighting calculations during re-renders
+   */
+  getCachedCategory(): string | null {
+    if (this._hasCategoryComputed) {
+      return this._computedCategory;
+    }
+    return null;
+  }
+
+  /**
+   * Set the computed category and mark as computed
+   * Used by ComponentRenderer to cache highlighting results
+   */
+  setCachedCategory(category: string | null): void {
+    this._computedCategory = category;
+    this._hasCategoryComputed = true;
+
+    // Update the reflected attribute for CSS styling
+    if (category) {
+      this.itemCategory = category;
+    }
+  }
+
+  /**
+   * Check if highlighting has been computed for this element
+   */
+  get hasCategoryComputed(): boolean {
+    return this._hasCategoryComputed;
+  }
+
+  /**
+   * Reset the category cache (useful for testing or dynamic updates)
+   */
+  resetCategoryCache(): void {
+    this._computedCategory = null;
+    this._hasCategoryComputed = false;
+    this.itemCategory = "";
   }
 
   /**

@@ -1066,6 +1066,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@lit-labs/virtualizer@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "@lit-labs/virtualizer@npm:2.1.1"
+  dependencies:
+    lit: "npm:^3.2.0"
+    tslib: "npm:^2.0.3"
+  checksum: 10c0/ea3cce76885448f11ab77d06ce3e58bf83fc700edf05ab4310836a83a06c11a4fc7e29f59813a0ade6056b0bd970fb7b980b0fd7df25e7892dddc4ae11fefe20
+  languageName: node
+  linkType: hard
+
 "@lit/react@npm:^1.0.6":
   version: 1.0.8
   resolution: "@lit/react@npm:1.0.8"
@@ -4223,6 +4233,7 @@ __metadata:
     "@electron-forge/maker-zip": "npm:^7.8.1"
     "@electron-forge/plugin-vite": "npm:^7.8.1"
     "@floating-ui/utils": "npm:^0.2.10"
+    "@lit-labs/virtualizer": "npm:^2.1.1"
     "@shoelace-style/shoelace": "npm:^2.20.1"
     "@storybook/web-components-vite": "npm:^9.1.2"
     "@types/debug": "npm:^4.1.7"
@@ -4690,7 +4701,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lit@npm:^3.2.1, lit@npm:^3.3.1":
+"lit@npm:^3.2.0, lit@npm:^3.2.1, lit@npm:^3.3.1":
   version: 3.3.1
   resolution: "lit@npm:3.3.1"
   dependencies:
@@ -7031,7 +7042,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.1":
+"tslib@npm:^2.0.1, tslib@npm:^2.0.3":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62

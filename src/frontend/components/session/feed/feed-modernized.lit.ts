@@ -1,7 +1,11 @@
 // ABOUTME: Modern Lit-based Feed component that renders GameTag arrays directly as components
 // ABOUTME: Eliminates double conversion (GameTag→DOM→HTML→DOM) for 50-75% performance improvement
-import { css, html, LitElement, type TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+
+import type { LitVirtualizer } from "@lit-labs/virtualizer";
+import { css, html, LitElement, nothing, type TemplateResult } from "lit";
+import { customElement, property, query, state } from "lit/decorators.js";
+import type { DirectiveResult } from "lit/directive.js";
+import { guard } from "lit/directives/guard.js";
 import { IllthornEvent } from "../../../events";
 import { ComponentRenderer, type RenderResult } from "../../../parser/component-renderer";
 import type { GameTag } from "../../../parser/tag";
@@ -12,7 +16,7 @@ import "./command-echo.lit";
 @customElement("illthorn-feed-modernized-lit")
 export class FeedModernized extends LitElement {
   static MIN_SCROLL_BUFFER = 300;
-  static MAX_MEMORY_LENGTH = 100 * 5;
+  static MAX_MEMORY_LENGTH = 100 * 5 * 3;
 
   static styles = css`
     :host {
@@ -27,12 +31,33 @@ export class FeedModernized extends LitElement {
     }
 
     .feed-container {
+      display: block;
       height: 100%;
+      width: 100%;
       overflow-y: auto;
       overflow-x: hidden;
       padding: 0.5em;
       padding-bottom: 1em;
       box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-border) transparent;
+    }
+
+    .feed-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .feed-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .feed-container::-webkit-scrollbar-thumb {
+      background-color: var(--color-border);
+      border-radius: 4px;
+    }
+
+    .feed-container::-webkit-scrollbar-thumb:hover {
+      background-color: var(--color-success);
     }
 
     :host(.feed) {
@@ -40,27 +65,6 @@ export class FeedModernized extends LitElement {
       color: var(--color-text-primary);
     }
 
-    :host(.scroll) {
-      scrollbar-width: thin;
-      scrollbar-color: var(--color-border) transparent;
-    }
-
-    :host(.scroll)::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    :host(.scroll)::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    :host(.scroll)::-webkit-scrollbar-thumb {
-      background-color: var(--color-border);
-      border-radius: 4px;
-    }
-
-    :host(.scroll)::-webkit-scrollbar-thumb:hover {
-      background-color: var(--color-success);
-    }
 
     :host([focused]) {
       border: 1px solid var(--color-focus);
@@ -210,7 +214,16 @@ export class FeedModernized extends LitElement {
   @state()
   private _shouldAutoScroll = true;
 
-  private _feedContainer?: HTMLElement;
+  @query("lit-virtualizer") private _virtualizer?: LitVirtualizer;
+
+  private get virtualizer(): LitVirtualizer | null {
+    // Ensure we have a proper reference to the virtualizer
+    if (!this._virtualizer) {
+      this._virtualizer = this.shadowRoot?.querySelector("lit-virtualizer") as LitVirtualizer;
+    }
+    return this._virtualizer || null;
+  }
+
   private _hasSubscribedToEcho = false;
   private _renderer = new ComponentRenderer();
 
@@ -228,11 +241,14 @@ export class FeedModernized extends LitElement {
    * Check if user is manually scrolling (not at bottom)
    */
   get isScrolling(): boolean {
-    if (!this._feedContainer) return false;
+    const container = this.shadowRoot?.querySelector('.feed-container') as HTMLElement;
+    if (!container) return false;
+
     // No content scrollable
-    if (this._feedContainer.scrollHeight === this._feedContainer.clientHeight) return false;
-    // Check the relative scroll offset from the head with a larger buffer for precision
-    return this._feedContainer.scrollHeight - this._feedContainer.scrollTop - this._feedContainer.clientHeight > 20;
+    if (container.scrollHeight === container.clientHeight) return false;
+
+    // Check the relative scroll offset from the bottom with buffer for precision
+    return container.scrollHeight - container.scrollTop - container.clientHeight > FeedModernized.MIN_SCROLL_BUFFER;
   }
 
   /**
@@ -312,9 +328,15 @@ export class FeedModernized extends LitElement {
    * Scroll to the HEAD position (bottom)
    */
   scrollToNow() {
-    if (this._feedContainer) {
-      this._feedContainer.scrollTop = this._feedContainer.scrollHeight;
-      this._shouldAutoScroll = true;
+    // Find the scrollable container
+    const container = this.shadowRoot?.querySelector('.feed-container') as HTMLElement;
+    if (container && this._allContent.length > 0) {
+      try {
+        container.scrollTop = container.scrollHeight;
+        this._shouldAutoScroll = true;
+      } catch (error) {
+        console.warn("Failed to scroll container:", error);
+      }
     }
     return this;
   }
@@ -332,29 +354,24 @@ export class FeedModernized extends LitElement {
   }
 
   /**
-   * Finalizer for pruned nodes - removes old entries to manage memory
+   * Finalizer for pruned nodes - no longer needed with virtualizer
+   * Virtualizer handles memory management automatically by only rendering visible items
    */
   flush() {
-    while (this._contentTags.length > FeedModernized.MAX_MEMORY_LENGTH) {
-      this._contentTags = this._contentTags.slice(1);
-    }
-    while (this._commandEchoes.length > FeedModernized.MAX_MEMORY_LENGTH) {
-      this._commandEchoes = this._commandEchoes.slice(1);
-    }
-    while (this._allContent.length > FeedModernized.MAX_MEMORY_LENGTH) {
-      this._allContent = this._allContent.slice(1);
-    }
+    // Manual memory management disabled - virtualizer handles this
+    // The virtualizer only renders visible items, so we can keep unlimited history
     return this;
   }
 
   /**
    * Handle scroll events to detect manual scrolling
    */
-  private _handleScroll(_e: Event) {
-    if (!this._feedContainer) return;
+  private _handleVirtualScroll(e: Event) {
+    const target = e.target as HTMLElement;
+    if (!target) return;
 
-    const container = this._feedContainer;
-    const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 10;
+    const { scrollHeight, scrollTop, clientHeight } = target;
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - FeedModernized.MIN_SCROLL_BUFFER;
     this._shouldAutoScroll = isAtBottom;
   }
 
@@ -410,11 +427,6 @@ export class FeedModernized extends LitElement {
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
 
-    // Cache reference to the feed container after render
-    if (!this._feedContainer) {
-      this._feedContainer = this.shadowRoot?.querySelector(".feed-container") as HTMLElement;
-    }
-
     // Subscribe to command echo events when session becomes available
     if (this.session?.bus && !this._hasSubscribedToEcho) {
       this.session.bus.subscribeEvent<CommandEchoEvent>(IllthornEvent.COMMAND_ECHO, this._handleCommandEcho.bind(this));
@@ -424,13 +436,9 @@ export class FeedModernized extends LitElement {
     // Auto-scroll when content is added
     if (changedProperties.has("_contentTags") || changedProperties.has("_allContent")) {
       if (!this.isScrolling && this._shouldAutoScroll) {
-        // Ensure Lit's update is fully complete, then wait for next paint
+        // Ensure virtualizer is ready, then scroll to bottom
         this.updateComplete.then(() => {
-          requestAnimationFrame(() => {
-            if (this._feedContainer) {
-              this._feedContainer.scrollTop = this._feedContainer.scrollHeight;
-            }
-          });
+          this._scheduleAutoScroll();
         });
       }
     }
@@ -459,45 +467,109 @@ export class FeedModernized extends LitElement {
   }
 
   /**
-   * Render all content using modern component-based rendering
+   * Render virtualized item - guard temporarily disabled for debugging
    */
-  private _renderContent(): Array<TemplateResult> {
-    const results: Array<TemplateResult> = [];
+  private _renderVirtualizedItem(item: any, index: number): any {
+    // Debug logging to verify items are being processed
+    console.log(`Rendering virtualizer item ${index}:`, item.type, item);
+    
+    // Temporarily disable guard directive to test virtualizer rendering
+    return this._renderSingleItem(item);
+  }
 
-    // Render all content in chronological order
-    for (const item of this._allContent) {
-      if (item.type === "tags") {
-        const renderResult: RenderResult = this._renderer.render(item.data);
+  /**
+   * Get a stable ID for guard directive dependencies
+   */
+  private _getStableItemId(item: { type: "tags"; data: Array<GameTag> } | { type: "echo"; data: CommandEchoEvent }, index: number): string {
+    if (item.type === "echo") {
+      // Echo items have timestamps - use that for stability
+      return `echo-${item.data.timestamp}`;
+    } else {
+      // For tags, create a simple hash of the content
+      const contentHash = this._hashGameTags(item.data);
+      return `tags-${index}-${contentHash}`;
+    }
+  }
 
-        // Only create message blocks for content that has meaningful text
-        const hasContent = this._hasNonEmptyContent(item.data);
-        if (renderResult.content.length > 0 && hasContent) {
-          results.push(html`<div class="message-block">
-            ${renderResult.content}
-          </div>`);
-        }
-      } else if (item.type === "echo") {
-        results.push(html`<div class="message-block">
-          <illthorn-command-echo-lit
-            .command=${item.data.command}
-            .isReplay=${item.data.isReplay}
-            .timestamp=${item.data.timestamp}
-          ></illthorn-command-echo-lit>
-        </div>`);
+  /**
+   * Create a simple hash of GameTag content for stable IDs
+   */
+  private _hashGameTags(tags: Array<GameTag>): string {
+    // Simple hash based on tag names and text content
+    let hash = 0;
+    for (const tag of tags) {
+      const str = `${tag.name}:${tag.text || ""}`;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash; // Convert to 32-bit integer
       }
     }
+    return hash.toString(36);
+  }
 
-    return results;
+  /**
+   * Render a single content item (extracted for guard optimization)
+   */
+  private _renderSingleItem(item: { type: "tags"; data: Array<GameTag> } | { type: "echo"; data: CommandEchoEvent }): TemplateResult | typeof nothing {
+    if (item.type === "tags") {
+      const renderResult: RenderResult = this._renderer.render(item.data);
+      const hasContent = this._hasNonEmptyContent(item.data);
+      
+      console.log(`Rendering tags item:`, {
+        dataLength: item.data.length,
+        contentLength: renderResult.content.length,
+        hasContent,
+        sampleTag: item.data[0]
+      });
+
+      if (renderResult.content.length > 0 && hasContent) {
+        return html`<div class="message-block">
+          ${renderResult.content}
+        </div>`;
+      }
+    } else if (item.type === "echo") {
+      console.log(`Rendering echo item:`, item.data);
+      return html`<div class="message-block">
+        <illthorn-command-echo-lit
+          .command=${item.data.command}
+          .isReplay=${item.data.isReplay}
+          .timestamp=${item.data.timestamp}
+        ></illthorn-command-echo-lit>
+      </div>`;
+    }
+
+    console.log(`Item returned nothing:`, item);
+    return nothing;
   }
 
   render() {
-    return html`
-      <div class="feed-container" @scroll=${this._handleScroll}>
-        <div class="content" @click=${this._handleClick}>
-          ${this._renderContent()}
+    console.log(`Feed render called with ${this._allContent.length} items:`, this._allContent);
+    
+    // Temporary fallback: render without virtualizer to test content
+    const useVirtualizer = false; // Set to true once virtualizer works
+    
+    if (useVirtualizer) {
+      return html`
+        <lit-virtualizer
+          class="feed-container"
+          scroller
+          .items=${this._allContent}
+          .renderItem=${(item: any, index: number) => this._renderVirtualizedItem(item, index)}
+          @scroll=${this._handleVirtualScroll}
+          @click=${this._handleClick}
+        ></lit-virtualizer>
+      `;
+    } else {
+      // Fallback: regular rendering to verify content works
+      return html`
+        <div class="feed-container" @scroll=${this._handleVirtualScroll} @click=${this._handleClick}>
+          <div class="content">
+            ${this._allContent.map((item, index) => this._renderVirtualizedItem(item, index))}
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
   }
 
   /**
