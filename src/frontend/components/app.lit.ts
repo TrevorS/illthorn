@@ -21,6 +21,16 @@ export class AppRoot extends LitElement {
       overflow: hidden;
       background-color: var(--color-background-primary, black);
       color: var(--color-text-primary, white);
+      transition: grid-template-columns 0.2s ease-in-out;
+    }
+
+    :host(.no-sessions) {
+      grid-template-columns: 0 1fr;
+    }
+
+    :host(.no-sessions) #app-left-pane {
+      visibility: hidden;
+      overflow: hidden;
     }
 
     #app-left-pane {
@@ -72,8 +82,17 @@ export class AppRoot extends LitElement {
 
   private _eventListenerSetup = false;
 
-  connectedCallback() {
+  async connectedCallback() {
     super.connectedCallback();
+
+    // Load saved sessions visibility state
+    if (window.Settings) {
+      const savedVisible = await window.Settings.get("ui.sessions.visible");
+      if (savedVisible !== undefined) {
+        this.classList.toggle("no-sessions", !savedVisible);
+      }
+    }
+
     this.setupEventListeners();
   }
 
@@ -112,6 +131,18 @@ export class AppRoot extends LitElement {
     this.updateComplete.then(() => {
       session.onFocus();
     });
+  }
+
+  /**
+   * Public method to toggle sessions visibility
+   */
+  toggleSessions(visible: boolean) {
+    this.classList.toggle("no-sessions", !visible);
+
+    // Save to settings
+    if (window.Settings) {
+      window.Settings.set("ui.sessions.visible", visible);
+    }
   }
 
   render() {

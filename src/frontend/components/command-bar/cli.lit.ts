@@ -35,8 +35,8 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
       --sl-input-border-width: 0;
       --sl-input-border-radius-medium: 0;
       --sl-input-focus-ring-width: 0;
-      --sl-input-background-color: var(--color-surface);
-      --sl-input-background-color-focus: color-mix(in srgb, var(--color-surface) 85%, var(--color-text-primary) 15%);
+      --sl-input-background-color: var(--color-background-secondary);
+      --sl-input-background-color-focus: color-mix(in srgb, var(--color-background-secondary) 85%, var(--color-text-primary) 15%);
       --sl-input-color: var(--color-text-primary);
       --sl-input-font-family: "MonoLisa", monospace;
       --sl-input-font-size-medium: 1em;
@@ -324,6 +324,17 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
     });
 
     this._executeCommand(command);
+  }
+
+  /**
+   * Public method to focus the command input
+   */
+  focus() {
+    if (this._inputManager) {
+      this._inputManager.focus();
+    } else if (this._slInput) {
+      this._slInput.focus();
+    }
   }
 
   render() {

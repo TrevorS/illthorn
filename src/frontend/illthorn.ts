@@ -35,6 +35,11 @@ class IIllthorn {
     sess.ui.context.classList.toggle("no-hud", !on);
   }
 
+  toggleSessionsUI(visible: boolean) {
+    const appRoot = document.querySelector("illthorn-app-lit") as HTMLElement & { toggleSessions?: (visible: boolean) => void };
+    appRoot?.toggleSessions?.(visible);
+  }
+
   renderSession(session: FrontendSession) {
     // The app root component now handles session rendering via bus events
     // This method is kept for API compatibility but delegates to the component
@@ -51,10 +56,14 @@ class IIllthorn {
         const sess = currentSession();
         return sess && endSession(sess);
       }
-      case ":hud on":
+      case ":ui hud on":
         return this.hud(true);
-      case ":hud off":
+      case ":ui hud off":
         return this.hud(false);
+      case ":ui sessions on":
+        return this.toggleSessionsUI(true);
+      case ":ui sessions off":
+        return this.toggleSessionsUI(false);
     }
   }
 }

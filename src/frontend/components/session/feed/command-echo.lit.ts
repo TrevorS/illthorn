@@ -13,10 +13,10 @@ export class CommandEchoLit extends LitElement {
       display: block;
       font-family: var(--font-family-monospace, "MonoLisa", monospace);
       font-size: 0.9em;
-      line-height: 1.8;
-      margin: 4px 0;
+      line-height: 1.4;
+      margin: 0;
       color: var(--color-command-echo, var(--color-text-secondary, #ccc));
-      padding: 2px 0;
+      padding: 1px 0;
       border-left: 1px solid var(--color-command-echo-border, var(--color-border, #666));
       background-color: var(--color-command-echo-bg, var(--color-surface-secondary, rgba(255, 255, 255, 0.05)));
     }
@@ -31,8 +31,8 @@ export class CommandEchoLit extends LitElement {
     .command-container {
       display: flex;
       align-items: center;
-      padding: 0 8px;
-      gap: 8px;
+      padding: 2px 6px;
+      gap: 4px;
     }
 
     sl-tag {
@@ -41,11 +41,13 @@ export class CommandEchoLit extends LitElement {
     }
 
     sl-tag::part(base) {
-      font-size: 0.7em;
+      font-size: 0.75em;
       font-family: var(--font-family-monospace, "MonoLisa", monospace);
       border: none;
-      padding: 2px 6px;
+      padding: 1px 6px;
       opacity: 0.8;
+      height: auto;
+      line-height: 1;
     }
 
     .command-text {
@@ -55,7 +57,7 @@ export class CommandEchoLit extends LitElement {
       user-select: text;
       flex-grow: 1;
       transition: background-color 0.15s ease;
-      padding: 2px 4px;
+      padding: 1px 4px;
       border-radius: 2px;
     }
 

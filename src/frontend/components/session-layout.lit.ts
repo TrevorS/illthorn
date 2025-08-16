@@ -45,6 +45,7 @@ export class SessionLayout extends LitElement {
       max-width: 100%;
       grid-template-columns: var(--hud-width, 14em) 1fr;
       overflow: hidden;
+      transition: grid-template-columns 0.2s ease-in-out;
     }
 
     :host(.no-hud) {
@@ -260,6 +261,26 @@ export class SessionLayout extends LitElement {
   // Promise that resolves when components are fully initialized and ready to use
   private _initializationPromise: Promise<void>;
   private _resolveInitialization!: () => void;
+
+  connectedCallback() {
+    super.connectedCallback();
+    // Add global keyboard shortcuts
+    document.addEventListener("keydown", this._handleGlobalKeyDown);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // Clean up global keyboard shortcuts
+    document.removeEventListener("keydown", this._handleGlobalKeyDown);
+  }
+
+  private _handleGlobalKeyDown = (e: KeyboardEvent) => {
+    // Ctrl+L to focus command bar
+    if (e.ctrlKey && e.key === "l") {
+      e.preventDefault();
+      this._cli?.focus();
+    }
+  };
 
   firstUpdated() {
     if (this.session) {

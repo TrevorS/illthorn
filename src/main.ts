@@ -42,8 +42,6 @@ const createWindow = async (): Promise<void> => {
     mainWindow.loadFile(path.join(__dirname, "../renderer/main_window/index.html"));
   }
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
   mainWindow.setIcon(path.join(app.getAppPath(), "public", "icons", "app-icon.png"));
 };
 

@@ -23,7 +23,6 @@ export class MessageBlock extends LitElement {
     :host {
       display: block;
       margin-bottom: 0.25em;
-      white-space: pre-line;
       word-wrap: break-word;
       box-sizing: border-box;
     }
@@ -51,7 +50,7 @@ export class MessageBlock extends LitElement {
     .message-content pre {
       margin: 0;
       line-height: 1.4;
-      white-space: pre;
+      white-space: pre-wrap;
       word-wrap: break-word;
       font-family: "MonoLisa", monospace;
     }
@@ -178,11 +177,7 @@ export class MessageBlock extends LitElement {
         return html`<div class="message-content">${renderResult.content}</div>`;
       }
     } else if (this.item.type === "echo") {
-      return html`<illthorn-command-echo-lit
-        .command=${this.item.data.command}
-        .isReplay=${this.item.data.isReplay}
-        .timestamp=${this.item.data.timestamp}
-      ></illthorn-command-echo-lit>`;
+      return html`<illthorn-command-echo-lit .command=${this.item.data.command} .isReplay=${this.item.data.isReplay} .timestamp=${this.item.data.timestamp}></illthorn-command-echo-lit>`;
     }
 
     return nothing;
