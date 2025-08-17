@@ -24,4 +24,8 @@ export enum IllthornEvent {
    * when a command should be echoed to the game feed for visibility
    */
   COMMAND_ECHO = "command/echo",
+  /**
+   * when a client/system message should be displayed in the game feed
+   */
+  CLIENT_MESSAGE = "client/message",
 }

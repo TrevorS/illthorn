@@ -5,11 +5,12 @@ import { css, html, LitElement, nothing, type TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { ComponentRenderer, type RenderResult } from "../../../parser/component-renderer";
 import type { GameTag } from "../../../parser/tag";
-import type { CommandEchoEvent } from "../../command-bar/command-echo";
+import type { ClientMessageEvent, CommandEchoEvent } from "../../command-bar/command-echo";
 import "./command-echo.lit";
+import "./client-message.lit";
 
 // Type for message block content
-export type ContentItem = { type: "tags"; data: Array<GameTag> } | { type: "echo"; data: CommandEchoEvent };
+export type ContentItem = { type: "tags"; data: Array<GameTag> } | { type: "echo"; data: CommandEchoEvent } | { type: "client"; data: ClientMessageEvent };
 
 @customElement("illthorn-message-block-lit")
 export class MessageBlock extends LitElement {
@@ -169,15 +170,27 @@ export class MessageBlock extends LitElement {
   }
 
   render(): TemplateResult | typeof nothing {
-    if (this.item.type === "tags") {
-      const renderResult: RenderResult = this._renderer.render(this.item.data);
-      const hasContent = this._hasNonEmptyContent(this.item.data);
+    switch (this.item.type) {
+      case "tags": {
+        const renderResult: RenderResult = this._renderer.render(this.item.data);
+        const hasContent = this._hasNonEmptyContent(this.item.data);
 
-      if (renderResult.content.length > 0 && hasContent) {
-        return html`<div class="message-content">${renderResult.content}</div>`;
+        if (renderResult.content.length > 0 && hasContent) {
+          return html`<div class="message-content">${renderResult.content}</div>`;
+        }
+        break;
       }
-    } else if (this.item.type === "echo") {
-      return html`<illthorn-command-echo-lit .command=${this.item.data.command} .isReplay=${this.item.data.isReplay} .timestamp=${this.item.data.timestamp}></illthorn-command-echo-lit>`;
+      case "echo": {
+        return html`<illthorn-command-echo-lit .command=${this.item.data.command} .isReplay=${this.item.data.isReplay} .timestamp=${this.item.data.timestamp}></illthorn-command-echo-lit>`;
+      }
+      case "client": {
+        return html`<illthorn-client-message-lit .message=${this.item.data.message} .timestamp=${this.item.data.timestamp}></illthorn-client-message-lit>`;
+      }
+      default: {
+        // Exhaustive switch - this should never happen with proper typing
+        const _exhaustive: never = this.item;
+        return nothing;
+      }
     }
 
     return nothing;

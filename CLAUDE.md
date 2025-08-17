@@ -154,7 +154,8 @@ Frontend commands prefixed with `:` (vim-style):
 - `:connect <name> <port>` or `:c` - Create new session
 - `:focus <session>` or `:f` - Switch session focus
 - `:set <path> <value>` - Configure settings (e.g., `clickable` boolean)
-- `:ui <name> <state>` - Toggle UI panels (vitals, injuries, active-spells, compass)
+- `:ui` - Show current UI panel status and available commands
+- `:ui <name> <state>` - Toggle UI panels (sessions, hud, streams)
 - `:stream <name> <state>` - Toggle stream panels (thoughts, speech, logon, logoff, death)
 - `:hilite add <group> <pattern>` - Add highlight patterns with regex
 - `:hilite group <group> <property>=<value>` - Style highlight groups with CSS

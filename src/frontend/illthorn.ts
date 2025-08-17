@@ -40,6 +40,55 @@ class IIllthorn {
     appRoot?.toggleSessions?.(visible);
   }
 
+  toggleStreamsUI(visible: boolean) {
+    const sessions = SessionMap.values();
+    for (const session of sessions) {
+      if (session.ui?.context) {
+        const sessionLayout = session.ui.context as HTMLElement & { toggleStreams?: (visible: boolean) => void };
+        sessionLayout?.toggleStreams?.(visible);
+      }
+    }
+  }
+
+  async showUIStatus() {
+    const currentSess = currentSession();
+    if (!currentSess) {
+      console.log("No active session to show UI status");
+      return;
+    }
+
+    // Check current UI states
+    const appRoot = document.querySelector("illthorn-app-lit") as HTMLElement;
+    const sessionLayout = currentSess.ui?.context as HTMLElement;
+
+    const sessionsVisible = !appRoot?.classList.contains("no-sessions");
+    const hudVisible = !sessionLayout?.classList.contains("no-hud");
+    const streamsVisible = !sessionLayout?.classList.contains("no-streams");
+
+    // Create status message
+    const statusMessage = [
+      "=== UI Status ===",
+      `Session picker: ${sessionsVisible ? "ON" : "OFF"}`,
+      `HUD: ${hudVisible ? "ON" : "OFF"}`,
+      `Streams panel: ${streamsVisible ? "ON" : "OFF"}`,
+      "",
+      "Available commands:",
+      "  :ui sessions on/off - Toggle session picker",
+      "  :ui hud on/off - Toggle HUD",
+      "  :ui streams on/off - Toggle streams panel",
+    ].join("\n");
+
+    // Output to game feed using client message event (preserves formatting)
+    if (currentSess.bus) {
+      currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+        message: statusMessage,
+        timestamp: Date.now(),
+      });
+    } else {
+      console.log("No session bus available for UI status");
+    }
+  }
+
   renderSession(session: FrontendSession) {
     // The app root component now handles session rendering via bus events
     // This method is kept for API compatibility but delegates to the component
@@ -64,6 +113,12 @@ class IIllthorn {
         return this.toggleSessionsUI(true);
       case ":ui sessions off":
         return this.toggleSessionsUI(false);
+      case ":ui streams on":
+        return this.toggleStreamsUI(true);
+      case ":ui streams off":
+        return this.toggleStreamsUI(false);
+      case ":ui":
+        return this.showUIStatus();
     }
   }
 }

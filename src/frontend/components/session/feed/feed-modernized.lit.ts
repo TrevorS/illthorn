@@ -7,7 +7,7 @@ import { guard } from "lit/directives/guard.js";
 import { IllthornEvent } from "../../../events";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
-import type { CommandEchoEvent } from "../../command-bar/command-echo";
+import type { ClientMessageEvent, CommandEchoEvent } from "../../command-bar/command-echo";
 import "./message-block.lit";
 import type { ContentItem } from "./message-block.lit";
 
@@ -100,6 +100,7 @@ export class FeedModernized extends LitElement {
   private _shouldAutoScroll = true;
 
   private _hasSubscribedToEcho = false;
+  private _hasSubscribedToClientMessages = false;
 
   connectedCallback() {
     super.connectedCallback();
@@ -242,14 +243,26 @@ export class FeedModernized extends LitElement {
    * This prevents re-rendering of unchanged items when new content is added
    */
   private _getItemId(item: ContentItem, index: number): string {
-    if (item.type === "echo") {
-      // Command echoes have timestamps which are unique
-      return `echo-${item.data.timestamp}`;
-    } else {
-      // For tags, use index + first tag name as stable ID
-      // This works because we never modify existing items, only append new ones
-      const firstTag = item.data[0];
-      return `tag-${index}-${firstTag?.name || "empty"}`;
+    switch (item.type) {
+      case "echo": {
+        // Command echoes have timestamps which are unique
+        return `echo-${item.data.timestamp}`;
+      }
+      case "client": {
+        // Client messages have timestamps which are unique
+        return `client-${item.data.timestamp}`;
+      }
+      case "tags": {
+        // For tags, use index + first tag name as stable ID
+        // This works because we never modify existing items, only append new ones
+        const firstTag = item.data[0];
+        return `tag-${index}-${firstTag?.name || "empty"}`;
+      }
+      default: {
+        // Exhaustive switch - this should never happen with proper typing
+        const _exhaustive: never = item;
+        return `unknown-${index}`;
+      }
     }
   }
 
@@ -299,6 +312,12 @@ export class FeedModernized extends LitElement {
       this._hasSubscribedToEcho = true;
     }
 
+    // Subscribe to client message events when session becomes available
+    if (this.session?.bus && !this._hasSubscribedToClientMessages) {
+      this.session.bus.subscribeEvent<ClientMessageEvent>(IllthornEvent.CLIENT_MESSAGE, this._handleClientMessage.bind(this));
+      this._hasSubscribedToClientMessages = true;
+    }
+
     // Auto-scroll when content is added
     if (changedProperties.has("_contentTags") || changedProperties.has("_allContent")) {
       if (!this.isScrolling && this._shouldAutoScroll) {
@@ -321,6 +340,25 @@ export class FeedModernized extends LitElement {
 
     // Add to unified content array
     this._allContent = [...this._allContent, { type: "echo", data: echoData }];
+
+    // Trigger memory management and re-render
+    this.flush();
+    this.requestUpdate();
+
+    // Auto-scroll if appropriate
+    if (!this.isScrolling && this._shouldAutoScroll) {
+      this._scheduleAutoScroll();
+    }
+  }
+
+  /**
+   * Handle client message events for system output
+   */
+  private _handleClientMessage(event: CustomEvent<ClientMessageEvent>) {
+    const clientData = event.detail;
+
+    // Add to unified content array
+    this._allContent = [...this._allContent, { type: "client", data: clientData }];
 
     // Trigger memory management and re-render
     this.flush();

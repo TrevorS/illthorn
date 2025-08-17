@@ -11,6 +11,11 @@ export interface CommandEchoEvent {
   timestamp: number;
 }
 
+export interface ClientMessageEvent {
+  message: string;
+  timestamp: number;
+}
+
 export class CommandEchoSystem {
   constructor(private session: FrontendSession) {}
 

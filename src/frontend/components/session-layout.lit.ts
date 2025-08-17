@@ -45,7 +45,7 @@ export class SessionLayout extends LitElement {
       max-width: 100%;
       grid-template-columns: var(--hud-width, 14em) 1fr;
       overflow: hidden;
-      transition: grid-template-columns 0.2s ease-in-out;
+      transition: grid-template-columns 0.2s ease-in-out, grid-template-rows 0.2s ease-in-out;
     }
 
     :host(.no-hud) {
@@ -54,6 +54,18 @@ export class SessionLayout extends LitElement {
 
     :host(.no-hud) .hud {
       visibility: hidden;
+    }
+
+    :host(.no-streams) .main {
+      grid-template-rows: auto 0 1fr auto;
+    }
+
+    :host(.no-streams) .streams {
+      visibility: hidden;
+      height: 0;
+      max-height: 0;
+      overflow: hidden;
+      border: none;
     }
 
     .hud {
@@ -115,6 +127,7 @@ export class SessionLayout extends LitElement {
       max-height: var(--stream-height, 8em);
       display: flex;
       align-items: stretch;
+      transition: height 0.2s ease-in-out, max-height 0.2s ease-in-out;
     }
 
     .feed-wrapper {
@@ -236,6 +249,18 @@ export class SessionLayout extends LitElement {
     return this._initializationPromise;
   }
 
+  /**
+   * Toggle streams panel visibility
+   */
+  toggleStreams(visible: boolean) {
+    this.classList.toggle("no-streams", !visible);
+
+    // Save to settings
+    if (window.Settings) {
+      window.Settings.set("ui.streams.visible", visible);
+    }
+  }
+
   // Component references using @query decorators
   @query("illthorn-vitals-container")
   private _vitals?: VitalsContainer;
@@ -262,8 +287,17 @@ export class SessionLayout extends LitElement {
   private _initializationPromise: Promise<void>;
   private _resolveInitialization!: () => void;
 
-  connectedCallback() {
+  async connectedCallback() {
     super.connectedCallback();
+
+    // Load saved streams visibility state
+    if (window.Settings) {
+      const savedStreamsVisible = await window.Settings.get("ui.streams.visible");
+      if (savedStreamsVisible !== undefined) {
+        this.classList.toggle("no-streams", !savedStreamsVisible);
+      }
+    }
+
     // Add global keyboard shortcuts
     document.addEventListener("keydown", this._handleGlobalKeyDown);
   }
