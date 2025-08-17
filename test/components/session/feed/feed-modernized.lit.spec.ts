@@ -746,12 +746,12 @@ describe("FeedModernized Component", () => {
       await new Promise((resolve) => setTimeout(resolve, 1100));
       await feed.updateComplete;
 
-      // Should have flushed old content to stay within limit
-      expect(feed.currentItemCount).toBe(100);
+      // Should have flushed old content to create 10% buffer (90 items)
+      expect(feed.currentItemCount).toBe(90);
 
       // Should have kept the most recent items
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(100);
+      expect(stats.totalTagGroups).toBe(90);
     });
 
     test("should clear all content when clear() is called", async () => {

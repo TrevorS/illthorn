@@ -253,7 +253,10 @@ export class FeedModernized extends LitElement {
       return this; // No-op if under limit
     }
 
-    const toRemove = this._allContent.length - this._maxScrollbackSize;
+    // Remove 10% of the scrollback size to create buffer
+    const bufferSize = Math.floor(this._maxScrollbackSize * 0.1);
+    const targetSize = this._maxScrollbackSize - bufferSize;
+    const toRemove = this._allContent.length - targetSize;
 
     // Use slice operations to create new arrays for proper Lit reactivity
     this._allContent = this._allContent.slice(toRemove);
