@@ -10,7 +10,10 @@ import "./command-echo.lit";
 import "./client-message.lit";
 
 // Type for message block content
-export type ContentItem = { type: "tags"; data: Array<GameTag> } | { type: "echo"; data: CommandEchoEvent } | { type: "client"; data: ClientMessageEvent };
+export type ContentItem =
+  | { type: "tags"; data: Array<GameTag>; timestamp: number }
+  | { type: "echo"; data: CommandEchoEvent; timestamp: number }
+  | { type: "client"; data: ClientMessageEvent; timestamp: number };
 
 @customElement("illthorn-message-block-lit")
 export class MessageBlock extends LitElement {

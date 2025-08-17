@@ -194,7 +194,7 @@ export class FeedModernized extends LitElement {
     this._contentTags = [...this._contentTags, tags];
 
     // Add to unified content array
-    this._allContent = [...this._allContent, { type: "tags", data: tags }];
+    this._allContent = [...this._allContent, { type: "tags", data: tags, timestamp: performance.now() }];
 
     // Schedule flush to manage memory if needed
     this._scheduleFlush();
@@ -255,9 +255,9 @@ export class FeedModernized extends LitElement {
 
     const toRemove = this._allContent.length - this._maxScrollbackSize;
 
-    // Use single splice operations for better performance
-    this._allContent.splice(0, toRemove);
-    this._contentTags.splice(0, toRemove);
+    // Use slice operations to create new arrays for proper Lit reactivity
+    this._allContent = this._allContent.slice(toRemove);
+    this._contentTags = this._contentTags.slice(toRemove);
 
     // Clean up command echoes that are no longer in allContent
     const remainingEchoes = new Set();
@@ -280,6 +280,7 @@ export class FeedModernized extends LitElement {
     }
     this._flushTimeout = window.setTimeout(() => {
       this.flush();
+      this.requestUpdate();
       this._flushTimeout = undefined;
     }, 1000);
   }
@@ -311,18 +312,17 @@ export class FeedModernized extends LitElement {
   private _getItemId(item: ContentItem, index: number): string {
     switch (item.type) {
       case "echo": {
-        // Command echoes have timestamps which are unique
-        return `echo-${item.data.timestamp}`;
+        // Use ContentItem timestamp for stability
+        return `echo-${item.timestamp}`;
       }
       case "client": {
-        // Client messages have timestamps which are unique
-        return `client-${item.data.timestamp}`;
+        // Use ContentItem timestamp for stability
+        return `client-${item.timestamp}`;
       }
       case "tags": {
-        // For tags, use index + first tag name as stable ID
-        // This works because we never modify existing items, only append new ones
-        const firstTag = item.data[0];
-        return `tag-${index}-${firstTag?.name || "empty"}`;
+        // For tags, use timestamp as stable ID
+        // This ensures IDs remain stable across flush operations
+        return `tag-${item.timestamp}`;
       }
       default: {
         // Exhaustive switch - this should never happen with proper typing
@@ -418,7 +418,7 @@ export class FeedModernized extends LitElement {
     this._commandEchoes = [...this._commandEchoes, echoData];
 
     // Add to unified content array
-    this._allContent = [...this._allContent, { type: "echo", data: echoData }];
+    this._allContent = [...this._allContent, { type: "echo", data: echoData, timestamp: performance.now() }];
 
     // Schedule flush to manage memory if needed
     this._scheduleFlush();
@@ -437,7 +437,7 @@ export class FeedModernized extends LitElement {
     const clientData = event.detail;
 
     // Add to unified content array
-    this._allContent = [...this._allContent, { type: "client", data: clientData }];
+    this._allContent = [...this._allContent, { type: "client", data: clientData, timestamp: performance.now() }];
 
     // Schedule flush to manage memory if needed
     this._scheduleFlush();
