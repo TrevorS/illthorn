@@ -11,8 +11,6 @@ import "./session/injuries/injuries-container.lit";
 import type { InjuriesContainer } from "./session/injuries/injuries-container.lit";
 import "./session/effects";
 import "./session/hands/hands-container.lit";
-import type { HandUI } from "./session/hands/hand-ui.lit";
-import type { HandsContainer } from "./session/hands/hands-container.lit";
 import "./session/panel.lit";
 import "./session/streams.lit";
 import type { Streams } from "./session/streams.lit";
@@ -31,7 +29,7 @@ export type SessionUI = {
   vitals: VitalsContainer;
   injuries: InjuriesContainer;
   streams: Streams;
-  hands: { left: HandUI | null; right: HandUI | null; spell: HandUI | null };
+  hands: { left: null; right: null; spell: null };
 };
 
 @customElement("illthorn-session-layout-lit")
@@ -57,7 +55,7 @@ export class SessionLayout extends LitElement {
     }
 
     :host(.no-streams) .main {
-      grid-template-rows: auto 0 1fr auto;
+      grid-template-rows: 0 1fr auto;
     }
 
     :host(.no-streams) .streams {
@@ -83,7 +81,7 @@ export class SessionLayout extends LitElement {
       resize: vertical;
     }
 
-    .hud illthorn-panel:not(:first-child) {
+    .hud illthorn-panel:not(:first-child):not([title="room"]) {
       padding-top: 1em;
     }
 
@@ -106,7 +104,7 @@ export class SessionLayout extends LitElement {
 
     .main {
       display: grid;
-      grid-template-rows: auto auto 1fr auto;
+      grid-template-rows: auto 1fr auto;
       max-height: 100vh;
       width: 100%;
       min-width: 0;
@@ -114,7 +112,7 @@ export class SessionLayout extends LitElement {
     }
 
     :host(.streams-on) .main {
-      grid-template-rows: auto var(--stream-height, 8em) 1fr auto;
+      grid-template-rows: var(--stream-height, 8em) 1fr auto;
     }
 
     .streams {
@@ -280,9 +278,6 @@ export class SessionLayout extends LitElement {
   @query("illthorn-cli-lit")
   private _cli?: CLI;
 
-  @query("illthorn-hands-container")
-  private _hands?: HandsContainer;
-
   // Promise that resolves when components are fully initialized and ready to use
   private _initializationPromise: Promise<void>;
   private _resolveInitialization!: () => void;
@@ -357,10 +352,7 @@ export class SessionLayout extends LitElement {
       get streams() {
         return self._streams || null;
       },
-      get hands() {
-        if (self._hands) {
-          return self._hands.getHands();
-        }
+      get hands(): { left: null; right: null; spell: null } {
         return { left: null, right: null, spell: null };
       },
     };
@@ -374,6 +366,10 @@ export class SessionLayout extends LitElement {
     }
     return html`
       <div class="hud">
+        <illthorn-panel title="hands" .open=${true}>
+          <illthorn-hands-container .session=${this.session}></illthorn-hands-container>
+        </illthorn-panel>
+
         <illthorn-panel title="room" .open=${true}>
           <illthorn-room-lit .session=${this.session}></illthorn-room-lit>
           <illthorn-compass-container .session=${this.session}></illthorn-compass-container>
@@ -394,8 +390,6 @@ export class SessionLayout extends LitElement {
       </div>
 
       <div class="main">
-        <illthorn-hands-container .session=${this.session}></illthorn-hands-container>
-
         <div class="streams">
           <illthorn-streams-lit .session=${this.session}></illthorn-streams-lit>
         </div>

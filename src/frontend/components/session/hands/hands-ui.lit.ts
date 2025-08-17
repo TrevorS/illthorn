@@ -1,69 +1,55 @@
-// ABOUTME: Presentational UI component for displaying left, right, and spell hands
-// ABOUTME: Renders three hand-ui components with provided content, no session logic
+// ABOUTME: Presentational UI component for displaying hands layout
+// ABOUTME: Renders three hand-row components with provided content, no session logic
 import { css, html, LitElement } from "lit";
-import { customElement, property, query } from "lit/decorators.js";
-import "./hand-ui.lit";
-import type { HandUI } from "./hand-ui.lit";
+import { customElement, property } from "lit/decorators.js";
+import "./hand-row.lit";
 
 @customElement("illthorn-hands-ui")
 export class HandsUI extends LitElement {
   static styles = css`
     :host {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 2em;
-      max-width: 90%;
-      margin: 0 auto;
-      padding: 0 2em;
-      -webkit-app-region: drag;
+      display: block;
+      padding: 0.4em;
+    }
+
+    .hands-container {
+      display: grid;
+      grid-template-rows: repeat(3, auto);
+      gap: 0.5em;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .hands-container > * {
+      min-width: 0;
     }
   `;
 
   @property({ type: String })
-  leftContent = "None";
+  leftContent = "Empty";
 
   @property({ type: String })
-  rightContent = "None";
+  rightContent = "Empty";
 
   @property({ type: String })
   spellContent = "None";
 
-  @query('illthorn-hand-ui[handType="left"]')
-  private _leftHand?: HandUI;
-
-  @query('illthorn-hand-ui[handType="right"]')
-  private _rightHand?: HandUI;
-
-  @query('illthorn-hand-ui[handType="spell"]')
-  private _spellHand?: HandUI;
-
-  /**
-   * Get hands interface compatible with SessionUI
-   * Provides access to individual hand UI components
-   */
-  getHands(): { left: HandUI | null; right: HandUI | null; spell: HandUI | null } {
-    return {
-      left: this._leftHand || null,
-      right: this._rightHand || null,
-      spell: this._spellHand || null,
-    };
-  }
-
   render() {
     return html`
-      <illthorn-hand-ui
-        handType="left"
-        content=${this.leftContent}
-      ></illthorn-hand-ui>
-      <illthorn-hand-ui
-        handType="right"
-        content=${this.rightContent}
-      ></illthorn-hand-ui>
-      <illthorn-hand-ui
-        handType="spell"
-        content=${this.spellContent}
-      ></illthorn-hand-ui>
+      <div class="hands-container">
+        <illthorn-hand-row
+          handType="left"
+          content=${this.leftContent}
+        ></illthorn-hand-row>
+        <illthorn-hand-row
+          handType="right"
+          content=${this.rightContent}
+        ></illthorn-hand-row>
+        <illthorn-hand-row
+          handType="spell"
+          content=${this.spellContent}
+        ></illthorn-hand-row>
+      </div>
     `;
   }
 }

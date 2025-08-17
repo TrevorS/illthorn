@@ -1,12 +1,11 @@
-// ABOUTME: Smart container component managing hand metadata events and data flow
-// ABOUTME: Subscribes to session events and passes hand content to presentational UI component
+// ABOUTME: Smart container component managing hand metadata events for hands display
+// ABOUTME: Subscribes to session events and passes hand content to hands UI component
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession } from "../../../session/index";
 import type { Bus } from "../../../util/bus";
 import "./hands-ui.lit";
-import type { HandsUI } from "./hands-ui.lit";
 
 @customElement("illthorn-hands-container")
 export class HandsContainer extends LitElement {
@@ -20,10 +19,10 @@ export class HandsContainer extends LitElement {
   session?: FrontendSession;
 
   @state()
-  private _leftContent = "None";
+  private _leftContent = "Empty";
 
   @state()
-  private _rightContent = "None";
+  private _rightContent = "Empty";
 
   @state()
   private _spellContent = "None";
@@ -53,11 +52,11 @@ export class HandsContainer extends LitElement {
 
     // Create handlers
     const leftHandler = ({ detail: hand }: CustomEvent<GameTag>) => {
-      this._leftContent = hand.children?.[0]?.text || "None";
+      this._leftContent = hand.children?.[0]?.text || "Empty";
     };
 
     const rightHandler = ({ detail: hand }: CustomEvent<GameTag>) => {
-      this._rightContent = hand.children?.[0]?.text || "None";
+      this._rightContent = hand.children?.[0]?.text || "Empty";
     };
 
     const spellHandler = ({ detail: hand }: CustomEvent<GameTag>) => {
@@ -89,15 +88,6 @@ export class HandsContainer extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this._cleanupEventListeners();
-  }
-
-  /**
-   * Get hands interface compatible with SessionUI
-   * Provides access to individual hand UI components
-   */
-  getHands() {
-    const handsUI = this.shadowRoot?.querySelector("illthorn-hands-ui") as HandsUI;
-    return handsUI?.getHands() || { left: null, right: null, spell: null };
   }
 
   render() {

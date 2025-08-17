@@ -14,6 +14,7 @@ export class Room extends LitElement {
       align-items: center;
       text-align: center;
       gap: 0.5rem;
+      color: var(--color-text-primary);
     }
 
     .room-id,

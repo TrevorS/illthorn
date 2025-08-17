@@ -1,316 +1,194 @@
-// ABOUTME: Test suite for HandsContainer component verifying session event handling and data flow
-// ABOUTME: Tests the smart container component's integration with session bus and hands metadata processing
-/// <reference types="vitest/globals" />
-import type { MockedFunction } from "vitest";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { GameTag } from "../../../parser/tag";
-import { TagKind, TagState } from "../../../parser/tag/index";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createMockSession } from "../../../../../test/mocks/index";
+import { type GameTag, TagKind, TagState } from "../../../parser/tag";
 import type { FrontendSession } from "../../../session/index";
-import type { Bus } from "../../../util/bus";
-import { HandsContainer } from "./hands-container.lit";
+import "./hands-container.lit";
+import type { HandsContainer } from "./hands-container.lit";
 
 describe("HandsContainer", () => {
-  let mockSession: Partial<FrontendSession>;
-  let mockBus: Partial<Bus> & {
-    // biome-ignore lint/suspicious/noExplicitAny: Mock function requires any type for flexibility
-    subscribeEvent: MockedFunction<any>;
-    // biome-ignore lint/suspicious/noExplicitAny: Mock function requires any type for flexibility
-    dispatchEvent: MockedFunction<any>;
-  };
+  let container: HandsContainer;
+  let mockSession: ReturnType<typeof createMockSession>;
 
-  const setup = (sessionParam?: FrontendSession) => {
-    const container = new HandsContainer();
-    if (sessionParam) {
-      container.session = sessionParam;
-    }
+  beforeEach(async () => {
+    mockSession = createMockSession("test");
+    container = document.createElement("illthorn-hands-container");
     document.body.appendChild(container);
-    return container;
-  };
+    await container.updateComplete;
+  });
 
-  const teardown = (container: HandsContainer) => {
-    if (container.parentNode) {
-      container.parentNode.removeChild(container);
-    }
-  };
+  afterEach(() => {
+    document.body.removeChild(container);
+  });
 
-  beforeEach(() => {
-    mockBus = {
-      subscribeEvent: vi.fn(),
-      dispatchEvent: vi.fn(),
+  it("should create component", () => {
+    expect(container).toBeDefined();
+    expect(container.tagName.toLowerCase()).toBe("illthorn-hands-container");
+  });
+
+  it("should initialize with default empty states", async () => {
+    await container.updateComplete;
+
+    const ui = container.shadowRoot?.querySelector("illthorn-hands-ui");
+    expect(ui).toBeDefined();
+    expect(ui?.getAttribute("leftcontent")).toBe("Empty");
+    expect(ui?.getAttribute("rightcontent")).toBe("Empty");
+    expect(ui?.getAttribute("spellcontent")).toBe("None");
+  });
+
+  it("should setup event listeners when session is provided", async () => {
+    const subscribeSpy = vi.spyOn(mockSession.bus, "subscribeEvent");
+
+    container.session = mockSession as unknown as FrontendSession;
+    await container.updateComplete;
+
+    expect(subscribeSpy).toHaveBeenCalledWith("metadata/left", expect.any(Function));
+    expect(subscribeSpy).toHaveBeenCalledWith("metadata/right", expect.any(Function));
+    expect(subscribeSpy).toHaveBeenCalledWith("metadata/spell", expect.any(Function));
+  });
+
+  it("should update left hand content from metadata events", async () => {
+    container.session = mockSession as unknown as FrontendSession;
+    await container.updateComplete;
+
+    const leftTag: GameTag = {
+      kind: TagKind.METADATA,
+      name: "left",
+      gameName: "left",
+      attrs: {},
+      children: [{ kind: TagKind.TEXT, name: ":text", gameName: "", attrs: {}, children: [], text: "a gleaming sword", state: TagState.OPEN }],
+      text: "a gleaming sword",
+      state: TagState.OPEN,
     };
-    mockSession = {
-      bus: mockBus as Bus,
-    } as Partial<FrontendSession>;
+
+    mockSession.bus.dispatchEvent("metadata/left", leftTag);
+    await container.updateComplete;
+
+    const ui = container.shadowRoot?.querySelector("illthorn-hands-ui");
+    expect(ui?.getAttribute("leftcontent")).toBe("a gleaming sword");
   });
 
-  describe("Constructor", () => {
-    it("should initialize with default hand content", () => {
-      const container = setup();
+  it("should update right hand content from metadata events", async () => {
+    container.session = mockSession as unknown as FrontendSession;
+    await container.updateComplete;
 
-      expect(container.session).toBeUndefined();
+    const rightTag: GameTag = {
+      kind: TagKind.METADATA,
+      name: "right",
+      gameName: "right",
+      attrs: {},
+      children: [{ kind: TagKind.TEXT, name: ":text", gameName: "", attrs: {}, children: [], text: "a sturdy shield", state: TagState.OPEN }],
+      text: "a sturdy shield",
+      state: TagState.OPEN,
+    };
 
-      teardown(container);
-    });
+    mockSession.bus.dispatchEvent("metadata/right", rightTag);
+    await container.updateComplete;
 
-    it("should accept session property", () => {
-      const container = setup(mockSession as FrontendSession);
-
-      expect(container.session).toBe(mockSession);
-
-      teardown(container);
-    });
+    const ui = container.shadowRoot?.querySelector("illthorn-hands-ui");
+    expect(ui?.getAttribute("rightcontent")).toBe("a sturdy shield");
   });
 
-  describe("Event Listener Setup", () => {
-    it("should subscribe to hand metadata events when session is available", () => {
-      const container = setup(mockSession as FrontendSession);
+  it("should update spell content from metadata events", async () => {
+    container.session = mockSession as unknown as FrontendSession;
+    await container.updateComplete;
 
-      expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/left", expect.any(Function));
-      expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/right", expect.any(Function));
-      expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/spell", expect.any(Function));
+    const spellTag: GameTag = {
+      kind: TagKind.METADATA,
+      name: "spell",
+      gameName: "spell",
+      attrs: {},
+      children: [{ kind: TagKind.TEXT, name: ":text", gameName: "", attrs: {}, children: [], text: "Fire Shield", state: TagState.OPEN }],
+      text: "Fire Shield",
+      state: TagState.OPEN,
+    };
 
-      teardown(container);
-    });
+    mockSession.bus.dispatchEvent("metadata/spell", spellTag);
+    await container.updateComplete;
 
-    it("should not subscribe if session is missing", () => {
-      const container = setup();
-
-      expect(mockBus.subscribeEvent).not.toHaveBeenCalled();
-
-      teardown(container);
-    });
-
-    it("should not subscribe if bus is missing", () => {
-      const sessionWithoutBus: Partial<FrontendSession> = { ...mockSession, bus: undefined };
-      const container = setup(sessionWithoutBus as FrontendSession);
-
-      expect(mockBus.subscribeEvent).not.toHaveBeenCalled();
-
-      teardown(container);
-    });
-
-    it("should set up event listeners when session property is updated", async () => {
-      const container = setup();
-
-      // Initially no subscription
-      expect(mockBus.subscribeEvent).not.toHaveBeenCalled();
-
-      // Add session property
-      container.session = mockSession as FrontendSession;
-      await container.updateComplete;
-
-      // Should now subscribe to all three hand events
-      expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/left", expect.any(Function));
-      expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/right", expect.any(Function));
-      expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/spell", expect.any(Function));
-
-      teardown(container);
-    });
+    const ui = container.shadowRoot?.querySelector("illthorn-hands-ui");
+    expect(ui?.getAttribute("spellcontent")).toBe("Fire Shield");
   });
 
-  describe("Hand Data Processing", () => {
-    let container: HandsContainer;
-    let eventCallbacks: { [key: string]: (event: CustomEvent<GameTag>) => void } = {};
+  it("should handle empty metadata events", async () => {
+    container.session = mockSession as unknown as FrontendSession;
+    await container.updateComplete;
 
-    beforeEach(() => {
-      mockBus.subscribeEvent = vi.fn().mockImplementation((eventName: string, callback: (event: CustomEvent<GameTag>) => void) => {
-        eventCallbacks[eventName] = callback;
-      });
+    const emptyTag: GameTag = {
+      kind: TagKind.METADATA,
+      name: "left",
+      gameName: "left",
+      attrs: {},
+      children: [],
+      text: "",
+      state: TagState.OPEN,
+    };
 
-      container = setup(mockSession as FrontendSession);
-    });
+    mockSession.bus.dispatchEvent("metadata/left", emptyTag);
+    await container.updateComplete;
 
-    afterEach(() => {
-      teardown(container);
-      eventCallbacks = {};
-    });
-
-    it("should update left hand content when receiving left hand events", async () => {
-      const mockLeftHand: GameTag = {
-        kind: TagKind.METADATA,
-        name: "left",
-        gameName: "",
-        attrs: {},
-        children: [
-          {
-            kind: TagKind.INLINE,
-            name: "text",
-            gameName: "",
-            attrs: {},
-            children: [],
-            state: TagState.CLOSED,
-            text: "a sharp sword",
-          },
-        ],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/left"]({ detail: mockLeftHand } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      // Check that UI component receives updated content
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-hands-ui") as any;
-      expect(uiComponent?.leftContent).toBe("a sharp sword");
-    });
-
-    it("should update right hand content when receiving right hand events", async () => {
-      const mockRightHand: GameTag = {
-        kind: TagKind.METADATA,
-        name: "right",
-        gameName: "",
-        attrs: {},
-        children: [
-          {
-            kind: TagKind.INLINE,
-            name: "text",
-            gameName: "",
-            attrs: {},
-            children: [],
-            state: TagState.CLOSED,
-            text: "a wooden shield",
-          },
-        ],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/right"]({ detail: mockRightHand } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-hands-ui") as any;
-      expect(uiComponent?.rightContent).toBe("a wooden shield");
-    });
-
-    it("should update spell content when receiving spell hand events", async () => {
-      const mockSpellHand: GameTag = {
-        kind: TagKind.METADATA,
-        name: "spell",
-        gameName: "",
-        attrs: {},
-        children: [
-          {
-            kind: TagKind.INLINE,
-            name: "text",
-            gameName: "",
-            attrs: {},
-            children: [],
-            state: TagState.CLOSED,
-            text: "Major Sanctuary",
-          },
-        ],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/spell"]({ detail: mockSpellHand } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-hands-ui") as any;
-      expect(uiComponent?.spellContent).toBe("Major Sanctuary");
-    });
-
-    it("should handle empty hand events correctly", async () => {
-      const mockEmptyHand: GameTag = {
-        kind: TagKind.METADATA,
-        name: "left",
-        gameName: "",
-        attrs: {},
-        children: [],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/left"]({ detail: mockEmptyHand } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-hands-ui") as any;
-      expect(uiComponent?.leftContent).toBe("None");
-    });
-
-    it("should handle hand events without children property", async () => {
-      const mockHandWithoutChildren: GameTag = {
-        kind: TagKind.METADATA,
-        name: "right",
-        gameName: "",
-        attrs: {},
-        children: undefined, // Simulate missing children
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/right"]({ detail: mockHandWithoutChildren } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-hands-ui") as any;
-      expect(uiComponent?.rightContent).toBe("None");
-    });
+    const ui = container.shadowRoot?.querySelector("illthorn-hands-ui");
+    expect(ui?.getAttribute("leftcontent")).toBe("Empty");
   });
 
-  describe("Property Reactivity", () => {
-    it("should update when session property changes", async () => {
-      const container = setup();
+  it("should cleanup event listeners on disconnect", async () => {
+    container.session = mockSession as unknown as FrontendSession;
+    await container.updateComplete;
 
-      container.session = mockSession as FrontendSession;
-      await container.updateComplete;
+    const removeEventListenerSpy = vi.spyOn(mockSession.bus._ele, "removeEventListener");
 
-      expect(container.session).toBe(mockSession);
+    container.disconnectedCallback();
 
-      teardown(container);
-    });
+    expect(removeEventListenerSpy).toHaveBeenCalledTimes(3);
   });
 
-  describe("getHands API", () => {
-    it("should provide getHands method for SessionUI compatibility", async () => {
-      const container = setup(mockSession as FrontendSession);
-      await container.updateComplete;
+  it("should handle session property changing to null", async () => {
+    container.session = mockSession as unknown as FrontendSession;
+    await container.updateComplete;
 
-      const hands = container.getHands();
-      expect(hands).toBeTruthy();
-      expect(hands).toHaveProperty("left");
-      expect(hands).toHaveProperty("right");
-      expect(hands).toHaveProperty("spell");
+    // Change session to null
+    container.session = undefined;
+    await container.updateComplete;
 
-      teardown(container);
-    });
-
-    it("should return null hands when UI component not available", () => {
-      const container = setup();
-
-      const hands = container.getHands();
-      expect(hands).toEqual({ left: null, right: null, spell: null });
-
-      teardown(container);
-    });
+    // Should still render with default content
+    const ui = container.shadowRoot?.querySelector("illthorn-hands-ui");
+    expect(ui).toBeDefined();
+    expect(ui?.getAttribute("leftcontent")).toBe("Empty");
   });
 
-  describe("Rendering", () => {
-    it("should render hands UI component", async () => {
-      const container = setup(mockSession as FrontendSession);
-      await container.updateComplete;
+  it("should handle metadata events without children arrays", async () => {
+    container.session = mockSession as unknown as FrontendSession;
+    await container.updateComplete;
 
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-hands-ui");
-      expect(uiComponent).toBeTruthy();
+    const malformedTag: GameTag = {
+      kind: TagKind.METADATA,
+      name: "left",
+      gameName: "left",
+      attrs: {},
+      children: undefined as unknown as Array<GameTag>,
+      text: "",
+      state: TagState.OPEN,
+    };
 
-      teardown(container);
-    });
+    mockSession.bus.dispatchEvent("metadata/left", malformedTag);
+    await container.updateComplete;
 
-    it("should pass hand content to UI component", async () => {
-      const container = setup(mockSession as FrontendSession);
-      await container.updateComplete;
+    const ui = container.shadowRoot?.querySelector("illthorn-hands-ui");
+    expect(ui?.getAttribute("leftcontent")).toBe("Empty");
+  });
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-hands-ui") as any;
-      expect(uiComponent?.leftContent).toBe("None");
-      expect(uiComponent?.rightContent).toBe("None");
-      expect(uiComponent?.spellContent).toBe("None");
+  it("should re-setup event listeners when session changes", async () => {
+    const newMockSession = createMockSession("test2");
+    const subscribeSpy = vi.spyOn(newMockSession.bus, "subscribeEvent");
 
-      teardown(container);
-    });
+    container.session = mockSession as unknown as FrontendSession;
+    await container.updateComplete;
+
+    // Change to new session
+    container.session = newMockSession as unknown as FrontendSession;
+    await container.updateComplete;
+
+    expect(subscribeSpy).toHaveBeenCalledWith("metadata/left", expect.any(Function));
+    expect(subscribeSpy).toHaveBeenCalledWith("metadata/right", expect.any(Function));
+    expect(subscribeSpy).toHaveBeenCalledWith("metadata/spell", expect.any(Function));
   });
 });
