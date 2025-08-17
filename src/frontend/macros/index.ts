@@ -56,6 +56,12 @@ export async function bindMetaMacros() {
     const sess = currentSession();
     sess?.ui.feed.scrollToNow();
   });
+
+  // Add Ctrl+Shift+L for clear game log
+  keyboardjs.on("ctrl+shift+l", (e) => {
+    e?.preventDefault();
+    Illthorn.bus.dispatchEvent(IllthornEvent.SUBMIT_ILLTHORN_COMMAND, ":clear");
+  });
   // todo: handle scrolling from any focused state
   keyboardjs.on("pageup", (e) => {
     e?.preventDefault();

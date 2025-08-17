@@ -64,6 +64,8 @@ class IIllthorn {
     const sessionsVisible = !appRoot?.classList.contains("no-sessions");
     const hudVisible = !sessionLayout?.classList.contains("no-hud");
     const streamsVisible = !sessionLayout?.classList.contains("no-streams");
+    const scrollbackSize = currentSess.ui?.feed?.maxScrollbackSize || 20000;
+    const currentItems = currentSess.ui?.feed?.currentItemCount || 0;
 
     // Create status message
     const statusMessage = [
@@ -72,10 +74,17 @@ class IIllthorn {
       `HUD: ${hudVisible ? "ON" : "OFF"}`,
       `Streams panel: ${streamsVisible ? "ON" : "OFF"}`,
       "",
+      "=== Scrollback Buffer ===",
+      `Buffer size: ${scrollbackSize} items`,
+      `Current items: ${currentItems}`,
+      `Memory usage: ${Math.round((currentItems / scrollbackSize) * 100)}%`,
+      "",
       "Available commands:",
       "  :ui sessions on/off - Toggle session picker",
       "  :ui hud on/off - Toggle HUD",
       "  :ui streams on/off - Toggle streams panel",
+      "  :ui scrollback <size> - Set scrollback buffer (100-50000)",
+      "  :clear or :cls - Clear game log (Ctrl+Shift+L)",
     ].join("\n");
 
     // Output to game feed using client message event (preserves formatting)
@@ -119,6 +128,102 @@ class IIllthorn {
         return this.toggleStreamsUI(false);
       case ":ui":
         return this.showUIStatus();
+      case ":clear":
+      case ":cls":
+        return this.clearGameLog();
+    }
+
+    // Handle scrollback size commands
+    if (command.startsWith(":ui scrollback ")) {
+      const parts = command.split(" ");
+      if (parts.length === 3) {
+        const size = parseInt(parts[2], 10);
+        if (!Number.isNaN(size)) {
+          return this.setScrollbackSize(size);
+        }
+      }
+      return this.showScrollbackUsage();
+    }
+  }
+
+  /**
+   * Set scrollback buffer size for the current session's feed
+   */
+  async setScrollbackSize(size: number) {
+    if (size < 100 || size > 50000) {
+      const currentSess = currentSession();
+      if (currentSess?.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: "Scrollback size must be between 100 and 50000",
+          timestamp: Date.now(),
+        });
+      }
+      return;
+    }
+
+    const currentSess = currentSession();
+    if (currentSess?.ui.feed?.setScrollbackSize) {
+      try {
+        await currentSess.ui.feed.setScrollbackSize(size);
+
+        if (currentSess.bus) {
+          currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+            message: `Scrollback buffer set to ${size} items`,
+            timestamp: Date.now(),
+          });
+        }
+      } catch (error) {
+        if (currentSess.bus) {
+          currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+            message: `Error setting scrollback size: ${error.message}`,
+            timestamp: Date.now(),
+          });
+        }
+      }
+    } else {
+      if (currentSess?.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: "No active feed found",
+          timestamp: Date.now(),
+        });
+      }
+    }
+  }
+
+  /**
+   * Clear the current session's game log
+   */
+  clearGameLog() {
+    const currentSess = currentSession();
+    if (currentSess?.ui.feed?.clear) {
+      currentSess.ui.feed.clear();
+
+      if (currentSess.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: "Game log cleared",
+          timestamp: Date.now(),
+        });
+      }
+    } else {
+      if (currentSess?.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: "No active feed found",
+          timestamp: Date.now(),
+        });
+      }
+    }
+  }
+
+  /**
+   * Show usage information for scrollback command
+   */
+  showScrollbackUsage() {
+    const currentSess = currentSession();
+    if (currentSess?.bus) {
+      currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+        message: "Usage: :ui scrollback <size>\nSize must be between 100 and 50000",
+        timestamp: Date.now(),
+      });
     }
   }
 }

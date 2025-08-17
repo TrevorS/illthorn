@@ -711,22 +711,67 @@ describe("FeedModernized Component", () => {
     });
 
     test("should maintain component functionality during memory flush", async () => {
-      // Add content beyond memory limit to trigger flush
-      for (let i = 0; i < FeedModernized.MAX_MEMORY_LENGTH + 5; i++) {
+      // Add content beyond scrollback limit to trigger flush
+      const itemsToAdd = 100; // Small number for test performance
+      for (let i = 0; i < itemsToAdd; i++) {
         const tag = createGameLinkTag(`item${i}`, "item", `item ${i}`);
         feed.appendGameTags([tag]);
       }
 
       await feed.updateComplete;
 
-      // Memory management is disabled in current implementation, so all content is preserved
+      // All content should be preserved since we're under the limit
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(FeedModernized.MAX_MEMORY_LENGTH + 5);
+      expect(stats.totalTagGroups).toBe(itemsToAdd);
 
       // Latest components should still be functional inside message blocks
       const messageBlocks = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
       const linkCount = Array.from(messageBlocks || []).reduce((count, block) => count + (block.shadowRoot?.querySelectorAll("illthorn-game-link").length || 0), 0);
       expect(linkCount).toBeGreaterThan(0);
+    });
+
+    test("should respect scrollback buffer limit", async () => {
+      // Set a small buffer size for testing (minimum is 100)
+      await feed.setScrollbackSize(100);
+      expect(feed.maxScrollbackSize).toBe(100);
+
+      // Add more items than the buffer size
+      const itemsToAdd = 150;
+      for (let i = 0; i < itemsToAdd; i++) {
+        const tag = createGameLinkTag(`item${i}`, "item", `item ${i}`);
+        feed.appendGameTags([tag]);
+      }
+
+      // Wait for debounced flush to complete
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+      await feed.updateComplete;
+
+      // Should have flushed old content to stay within limit
+      expect(feed.currentItemCount).toBe(100);
+
+      // Should have kept the most recent items
+      const stats = feed.getRenderStats();
+      expect(stats.totalTagGroups).toBe(100);
+    });
+
+    test("should clear all content when clear() is called", async () => {
+      // Add some content
+      for (let i = 0; i < 10; i++) {
+        const tag = createGameLinkTag(`item${i}`, "item", `item ${i}`);
+        feed.appendGameTags([tag]);
+      }
+
+      await feed.updateComplete;
+      expect(feed.currentItemCount).toBe(10);
+
+      // Clear content
+      feed.clear();
+      await feed.updateComplete;
+
+      // Should have no content
+      expect(feed.currentItemCount).toBe(0);
+      const stats = feed.getRenderStats();
+      expect(stats.totalTagGroups).toBe(0);
     });
   });
 

@@ -14,7 +14,7 @@ import type { ContentItem } from "./message-block.lit";
 @customElement("illthorn-feed-modernized-lit")
 export class FeedModernized extends LitElement {
   static MIN_SCROLL_BUFFER = 300;
-  static MAX_MEMORY_LENGTH = 100 * 5 * 3;
+  static DEFAULT_SCROLLBACK_SIZE = 20000;
 
   static styles = css`
     :host {
@@ -99,16 +99,32 @@ export class FeedModernized extends LitElement {
   @state()
   private _shouldAutoScroll = true;
 
+  @state()
+  private _maxScrollbackSize = FeedModernized.DEFAULT_SCROLLBACK_SIZE;
+
   private _hasSubscribedToEcho = false;
   private _hasSubscribedToClientMessages = false;
+  private _flushTimeout: number | undefined;
 
-  connectedCallback() {
+  async connectedCallback() {
     super.connectedCallback();
     this.classList.add("feed", "scroll");
+
+    // Load saved scrollback size from settings
+    if (window.Settings) {
+      const savedSize = await window.Settings.get("ui.scrollback.size");
+      if (savedSize && typeof savedSize === "number" && savedSize >= 100 && savedSize <= 50000) {
+        this._maxScrollbackSize = savedSize;
+      }
+    }
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    // Clear flush timeout
+    if (this._flushTimeout) {
+      clearTimeout(this._flushTimeout);
+    }
     this.destroy();
   }
 
@@ -180,8 +196,8 @@ export class FeedModernized extends LitElement {
     // Add to unified content array
     this._allContent = [...this._allContent, { type: "tags", data: tags }];
 
-    // Flush old content if we've grown too long
-    this.flush();
+    // Schedule flush to manage memory if needed
+    this._scheduleFlush();
 
     // Trigger re-render
     this.requestUpdate();
@@ -229,13 +245,63 @@ export class FeedModernized extends LitElement {
   }
 
   /**
-   * Finalizer for pruned nodes - no longer needed with virtualizer
-   * Virtualizer handles memory management automatically by only rendering visible items
+   * Remove old content to maintain scrollback buffer limit
+   * Uses sliding window approach to keep memory usage bounded
    */
   flush() {
-    // Manual memory management disabled - virtualizer handles this
-    // The virtualizer only renders visible items, so we can keep unlimited history
+    if (this._allContent.length <= this._maxScrollbackSize) {
+      return this; // No-op if under limit
+    }
+
+    const toRemove = this._allContent.length - this._maxScrollbackSize;
+
+    // Use single splice operations for better performance
+    this._allContent.splice(0, toRemove);
+    this._contentTags.splice(0, toRemove);
+
+    // Clean up command echoes that are no longer in allContent
+    const remainingEchoes = new Set();
+    for (const item of this._allContent) {
+      if (item.type === "echo") {
+        remainingEchoes.add(item.data);
+      }
+    }
+    this._commandEchoes = this._commandEchoes.filter((echo) => remainingEchoes.has(echo));
+
     return this;
+  }
+
+  /**
+   * Debounced flush to avoid frequent array operations during rapid content addition
+   */
+  private _scheduleFlush() {
+    if (this._flushTimeout) {
+      clearTimeout(this._flushTimeout);
+    }
+    this._flushTimeout = window.setTimeout(() => {
+      this.flush();
+      this._flushTimeout = undefined;
+    }, 1000);
+  }
+
+  /**
+   * Set scrollback buffer size and save to settings
+   */
+  async setScrollbackSize(size: number) {
+    if (size < 100 || size > 50000) {
+      throw new Error("Scrollback size must be between 100 and 50000");
+    }
+
+    this._maxScrollbackSize = size;
+
+    // Save to settings
+    if (window.Settings) {
+      await window.Settings.set("ui.scrollback.size", size);
+    }
+
+    // Apply new limit immediately
+    this.flush();
+    this.requestUpdate();
   }
 
   /**
@@ -300,6 +366,19 @@ export class FeedModernized extends LitElement {
     this._contentTags = [];
     this._commandEchoes = [];
     this._allContent = [];
+
+    // Clear any pending flush timeout
+    if (this._flushTimeout) {
+      clearTimeout(this._flushTimeout);
+      this._flushTimeout = undefined;
+    }
+
+    // Force immediate re-render and scroll to bottom
+    this.requestUpdate();
+    this.updateComplete.then(() => {
+      this.scrollToNow();
+    });
+
     return this;
   }
 
@@ -341,8 +420,8 @@ export class FeedModernized extends LitElement {
     // Add to unified content array
     this._allContent = [...this._allContent, { type: "echo", data: echoData }];
 
-    // Trigger memory management and re-render
-    this.flush();
+    // Schedule flush to manage memory if needed
+    this._scheduleFlush();
     this.requestUpdate();
 
     // Auto-scroll if appropriate
@@ -360,8 +439,8 @@ export class FeedModernized extends LitElement {
     // Add to unified content array
     this._allContent = [...this._allContent, { type: "client", data: clientData }];
 
-    // Trigger memory management and re-render
-    this.flush();
+    // Schedule flush to manage memory if needed
+    this._scheduleFlush();
     this.requestUpdate();
 
     // Auto-scroll if appropriate
@@ -384,6 +463,20 @@ export class FeedModernized extends LitElement {
         )}
       </div>
     `;
+  }
+
+  /**
+   * Get current scrollback buffer size
+   */
+  get maxScrollbackSize(): number {
+    return this._maxScrollbackSize;
+  }
+
+  /**
+   * Get current number of items in feed
+   */
+  get currentItemCount(): number {
+    return this._allContent.length;
   }
 
   /**
