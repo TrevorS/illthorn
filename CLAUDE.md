@@ -22,6 +22,7 @@ Environment variables can be configured as needed for development.
 - **Start development**: `yarn start` - Launches Electron in development mode with hot reload
 - **Build package**: `yarn make` - Creates distributable packages in `/out/`
 - **Install dependencies**: `yarn install`
+- **Storybook**: `yarn storybook` - Launches Storybook development server on port 6006
 
 ### Code Quality
 - **Full validation**: `yarn check` - Runs complete validation pipeline (format, lint, typecheck, test)
@@ -82,10 +83,11 @@ The backend uses a modular IPC (Inter-Process Communication) pattern:
 ## Development Notes
 
 ### Package Management
-- Uses Yarn 4.5.3 (specified in volta config: Node 22.11.0)  
+- Uses Yarn 4.9.2 (specified in volta config: Node 22.11.0)  
 - Electron Forge with Vite plugin for build tooling and packaging
 - Vite for bundling with SCSS support
 - Biome for code formatting and linting (replaces ESLint/Prettier)
+- Storybook for component development and documentation
 
 ### Testing Setup
 - Vitest test framework with TypeScript support
@@ -249,7 +251,7 @@ Node.js/TypeScript Electron project
 
 ### Last Updated
 
-2025-08-15
+2025-08-18
 
 ## Component Architecture Details
 
