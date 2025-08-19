@@ -1,0 +1,383 @@
+// ABOUTME: Test suite for StreamsUI component verifying pure presentation logic and user interactions
+// ABOUTME: Tests the presentation component's rendering, scrolling behavior, and entry display
+/// <reference types="vitest/globals" />
+import { afterEach, describe, expect, it } from "vitest";
+import type { StreamEntry } from "./streams-container.lit";
+import { StreamsUI } from "./streams-ui.lit";
+
+describe("StreamsUI", () => {
+  const setup = () => {
+    const component = new StreamsUI();
+    document.body.appendChild(component);
+    return component;
+  };
+
+  const teardown = (component: StreamsUI) => {
+    if (component.parentNode) {
+      component.parentNode.removeChild(component);
+    }
+  };
+
+  afterEach(() => {
+    // Clean up any remaining elements
+    const components = document.querySelectorAll("illthorn-streams-ui");
+    components.forEach((comp) => {
+      if (comp.parentNode) {
+        comp.parentNode.removeChild(comp);
+      }
+    });
+  });
+
+  describe("Basic rendering", () => {
+    it("should create streams UI element", () => {
+      const component = setup();
+
+      expect(component).toBeInstanceOf(StreamsUI);
+      expect(component.tagName.toLowerCase()).toBe("illthorn-streams-ui");
+
+      teardown(component);
+    });
+
+    it("should initialize with empty entries", () => {
+      const component = setup();
+
+      expect(component.entries).toEqual([]);
+
+      teardown(component);
+    });
+
+    it("should render empty state when no entries", async () => {
+      const component = setup();
+      component.entries = [];
+      await component.updateComplete;
+
+      const emptyMessage = component.shadowRoot?.querySelector(".streams-empty");
+      expect(emptyMessage).toBeTruthy();
+      expect(emptyMessage?.textContent).toContain("Streams Panel");
+
+      teardown(component);
+    });
+
+    it("should apply scroll class on connection", () => {
+      const component = setup();
+
+      expect(component.classList.contains("scroll")).toBe(true);
+
+      teardown(component);
+    });
+  });
+
+  describe("Entry rendering", () => {
+    const sampleEntries: StreamEntry[] = [
+      {
+        id: "test-1",
+        content: 'Someone thinks, "This is a test thought"',
+        timestamp: new Date(),
+        streamType: "thoughts"
+      },
+      {
+        id: "test-2",
+        content: 'Someone says, "Hello everyone!"',
+        timestamp: new Date(),
+        streamType: "speech"
+      },
+      {
+        id: "test-3",
+        content: "A warrior has fallen in battle!",
+        timestamp: new Date(),
+        streamType: "death"
+      }
+    ];
+
+    it("should render stream entries when provided", async () => {
+      const component = setup();
+      component.entries = sampleEntries;
+      await component.updateComplete;
+
+      const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries).toHaveLength(3);
+
+      teardown(component);
+    });
+
+    it("should apply correct CSS classes to stream entries", async () => {
+      const component = setup();
+      component.entries = sampleEntries;
+      await component.updateComplete;
+
+      const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries?.[0]?.classList.contains("thoughts")).toBe(true);
+      expect(entries?.[1]?.classList.contains("speech")).toBe(true);
+      expect(entries?.[2]?.classList.contains("death")).toBe(true);
+
+      teardown(component);
+    });
+
+    it("should set correct data attributes on stream entries", async () => {
+      const component = setup();
+      component.entries = sampleEntries;
+      await component.updateComplete;
+
+      const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries?.[0]?.getAttribute("data-stream-type")).toBe("thoughts");
+      expect(entries?.[1]?.getAttribute("data-stream-type")).toBe("speech");
+      expect(entries?.[2]?.getAttribute("data-stream-type")).toBe("death");
+
+      teardown(component);
+    });
+
+    it("should display entry content correctly", async () => {
+      const component = setup();
+      component.entries = sampleEntries;
+      await component.updateComplete;
+
+      const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries?.[0]?.textContent?.trim()).toBe(sampleEntries[0].content);
+      expect(entries?.[1]?.textContent?.trim()).toBe(sampleEntries[1].content);
+      expect(entries?.[2]?.textContent?.trim()).toBe(sampleEntries[2].content);
+
+      teardown(component);
+    });
+
+    it("should handle empty entries array", async () => {
+      const component = setup();
+      component.entries = sampleEntries;
+      await component.updateComplete;
+
+      // Should show entries initially
+      let entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries).toHaveLength(3);
+
+      // Clear entries
+      component.entries = [];
+      await component.updateComplete;
+
+      // Should show empty state
+      const emptyMessage = component.shadowRoot?.querySelector(".streams-empty");
+      expect(emptyMessage).toBeTruthy();
+      entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries).toHaveLength(0);
+
+      teardown(component);
+    });
+  });
+
+  describe("Stream type styling", () => {
+    it("should handle all stream types correctly", async () => {
+      const allStreamTypes: StreamEntry[] = [
+        { id: "1", content: "Thought message", timestamp: new Date(), streamType: "thoughts" },
+        { id: "2", content: "Speech message", timestamp: new Date(), streamType: "speech" },
+        { id: "3", content: "Logon message", timestamp: new Date(), streamType: "logon" },
+        { id: "4", content: "Logoff message", timestamp: new Date(), streamType: "logoff" },
+        { id: "5", content: "Death message", timestamp: new Date(), streamType: "death" }
+      ];
+
+      const component = setup();
+      component.entries = allStreamTypes;
+      await component.updateComplete;
+
+      const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries).toHaveLength(5);
+
+      // Check each stream type has correct classes and attributes
+      allStreamTypes.forEach((entry, index) => {
+        expect(entries?.[index]?.classList.contains(entry.streamType)).toBe(true);
+        expect(entries?.[index]?.getAttribute("data-stream-type")).toBe(entry.streamType);
+      });
+
+      teardown(component);
+    });
+  });
+
+  describe("Scrolling behavior", () => {
+    it("should implement isScrolling property", () => {
+      const component = setup();
+
+      // isScrolling should be a boolean
+      expect(typeof component.isScrolling).toBe("boolean");
+
+      teardown(component);
+    });
+
+    it("should implement scrollToNow method", () => {
+      const component = setup();
+
+      expect(typeof component.scrollToNow).toBe("function");
+      
+      // Should return the component for chaining
+      const result = component.scrollToNow();
+      expect(result).toBe(component);
+
+      teardown(component);
+    });
+
+    it("should handle auto-scroll when entries are updated and user is not scrolling", async () => {
+      const component = setup();
+      
+      // Mock scrolling behavior
+      Object.defineProperty(component, "isScrolling", {
+        get: () => false, // User is at bottom
+        configurable: true
+      });
+      
+      // Initial entries
+      component.entries = [
+        { id: "1", content: "First message", timestamp: new Date(), streamType: "thoughts" }
+      ];
+      await component.updateComplete;
+
+      // Add more entries
+      component.entries = [
+        ...component.entries,
+        { id: "2", content: "Second message", timestamp: new Date(), streamType: "speech" }
+      ];
+      await component.updateComplete;
+
+      // Component should handle the update correctly
+      const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries).toHaveLength(2);
+
+      teardown(component);
+    });
+  });
+
+  describe("Clear functionality", () => {
+    it("should implement clear method", () => {
+      const component = setup();
+
+      expect(typeof component.clear).toBe("function");
+
+      teardown(component);
+    });
+
+    it("should dispatch clear event when clear is called", () => {
+      const component = setup();
+      let clearEventFired = false;
+
+      component.addEventListener("clear", () => {
+        clearEventFired = true;
+      });
+
+      component.clear();
+
+      expect(clearEventFired).toBe(true);
+
+      teardown(component);
+    });
+  });
+
+  describe("Long content handling", () => {
+    it("should handle long content without breaking layout", async () => {
+      const longContent = "A".repeat(500);
+      const longEntries: StreamEntry[] = [
+        {
+          id: "long-1",
+          content: longContent,
+          timestamp: new Date(),
+          streamType: "thoughts"
+        }
+      ];
+
+      const component = setup();
+      component.entries = longEntries;
+      await component.updateComplete;
+
+      const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries).toHaveLength(1);
+      expect(entries?.[0]?.textContent?.includes(longContent)).toBe(true);
+
+      teardown(component);
+    });
+
+    it("should handle entries with special characters", async () => {
+      const specialEntries: StreamEntry[] = [
+        {
+          id: "special-1",
+          content: 'Someone thinks, "This has <special> &characters; "quotes" and símböls"',
+          timestamp: new Date(),
+          streamType: "thoughts"
+        }
+      ];
+
+      const component = setup();
+      component.entries = specialEntries;
+      await component.updateComplete;
+
+      const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries).toHaveLength(1);
+      expect(entries?.[0]?.textContent?.includes("special")).toBe(true);
+
+      teardown(component);
+    });
+  });
+
+  describe("Property reactivity", () => {
+    it("should update display when entries property changes", async () => {
+      const component = setup();
+
+      // Start with empty
+      component.entries = [];
+      await component.updateComplete;
+      expect(component.shadowRoot?.querySelector(".streams-empty")).toBeTruthy();
+
+      // Add entries
+      component.entries = [
+        { id: "1", content: "New message", timestamp: new Date(), streamType: "thoughts" }
+      ];
+      await component.updateComplete;
+
+      const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries).toHaveLength(1);
+      expect(component.shadowRoot?.querySelector(".streams-empty")).toBeFalsy();
+
+      // Clear entries again
+      component.entries = [];
+      await component.updateComplete;
+      expect(component.shadowRoot?.querySelector(".streams-empty")).toBeTruthy();
+
+      teardown(component);
+    });
+
+    it("should handle rapid property changes", async () => {
+      const component = setup();
+
+      // Rapid updates
+      for (let i = 0; i < 10; i++) {
+        component.entries = [
+          { id: `${i}`, content: `Message ${i}`, timestamp: new Date(), streamType: "thoughts" }
+        ];
+      }
+      await component.updateComplete;
+
+      const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
+      expect(entries).toHaveLength(1);
+      expect(entries?.[0]?.textContent?.trim()).toBe("Message 9");
+
+      teardown(component);
+    });
+  });
+
+  describe("CSS and styling", () => {
+    it("should have proper host styling", () => {
+      const component = setup();
+
+      const styles = StreamsUI.styles;
+      expect(styles).toBeTruthy();
+      expect(styles.toString()).toContain(":host");
+
+      teardown(component);
+    });
+
+    it("should apply theme-aware CSS custom properties", async () => {
+      const component = setup();
+      await component.updateComplete;
+
+      // The component should use CSS custom properties for theming
+      const styles = StreamsUI.styles.toString();
+      expect(styles).toContain("var(--");
+      expect(styles).toContain("--color-");
+
+      teardown(component);
+    });
+  });
+});
