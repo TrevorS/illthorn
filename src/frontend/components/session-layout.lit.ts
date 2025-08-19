@@ -12,8 +12,8 @@ import type { InjuriesContainer } from "./session/injuries/injuries-container.li
 import "./session/effects";
 import "./session/hands/hands-container.lit";
 import "./session/panel.lit";
-import "./session/streams.lit";
-import type { Streams } from "./session/streams.lit";
+import "./session/streams-container.lit";
+import type { StreamsContainer } from "./session/streams-container.lit";
 import "./session/feed/feed-modernized.lit";
 import type { FeedModernized } from "./session/feed/feed-modernized.lit";
 import "./session/prompt.lit";
@@ -28,7 +28,7 @@ export type SessionUI = {
   prompt: Prompt;
   vitals: VitalsContainer;
   injuries: InjuriesContainer;
-  streams: Streams;
+  streams: StreamsContainer;
   hands: { left: null; right: null; spell: null };
 };
 
@@ -266,8 +266,8 @@ export class SessionLayout extends LitElement {
   @query("illthorn-injuries-container")
   private _injuries?: InjuriesContainer;
 
-  @query("illthorn-streams-lit")
-  private _streams?: Streams;
+  @query("illthorn-streams-container")
+  private _streams?: StreamsContainer;
 
   @query("illthorn-feed-modernized-lit")
   private _feed?: FeedModernized;
@@ -391,7 +391,7 @@ export class SessionLayout extends LitElement {
 
       <div class="main">
         <div class="streams">
-          <illthorn-streams-lit .session=${this.session}></illthorn-streams-lit>
+          <illthorn-streams-container .session=${this.session}></illthorn-streams-container>
         </div>
 
         <div class="feed-wrapper">

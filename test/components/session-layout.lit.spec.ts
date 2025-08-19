@@ -187,7 +187,7 @@ describe("SessionLayout", () => {
       const main = sessionUI.shadowRoot?.querySelector(".main");
       expect(main).toBeTruthy();
 
-      const streams = main?.querySelector("illthorn-streams-lit");
+      const streams = main?.querySelector("illthorn-streams-container");
       const feed = main?.querySelector("illthorn-feed-modernized-lit");
       const cliWrapper = main?.querySelector(".cli-wrapper");
 
@@ -206,7 +206,7 @@ describe("SessionLayout", () => {
     it("should render streams component", async () => {
       await setup();
 
-      const streams = sessionUI.shadowRoot?.querySelector("illthorn-streams-lit");
+      const streams = sessionUI.shadowRoot?.querySelector("illthorn-streams-container");
       expect(streams).toBeTruthy();
     });
 
@@ -279,7 +279,7 @@ describe("SessionLayout", () => {
       expect(sessionUIObj.feed?.tagName.toLowerCase()).toBe("illthorn-feed-modernized-lit");
       expect(sessionUIObj.prompt?.tagName.toLowerCase()).toBe("illthorn-prompt");
       expect(sessionUIObj.vitals?.tagName.toLowerCase()).toBe("illthorn-vitals-container");
-      expect(sessionUIObj.streams?.tagName.toLowerCase()).toBe("illthorn-streams-lit");
+      expect(sessionUIObj.streams?.tagName.toLowerCase()).toBe("illthorn-streams-container");
       expect(sessionUIObj.hands.left).toBe(null);
       expect(sessionUIObj.hands.right).toBe(null);
       expect(sessionUIObj.hands.spell).toBe(null);
@@ -344,7 +344,7 @@ describe("SessionLayout", () => {
       expect(sessionUI.shadowRoot?.querySelector("illthorn-room-lit")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-vitals-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-effects-container")).toBeTruthy();
-      expect(sessionUI.shadowRoot?.querySelector("illthorn-streams-lit")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-streams-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-feed-modernized-lit")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-prompt")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-cli-lit")).toBeTruthy();

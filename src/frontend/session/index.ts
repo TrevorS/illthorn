@@ -68,9 +68,8 @@ export class FrontendSession {
 
   streams(on: boolean) {
     // Components should be available since we wait for initialization
-    if (this.ui?.context && this.ui?.streams && this.ui?.feed) {
+    if (this.ui?.context && this.ui?.feed) {
       this.ui.context.classList.toggle("streams-on", on);
-      this.ui.streams.scrollToNow();
       this.ui.feed.scrollToNow();
     }
   }
@@ -117,22 +116,19 @@ export class FrontendSession {
       this.bus.dispatchEvent("prompt", promptTag);
     }
 
+    // Dispatch metadata events for individual components
+    for (const metaTag of metadata) {
+      if (metaTag.name !== "prompt") { // prompt is handled separately above
+        const eventName = `metadata/${metaTag.name}/${metaTag.attrs.id || metaTag.attrs.name || ""}`.replace(/\/$/, '');
+        this.bus.dispatchEvent(eventName, metaTag);
+        debugSession(`[${this.name}] Dispatched metadata event: ${eventName}`);
+      }
+    }
+
     // Filter content tags for rendering (exclude metadata)
     const contentTags = parsed.filter((tag) => !metadata.includes(tag));
 
-    // Handle stream elements for thoughts stream
-    const streamTags = contentTags.filter((tag) => tag.name === "stream" && tag.attrs.id === "thoughts");
-
-    // Legacy stream handling - convert to DOM for existing streams component
-    if (streamTags.length && this.ui?.streams) {
-      // Temporary: create DOM elements for legacy streams component
-      for (const streamTag of streamTags) {
-        const streamElement = document.createElement("pre");
-        streamElement.className = "stream thoughts";
-        streamElement.textContent = streamTag.text || "";
-        this.ui.streams.addEntry(streamElement);
-      }
-    }
+    // Stream handling is now handled by streams-container via bus events
 
     // Render main content using modern component system
     if (contentTags.length > 0) {
@@ -182,8 +178,7 @@ export class FrontendSession {
 
   async onFocus() {
     try {
-      if (this.ui?.streams && this.ui?.feed) {
-        this.ui.streams.scrollToNow();
+      if (this.ui?.feed) {
         this.ui.feed.scrollToNow();
       }
     } catch (_error) {

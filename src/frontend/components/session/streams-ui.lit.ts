@@ -1,11 +1,12 @@
-// ABOUTME: Lit-based Streams component for displaying filtered game content streams
-// ABOUTME: Handles auto-scrolling and entry management for side panel content like thoughts, deaths, etc.
+// ABOUTME: Pure UI component for displaying stream content with auto-scrolling behavior
+// ABOUTME: Accepts stream entries as properties and handles presentation only
 import { css, html, LitElement } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { customElement, property } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import type { StreamEntry } from "./streams-container.lit";
 
-@customElement("illthorn-streams-lit")
-export class Streams extends LitElement {
+@customElement("illthorn-streams-ui")
+export class StreamsUI extends LitElement {
   static styles = css`
     :host {
       display: block;
@@ -159,32 +160,52 @@ export class Streams extends LitElement {
       top: 0;
       left: 0;
     }
+
+    /* Stream entry styling */
+    .stream-entry {
+      margin: 0.2em 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .stream-entry.thoughts {
+      color: var(--thoughts-color, var(--color-text-primary));
+    }
+
+    .stream-entry.speech {
+      color: var(--speech-color, var(--color-speech));
+    }
+
+    .stream-entry.death {
+      color: var(--color-danger);
+      font-weight: bold;
+    }
+
+    .stream-entry.logon,
+    .stream-entry.logoff {
+      color: var(--color-text-secondary);
+      font-style: italic;
+    }
   `;
 
-  @state()
-  private _entries: Array<string> = [];
+  @property({ type: Array })
+  entries: Array<StreamEntry> = [];
 
   connectedCallback() {
     super.connectedCallback();
     this.classList.add("scroll");
   }
 
-  /**
-   * Add a new entry to the streams panel
-   */
-  addEntry(entry: Element) {
-    const wasScrolling = this.isScrolling;
+  updated(changedProperties: Map<string | number | symbol, unknown>) {
+    super.updated(changedProperties);
 
-    // Clone the entry and convert to HTML string
-    const clonedEntry = entry.cloneNode(true) as Element;
-    this._entries = [...this._entries, clonedEntry.outerHTML];
-
-    // Handle auto-scrolling behavior
-    if (!wasScrolling) {
-      // Schedule scroll after render
-      this.updateComplete.then(() => {
-        this.scrollToNow();
-      });
+    if (changedProperties.has("entries")) {
+      // Auto-scroll if user was at bottom before update
+      if (!this.isScrolling) {
+        this.updateComplete.then(() => {
+          this.scrollToNow();
+        });
+      }
     }
   }
 
@@ -210,25 +231,30 @@ export class Streams extends LitElement {
    * Clear all entries from the streams panel
    */
   clear(): void {
-    this._entries = [];
-    this.requestUpdate();
+    this.dispatchEvent(new CustomEvent("clear"));
   }
 
   render() {
-    if (this._entries.length === 0) {
+    if (this.entries.length === 0) {
       return html`
         <div class="streams-empty">Streams Panel</div>
       `;
     }
 
     return html`
-      ${this._entries.map((entryHTML) => unsafeHTML(entryHTML))}
+      ${this.entries.map(
+        (entry) => html`
+        <pre class="stream-entry ${entry.streamType}" data-stream-type="${entry.streamType}">
+          ${entry.content}
+        </pre>
+      `,
+      )}
     `;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    "illthorn-streams-lit": Streams;
+    "illthorn-streams-ui": StreamsUI;
   }
 }
