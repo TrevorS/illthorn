@@ -67,9 +67,6 @@ export class ComponentRenderer {
       case "output":
         return this.renderStyledContainer(tag);
 
-      case "stream":
-        return this.renderStream(tag);
-
       // Metadata tags - these don't render but are processed by other systems
       case "prompt":
       case "progressBar":
@@ -79,6 +76,7 @@ export class ComponentRenderer {
       case "nav":
       case "room":
       case "compass":
+      case "stream":
         return { metadata: tag };
 
       default:
@@ -190,43 +188,12 @@ export class ComponentRenderer {
   }
 
   /**
-   * Render stream containers with filtering
-   */
-  private renderStream(tag: GameTag): { template?: TemplateResult } {
-    // Filter out duplicate streams (matches existing logic in dom.ts)
-    // Room streams are filtered to prevent duplication with inline room content
-    const duplicatedStreamIds = ["speech", "bounty", "inv", "room"];
-    const streamId = tag.attrs.id as string;
-
-    if (duplicatedStreamIds.includes(streamId) || tag.gameName === "popStream") {
-      return {}; // Filtered out
-    }
-
-    const children = this.renderChildren(tag.children);
-    const classes = this.buildStreamClasses(tag.attrs);
-
-    return {
-      template: html`<pre class=${classes}>${tag.text || ""}${children}</pre>`,
-    };
-  }
-
-  /**
    * Build CSS class string from attributes
    */
   private buildClassString(attrs: Record<string, unknown>): string {
     return Object.values(attrs)
       .filter((val) => val && typeof val === "string")
       .join(" ");
-  }
-
-  /**
-   * Build CSS classes for stream elements
-   */
-  private buildStreamClasses(attrs: Record<string, unknown>): string {
-    const baseClasses = ["stream"];
-    const attrClasses = Object.values(attrs).filter((val) => val && typeof val === "string");
-
-    return [...baseClasses, ...attrClasses].join(" ");
   }
 
   /**

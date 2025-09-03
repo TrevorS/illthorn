@@ -117,9 +117,24 @@ export class FrontendSession {
     }
 
     // Dispatch metadata events for individual components
+    // Deduplicate stream events by name and id to prevent duplicate entries
+    const seenStreamEvents = new Set<string>();
+
     for (const metaTag of metadata) {
-      if (metaTag.name !== "prompt") { // prompt is handled separately above
-        const eventName = `metadata/${metaTag.name}/${metaTag.attrs.id || metaTag.attrs.name || ""}`.replace(/\/$/, '');
+      if (metaTag.name !== "prompt") {
+        // prompt is handled separately above
+        const eventName = `metadata/${metaTag.name}/${metaTag.attrs.id || metaTag.attrs.name || ""}`.replace(/\/$/, "");
+
+        // Deduplicate stream events
+        if (metaTag.name === "stream") {
+          const streamKey = `${metaTag.name}:${metaTag.attrs.id}`;
+          if (seenStreamEvents.has(streamKey)) {
+            debugSession(`[${this.name}] Skipping duplicate stream event: ${eventName}`);
+            continue;
+          }
+          seenStreamEvents.add(streamKey);
+        }
+
         this.bus.dispatchEvent(eventName, metaTag);
         debugSession(`[${this.name}] Dispatched metadata event: ${eventName}`);
       }
@@ -127,6 +142,15 @@ export class FrontendSession {
 
     // Filter content tags for rendering (exclude metadata)
     const contentTags = parsed.filter((tag) => !metadata.includes(tag));
+
+    // Check if streams should also go to main feed when panel is closed
+    const streamsVisible = this.ui?.context?.classList.contains("streams-on");
+    if (!streamsVisible) {
+      // Streams panel is closed - add stream content to main feed
+      const streamTags = metadata.filter((tag) => tag.name === "stream" && tag.attrs.id === "thoughts");
+      contentTags.push(...streamTags);
+      debugSession(`[${this.name}] Added ${streamTags.length} stream tags to main feed (streams panel closed)`);
+    }
 
     // Stream handling is now handled by streams-container via bus events
 

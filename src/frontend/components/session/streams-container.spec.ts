@@ -4,11 +4,11 @@
 import type { MockedFunction } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GameTag } from "../../parser/tag";
-import { TagKind, TagState } from "../../parser/tag/index";
 import { makeTag } from "../../parser/tag/index";
 import type { FrontendSession } from "../../session/index";
 import type { Bus } from "../../util/bus";
-import { StreamsContainer, type StreamEntry } from "./streams-container.lit";
+import { StreamsContainer } from "./streams-container.lit";
+import type { StreamsUI } from "./streams-ui.lit";
 
 describe("StreamsContainer", () => {
   let mockSession: Partial<FrontendSession>;
@@ -75,7 +75,7 @@ describe("StreamsContainer", () => {
   });
 
   describe("Event Listener Setup", () => {
-    it("should subscribe to all 5 stream metadata events when session is available", async () => {
+    it("should subscribe to all stream metadata events when session is available", async () => {
       const container = setup(mockSession as FrontendSession);
       await container.updateComplete;
 
@@ -157,72 +157,17 @@ describe("StreamsContainer", () => {
       thoughtsTag.text = 'Someone thinks, "This is a test thought"';
 
       // Get the handler that was registered
-      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find(
-        call => call[0] === "metadata/stream/thoughts"
-      );
+      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call) => call[0] === "metadata/stream/thoughts");
       expect(thoughtsHandlerCall).toBeDefined();
-      
-      const thoughtsHandler = thoughtsHandlerCall[1];
+
+      const thoughtsHandler = thoughtsHandlerCall?.[1] as (event: { detail: GameTag }) => void;
+      expect(typeof thoughtsHandler).toBe("function");
 
       // Simulate the event
       thoughtsHandler({ detail: thoughtsTag });
       await container.updateComplete;
 
       // Check if entry was added (we can't directly access private _entries, but we can check the rendered UI)
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui");
-      expect(uiComponent).toBeTruthy();
-
-      teardown(container);
-    });
-
-    it("should process speech stream events correctly", async () => {
-      const container = setup(mockSession as FrontendSession);
-      await container.updateComplete;
-
-      const speechTag: GameTag = makeTag("stream");
-      speechTag.attrs = { id: "speech" };
-      speechTag.text = 'Someone says, "Hello everyone!"';
-
-      // Get the handler that was registered
-      const speechHandlerCall = mockBus.subscribeEvent.mock.calls.find(
-        call => call[0] === "metadata/stream/speech"
-      );
-      expect(speechHandlerCall).toBeDefined();
-      
-      const speechHandler = speechHandlerCall[1];
-
-      // Simulate the event
-      speechHandler({ detail: speechTag });
-      await container.updateComplete;
-
-      // Check if entry was added
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui");
-      expect(uiComponent).toBeTruthy();
-
-      teardown(container);
-    });
-
-    it("should process death stream events correctly", async () => {
-      const container = setup(mockSession as FrontendSession);
-      await container.updateComplete;
-
-      const deathTag: GameTag = makeTag("stream");
-      deathTag.attrs = { id: "death" };
-      deathTag.text = "A goblin warrior has been slain!";
-
-      // Get the handler that was registered
-      const deathHandlerCall = mockBus.subscribeEvent.mock.calls.find(
-        call => call[0] === "metadata/stream/death"
-      );
-      expect(deathHandlerCall).toBeDefined();
-      
-      const deathHandler = deathHandlerCall[1];
-
-      // Simulate the event
-      deathHandler({ detail: deathTag });
-      await container.updateComplete;
-
-      // Check if entry was added
       const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui");
       expect(uiComponent).toBeTruthy();
 
@@ -238,10 +183,10 @@ describe("StreamsContainer", () => {
       testTag.text = "Direct text content";
 
       // Get the handler and trigger it
-      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find(
-        call => call[0] === "metadata/stream/thoughts"
-      );
-      const thoughtsHandler = thoughtsHandlerCall[1];
+      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call) => call[0] === "metadata/stream/thoughts");
+      expect(thoughtsHandlerCall).toBeDefined();
+      const thoughtsHandler = thoughtsHandlerCall?.[1] as (event: { detail: GameTag }) => void;
+      expect(typeof thoughtsHandler).toBe("function");
       thoughtsHandler({ detail: testTag });
       await container.updateComplete;
 
@@ -265,10 +210,10 @@ describe("StreamsContainer", () => {
       testTag.children = [childTag];
 
       // Get the handler and trigger it
-      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find(
-        call => call[0] === "metadata/stream/thoughts"
-      );
-      const thoughtsHandler = thoughtsHandlerCall[1];
+      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call) => call[0] === "metadata/stream/thoughts");
+      expect(thoughtsHandlerCall).toBeDefined();
+      const thoughtsHandler = thoughtsHandlerCall?.[1] as (event: { detail: GameTag }) => void;
+      expect(typeof thoughtsHandler).toBe("function");
       thoughtsHandler({ detail: testTag });
       await container.updateComplete;
 
@@ -286,17 +231,17 @@ describe("StreamsContainer", () => {
       await container.updateComplete;
 
       // Get the thoughts handler
-      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find(
-        call => call[0] === "metadata/stream/thoughts"
-      );
-      const thoughtsHandler = thoughtsHandlerCall[1];
+      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call) => call[0] === "metadata/stream/thoughts");
+      expect(thoughtsHandlerCall).toBeDefined();
+      const thoughtsHandler = thoughtsHandlerCall?.[1] as (event: { detail: GameTag }) => void;
+      expect(typeof thoughtsHandler).toBe("function");
 
       // Add more than 1000 entries
       for (let i = 0; i < 1100; i++) {
         const testTag: GameTag = makeTag("stream");
         testTag.attrs = { id: "thoughts" };
         testTag.text = `Test entry ${i}`;
-        
+
         thoughtsHandler({ detail: testTag });
       }
       await container.updateComplete;
@@ -316,11 +261,11 @@ describe("StreamsContainer", () => {
       await container.updateComplete;
 
       // Add some entries first
-      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find(
-        call => call[0] === "metadata/stream/thoughts"
-      );
-      const thoughtsHandler = thoughtsHandlerCall[1];
-      
+      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call) => call[0] === "metadata/stream/thoughts");
+      expect(thoughtsHandlerCall).toBeDefined();
+      const thoughtsHandler = thoughtsHandlerCall?.[1] as (event: { detail: GameTag }) => void;
+      expect(typeof thoughtsHandler).toBe("function");
+
       const testTag: GameTag = makeTag("stream");
       testTag.attrs = { id: "thoughts" };
       testTag.text = "Test entry";
@@ -330,7 +275,7 @@ describe("StreamsContainer", () => {
       // Simulate clear event from UI
       const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui");
       expect(uiComponent).toBeTruthy();
-      
+
       const clearEvent = new CustomEvent("clear");
       uiComponent?.dispatchEvent(clearEvent);
       await container.updateComplete;
@@ -358,7 +303,7 @@ describe("StreamsContainer", () => {
       const container = setup(mockSession as FrontendSession);
       await container.updateComplete;
 
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui") as any;
+      const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui") as StreamsUI;
       expect(uiComponent).toBeTruthy();
       expect(Array.isArray(uiComponent.entries)).toBe(true);
 

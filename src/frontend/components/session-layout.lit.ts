@@ -112,7 +112,7 @@ export class SessionLayout extends LitElement {
     }
 
     :host(.streams-on) .main {
-      grid-template-rows: var(--stream-height, 8em) 1fr auto;
+      grid-template-rows: var(--stream-height, 12em) 1fr auto;
     }
 
     .streams {

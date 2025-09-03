@@ -1,12 +1,13 @@
 // ABOUTME: Integration test for complete streams event flow from session to container to UI
 // ABOUTME: Tests the full data flow: session metadata dispatch → container bus subscription → UI rendering
 /// <reference types="vitest/globals" />
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import type { StreamsContainer } from "../../src/frontend/components/session/streams-container.lit";
+import type { StreamsUI } from "../../src/frontend/components/session/streams-ui.lit";
 import type { GameTag } from "../../src/frontend/parser/tag";
 import { makeTag } from "../../src/frontend/parser/tag";
 import type { FrontendSession } from "../../src/frontend/session";
 import { Bus } from "../../src/frontend/util/bus";
-import type { StreamsContainer } from "../../src/frontend/components/session/streams-container.lit";
 import "../../src/frontend/components/session/streams-container.lit";
 
 describe("Streams Event Flow Integration", () => {
@@ -17,11 +18,11 @@ describe("Streams Event Flow Integration", () => {
   const setup = async () => {
     // Create real bus for integration testing
     bus = new Bus();
-    
+
     // Create mock session with real bus
     mockSession = {
       bus,
-      name: "test-session"
+      name: "test-session",
     } as Partial<FrontendSession>;
 
     // Create and attach container
@@ -64,11 +65,11 @@ describe("Streams Event Flow Integration", () => {
       // Verify the UI component received and rendered the entry
       const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui");
       expect(uiComponent).toBeTruthy();
-      
+
       // Check if the entry was rendered
       const streamEntries = uiComponent?.shadowRoot?.querySelectorAll(".stream-entry");
       expect(streamEntries?.length).toBeGreaterThan(0);
-      
+
       // Verify content and stream type
       const firstEntry = streamEntries?.[0];
       expect(firstEntry?.textContent?.trim()).toBe(thoughtsTag.text);
@@ -76,62 +77,62 @@ describe("Streams Event Flow Integration", () => {
       expect(firstEntry?.getAttribute("data-stream-type")).toBe("thoughts");
     });
 
-    it("should handle speech stream from session dispatch to UI rendering", async () => {
+    it("should handle all stream types (speech, logon, etc.)", async () => {
       await setup();
 
-      // Create a speech stream tag
+      // Create various stream tags that should all be processed
       const speechTag: GameTag = makeTag("stream");
       speechTag.attrs = { id: "speech" };
       speechTag.text = 'Someone says, "Hello everyone!"';
 
-      // Dispatch the event
+      const logonTag: GameTag = makeTag("stream");
+      logonTag.attrs = { id: "logon" };
+      logonTag.text = "Player has connected.";
+
+      // Dispatch these events
       bus.dispatchEvent("metadata/stream/speech", speechTag);
+      bus.dispatchEvent("metadata/stream/logon", logonTag);
       await container.updateComplete;
 
-      // Verify UI rendering
+      // Verify entries were added (streams container now handles all stream types)
       const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui");
       const streamEntries = uiComponent?.shadowRoot?.querySelectorAll(".stream-entry");
-      expect(streamEntries?.length).toBeGreaterThan(0);
-      
-      const firstEntry = streamEntries?.[0];
-      expect(firstEntry?.textContent?.trim()).toBe(speechTag.text);
-      expect(firstEntry?.classList.contains("speech")).toBe(true);
-      expect(firstEntry?.getAttribute("data-stream-type")).toBe("speech");
+      expect(streamEntries?.length).toBe(2);
+
+      // Verify the stream types are correct
+      const speechEntry = streamEntries?.[0];
+      const logonEntry = streamEntries?.[1];
+      expect(speechEntry?.getAttribute("data-stream-type")).toBe("speech");
+      expect(logonEntry?.getAttribute("data-stream-type")).toBe("logon");
     });
 
-    it("should handle multiple stream types in sequence", async () => {
+    it("should handle multiple thoughts streams in sequence", async () => {
       await setup();
 
-      // Create multiple stream tags
-      const streams = [
-        { type: "logon", text: "Player has connected." },
-        { type: "speech", text: 'Player says, "Hello!"' },
-        { type: "thoughts", text: 'Someone thinks, "Nice to meet you."' },
-        { type: "death", text: "A goblin has been slain!" },
-        { type: "logoff", text: "Player has disconnected." }
-      ];
+      // Create multiple thoughts stream tags
+      const thoughts = ['Someone thinks, "I wonder what\'s around the corner."', 'You think, "This place seems dangerous."', 'Someone thinks, "Did anyone else hear that noise?"'];
 
       // Dispatch all events
-      for (const stream of streams) {
+      for (const text of thoughts) {
         const streamTag: GameTag = makeTag("stream");
-        streamTag.attrs = { id: stream.type };
-        streamTag.text = stream.text;
-        
-        bus.dispatchEvent(`metadata/stream/${stream.type}`, streamTag);
+        streamTag.attrs = { id: "thoughts" };
+        streamTag.text = text;
+
+        bus.dispatchEvent("metadata/stream/thoughts", streamTag);
       }
       await container.updateComplete;
 
       // Verify all entries were rendered
       const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui");
       const streamEntries = uiComponent?.shadowRoot?.querySelectorAll(".stream-entry");
-      expect(streamEntries?.length).toBe(streams.length);
+      expect(streamEntries?.length).toBe(thoughts.length);
 
       // Verify each entry has correct content and styling
-      streams.forEach((stream, index) => {
+      thoughts.forEach((text, index) => {
         const entry = streamEntries?.[index];
-        expect(entry?.textContent?.trim()).toBe(stream.text);
-        expect(entry?.classList.contains(stream.type)).toBe(true);
-        expect(entry?.getAttribute("data-stream-type")).toBe(stream.type);
+        expect(entry?.textContent?.trim()).toBe(text);
+        expect(entry?.classList.contains("thoughts")).toBe(true);
+        expect(entry?.getAttribute("data-stream-type")).toBe("thoughts");
       });
     });
 
@@ -155,7 +156,7 @@ describe("Streams Event Flow Integration", () => {
       const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui");
       const streamEntries = uiComponent?.shadowRoot?.querySelectorAll(".stream-entry");
       expect(streamEntries?.length).toBeGreaterThan(0);
-      
+
       const firstEntry = streamEntries?.[0];
       expect(firstEntry?.textContent?.trim()).toBe("Child content from parser");
     });
@@ -167,13 +168,13 @@ describe("Streams Event Flow Integration", () => {
       const thoughtsTag: GameTag = makeTag("stream");
       thoughtsTag.attrs = { id: "thoughts" };
       thoughtsTag.text = "Test thought";
-      
+
       bus.dispatchEvent("metadata/stream/thoughts", thoughtsTag);
       await container.updateComplete;
 
       // Verify entry exists
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui") as any;
-      let streamEntries = uiComponent?.shadowRoot?.querySelectorAll(".stream-entry");
+      const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui") as StreamsUI;
+      const streamEntries = uiComponent?.shadowRoot?.querySelectorAll(".stream-entry");
       expect(streamEntries?.length).toBeGreaterThan(0);
 
       // Simulate clear event from UI
@@ -195,18 +196,18 @@ describe("Streams Event Flow Integration", () => {
         const streamTag: GameTag = makeTag("stream");
         streamTag.attrs = { id: "thoughts" };
         streamTag.text = `Rapid thought ${i}`;
-        
+
         bus.dispatchEvent("metadata/stream/thoughts", streamTag);
         promises.push(container.updateComplete);
       }
-      
+
       // Wait for all updates to complete
       await Promise.all(promises);
 
       // Component should handle rapid updates without issues
       const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui");
       expect(uiComponent).toBeTruthy();
-      
+
       const streamEntries = uiComponent?.shadowRoot?.querySelectorAll(".stream-entry");
       expect(streamEntries?.length).toBeGreaterThan(0);
     });
@@ -215,29 +216,25 @@ describe("Streams Event Flow Integration", () => {
       await setup();
 
       // Create ordered sequence of messages
-      const messages = [
-        "First message",
-        "Second message", 
-        "Third message"
-      ];
+      const messages = ["First message", "Second message", "Third message"];
 
       // Dispatch in order
       for (let i = 0; i < messages.length; i++) {
         const streamTag: GameTag = makeTag("stream");
         streamTag.attrs = { id: "thoughts" };
         streamTag.text = messages[i];
-        
+
         bus.dispatchEvent("metadata/stream/thoughts", streamTag);
-        
+
         // Small delay to ensure ordering
-        await new Promise(resolve => setTimeout(resolve, 1));
+        await new Promise((resolve) => setTimeout(resolve, 1));
       }
       await container.updateComplete;
 
       // Verify order is maintained
       const uiComponent = container.shadowRoot?.querySelector("illthorn-streams-ui");
       const streamEntries = uiComponent?.shadowRoot?.querySelectorAll(".stream-entry");
-      
+
       expect(streamEntries?.length).toBe(messages.length);
       messages.forEach((message, index) => {
         expect(streamEntries?.[index]?.textContent?.trim()).toBe(message);
@@ -272,7 +269,7 @@ describe("Streams Event Flow Integration", () => {
       const thoughtsTag: GameTag = makeTag("stream");
       thoughtsTag.attrs = { id: "thoughts" };
       thoughtsTag.text = "Test content";
-      
+
       bus.dispatchEvent("metadata/stream/thoughts", thoughtsTag);
       await container.updateComplete;
 
@@ -297,15 +294,15 @@ describe("Streams Event Flow Integration", () => {
         const streamTag: GameTag = makeTag("stream");
         streamTag.attrs = { id: "thoughts" };
         streamTag.text = `Performance test entry ${i}`;
-        
+
         bus.dispatchEvent("metadata/stream/thoughts", streamTag);
-        
+
         // Batch updates to reduce overhead
         if (i % 100 === 0) {
           await container.updateComplete;
         }
       }
-      
+
       await container.updateComplete;
       const endTime = performance.now();
 

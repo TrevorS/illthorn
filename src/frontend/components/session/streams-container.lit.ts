@@ -6,7 +6,6 @@ import type { GameTag } from "../../parser/tag";
 import type { FrontendSession as Session } from "../../session/index";
 import type { Bus } from "../../util/bus";
 import "./streams-ui.lit";
-import type { StreamsUI } from "./streams-ui.lit";
 
 export interface StreamEntry {
   id: string;
@@ -32,23 +31,26 @@ export class StreamsContainer extends LitElement {
   private _entries: Array<StreamEntry> = [];
 
   private _eventHandlers: Array<{ event: string; handler: (event: CustomEvent<GameTag>) => void; bus: Bus }> = [];
+  private _eventListenerSetup = false;
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
 
     if (changedProperties.has("session")) {
-      this._setupEventListeners();
+      if (this.session && !this._eventListenerSetup) {
+        this._setupEventListeners();
+        this._eventListenerSetup = true;
+      }
     }
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this._cleanupEventListeners();
+    this._eventListenerSetup = false;
   }
 
   private _setupEventListeners() {
-    this._cleanupEventListeners();
-
     if (!this.session?.bus) {
       return;
     }

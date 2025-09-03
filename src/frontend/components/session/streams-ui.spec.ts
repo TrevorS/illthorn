@@ -73,20 +73,20 @@ describe("StreamsUI", () => {
         id: "test-1",
         content: 'Someone thinks, "This is a test thought"',
         timestamp: new Date(),
-        streamType: "thoughts"
+        streamType: "thoughts",
       },
       {
         id: "test-2",
         content: 'Someone says, "Hello everyone!"',
         timestamp: new Date(),
-        streamType: "speech"
+        streamType: "speech",
       },
       {
         id: "test-3",
         content: "A warrior has fallen in battle!",
         timestamp: new Date(),
-        streamType: "death"
-      }
+        streamType: "death",
+      },
     ];
 
     it("should render stream entries when provided", async () => {
@@ -169,7 +169,7 @@ describe("StreamsUI", () => {
         { id: "2", content: "Speech message", timestamp: new Date(), streamType: "speech" },
         { id: "3", content: "Logon message", timestamp: new Date(), streamType: "logon" },
         { id: "4", content: "Logoff message", timestamp: new Date(), streamType: "logoff" },
-        { id: "5", content: "Death message", timestamp: new Date(), streamType: "death" }
+        { id: "5", content: "Death message", timestamp: new Date(), streamType: "death" },
       ];
 
       const component = setup();
@@ -203,7 +203,7 @@ describe("StreamsUI", () => {
       const component = setup();
 
       expect(typeof component.scrollToNow).toBe("function");
-      
+
       // Should return the component for chaining
       const result = component.scrollToNow();
       expect(result).toBe(component);
@@ -213,24 +213,19 @@ describe("StreamsUI", () => {
 
     it("should handle auto-scroll when entries are updated and user is not scrolling", async () => {
       const component = setup();
-      
+
       // Mock scrolling behavior
       Object.defineProperty(component, "isScrolling", {
         get: () => false, // User is at bottom
-        configurable: true
+        configurable: true,
       });
-      
+
       // Initial entries
-      component.entries = [
-        { id: "1", content: "First message", timestamp: new Date(), streamType: "thoughts" }
-      ];
+      component.entries = [{ id: "1", content: "First message", timestamp: new Date(), streamType: "thoughts" }];
       await component.updateComplete;
 
       // Add more entries
-      component.entries = [
-        ...component.entries,
-        { id: "2", content: "Second message", timestamp: new Date(), streamType: "speech" }
-      ];
+      component.entries = [...component.entries, { id: "2", content: "Second message", timestamp: new Date(), streamType: "speech" }];
       await component.updateComplete;
 
       // Component should handle the update correctly
@@ -274,8 +269,8 @@ describe("StreamsUI", () => {
           id: "long-1",
           content: longContent,
           timestamp: new Date(),
-          streamType: "thoughts"
-        }
+          streamType: "thoughts",
+        },
       ];
 
       const component = setup();
@@ -295,8 +290,8 @@ describe("StreamsUI", () => {
           id: "special-1",
           content: 'Someone thinks, "This has <special> &characters; "quotes" and símböls"',
           timestamp: new Date(),
-          streamType: "thoughts"
-        }
+          streamType: "thoughts",
+        },
       ];
 
       const component = setup();
@@ -321,9 +316,7 @@ describe("StreamsUI", () => {
       expect(component.shadowRoot?.querySelector(".streams-empty")).toBeTruthy();
 
       // Add entries
-      component.entries = [
-        { id: "1", content: "New message", timestamp: new Date(), streamType: "thoughts" }
-      ];
+      component.entries = [{ id: "1", content: "New message", timestamp: new Date(), streamType: "thoughts" }];
       await component.updateComplete;
 
       const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
@@ -343,9 +336,7 @@ describe("StreamsUI", () => {
 
       // Rapid updates
       for (let i = 0; i < 10; i++) {
-        component.entries = [
-          { id: `${i}`, content: `Message ${i}`, timestamp: new Date(), streamType: "thoughts" }
-        ];
+        component.entries = [{ id: `${i}`, content: `Message ${i}`, timestamp: new Date(), streamType: "thoughts" }];
       }
       await component.updateComplete;
 

@@ -2,7 +2,6 @@
 // ABOUTME: Accepts stream entries as properties and handles presentation only
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import type { StreamEntry } from "./streams-container.lit";
 
 @customElement("illthorn-streams-ui")
@@ -14,7 +13,7 @@ export class StreamsUI extends LitElement {
       height: 100%;
       width: 100%;
       font-family: inherit;
-      font-size: var(--stream-font-size, var(--base-font-size, 15px));
+      font-size: var(--stream-font-size, var(--base-font-size, 13px));
       padding: 0.5em 1em;
       box-sizing: border-box;
       background-color: var(--streams-background, var(--color-surface));
@@ -202,7 +201,8 @@ export class StreamsUI extends LitElement {
     if (changedProperties.has("entries")) {
       // Auto-scroll if user was at bottom before update
       if (!this.isScrolling) {
-        this.updateComplete.then(() => {
+        // Use requestAnimationFrame to ensure DOM is updated
+        requestAnimationFrame(() => {
           this.scrollToNow();
         });
       }
@@ -242,13 +242,7 @@ export class StreamsUI extends LitElement {
     }
 
     return html`
-      ${this.entries.map(
-        (entry) => html`
-        <pre class="stream-entry ${entry.streamType}" data-stream-type="${entry.streamType}">
-          ${entry.content}
-        </pre>
-      `,
-      )}
+      ${this.entries.map((entry) => html`<pre class="stream-entry ${entry.streamType}" data-stream-type="${entry.streamType}">${entry.content}</pre>`)}
     `;
   }
 }

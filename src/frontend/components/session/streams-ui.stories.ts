@@ -30,20 +30,20 @@ const thoughtsEntries: StreamEntry[] = [
     id: "thoughts-1",
     content: 'Someone thinks, "I wonder where the treasure is hidden..."',
     timestamp: new Date(Date.now() - 300000),
-    streamType: "thoughts"
+    streamType: "thoughts",
   },
   {
-    id: "thoughts-2", 
+    id: "thoughts-2",
     content: 'You think, "This place gives me the creeps."',
     timestamp: new Date(Date.now() - 240000),
-    streamType: "thoughts"
+    streamType: "thoughts",
   },
   {
     id: "thoughts-3",
     content: 'Someone thinks, "Did anyone else hear that noise?"',
     timestamp: new Date(Date.now() - 180000),
-    streamType: "thoughts"
-  }
+    streamType: "thoughts",
+  },
 ];
 
 const mixedEntries: StreamEntry[] = [
@@ -51,44 +51,44 @@ const mixedEntries: StreamEntry[] = [
     id: "speech-1",
     content: 'Someone says, "Hello everyone!"',
     timestamp: new Date(Date.now() - 500000),
-    streamType: "speech"
+    streamType: "speech",
   },
   {
     id: "thoughts-1",
     content: 'You think, "I should probably introduce myself."',
     timestamp: new Date(Date.now() - 450000),
-    streamType: "thoughts"
+    streamType: "thoughts",
   },
   {
     id: "logon-1",
     content: "Adventurer has connected.",
     timestamp: new Date(Date.now() - 400000),
-    streamType: "logon"
+    streamType: "logon",
   },
   {
     id: "speech-2",
     content: 'You say, "Nice to meet everyone."',
     timestamp: new Date(Date.now() - 350000),
-    streamType: "speech"
+    streamType: "speech",
   },
   {
     id: "death-1",
     content: "A kobold warrior has been slain!",
     timestamp: new Date(Date.now() - 300000),
-    streamType: "death"
+    streamType: "death",
   },
   {
     id: "thoughts-2",
     content: 'Someone thinks, "That was easier than expected."',
     timestamp: new Date(Date.now() - 250000),
-    streamType: "thoughts"
+    streamType: "thoughts",
   },
   {
     id: "logoff-1",
     content: "Adventurer has disconnected.",
     timestamp: new Date(Date.now() - 200000),
-    streamType: "logoff"
-  }
+    streamType: "logoff",
+  },
 ];
 
 export const Empty: Story = {
@@ -144,22 +144,24 @@ export const LongContent: Story = {
     entries: [
       {
         id: "long-1",
-        content: 'Someone thinks, "This is a really long thought that spans multiple lines and demonstrates how the streams component handles text wrapping and longer content. It should wrap nicely and maintain readability while fitting within the available space."',
+        content:
+          'Someone thinks, "This is a really long thought that spans multiple lines and demonstrates how the streams component handles text wrapping and longer content. It should wrap nicely and maintain readability while fitting within the available space."',
         timestamp: new Date(Date.now() - 300000),
-        streamType: "thoughts"
+        streamType: "thoughts",
       },
       {
         id: "long-2",
-        content: 'You say, "I completely agree with that long statement, and I wanted to add my own lengthy response that also demonstrates text wrapping behavior. The streams should handle this gracefully without breaking the layout or causing horizontal scrolling issues."',
+        content:
+          'You say, "I completely agree with that long statement, and I wanted to add my own lengthy response that also demonstrates text wrapping behavior. The streams should handle this gracefully without breaking the layout or causing horizontal scrolling issues."',
         timestamp: new Date(Date.now() - 240000),
-        streamType: "speech"
+        streamType: "speech",
       },
       {
         id: "short-1",
         content: 'Someone thinks, "Short thought."',
         timestamp: new Date(Date.now() - 180000),
-        streamType: "thoughts"
-      }
+        streamType: "thoughts",
+      },
     ],
   },
   render: (args) => html`
@@ -178,9 +180,9 @@ export const ScrollingBehavior: Story = {
   args: {
     entries: Array.from({ length: 20 }, (_, i) => ({
       id: `entry-${i}`,
-      content: `Stream entry #${i + 1}: ${i % 3 === 0 ? 'Someone thinks, "This is a thought message."' : i % 3 === 1 ? 'Someone says, "This is speech."' : 'Game event occurred.'}`,
+      content: `Stream entry #${i + 1}: ${i % 3 === 0 ? 'Someone thinks, "This is a thought message."' : i % 3 === 1 ? 'Someone says, "This is speech."' : "Game event occurred."}`,
       timestamp: new Date(Date.now() - (20 - i) * 60000),
-      streamType: i % 3 === 0 ? "thoughts" : i % 3 === 1 ? "speech" : "logon"
+      streamType: i % 3 === 0 ? "thoughts" : i % 3 === 1 ? "speech" : "logon",
     })),
   },
   render: (args) => html`
@@ -201,60 +203,48 @@ export const InteractiveDemo: Story = {
   },
   render: (args) => {
     let entryCounter = 10;
-    
+
     const addRandomEntry = () => {
-      const types = ['thoughts', 'speech', 'logon', 'death'];
+      const types = ["thoughts", "speech", "logon", "death"];
       const messages = {
         thoughts: [
           'Someone thinks, "I wonder what\'s around the next corner."',
           'You think, "This adventure is getting interesting."',
-          'Someone thinks, "Did I remember to bring enough supplies?"'
+          'Someone thinks, "Did I remember to bring enough supplies?"',
         ],
-        speech: [
-          'Someone says, "Watch out for traps!"',
-          'You say, "Thanks for the warning."',
-          'Someone says, "Anyone have a light source?"'
-        ],
-        logon: [
-          'A new adventurer has joined the realm.',
-          'PlayerName has connected.',
-          'A friend has logged in.'
-        ],
-        death: [
-          'A goblin scout has been defeated!',
-          'The ancient guardian falls!',
-          'A wild creature has been slain!'
-        ]
+        speech: ['Someone says, "Watch out for traps!"', 'You say, "Thanks for the warning."', 'Someone says, "Anyone have a light source?"'],
+        logon: ["A new adventurer has joined the realm.", "PlayerName has connected.", "A friend has logged in."],
+        death: ["A goblin scout has been defeated!", "The ancient guardian falls!", "A wild creature has been slain!"],
       };
-      
-      const streamType = types[Math.floor(Math.random() * types.length)];
+
+      const streamType = types[Math.floor(Math.random() * types.length)] as keyof typeof messages;
       const messageOptions = messages[streamType];
       const content = messageOptions[Math.floor(Math.random() * messageOptions.length)];
-      
+
       const newEntry: StreamEntry = {
         id: `random-${entryCounter++}`,
         content,
         timestamp: new Date(),
-        streamType
+        streamType,
       };
-      
+
       args.entries = [...args.entries, newEntry];
-      
+
       // Update the component
-      const component = document.querySelector('illthorn-streams-ui');
+      const component = document.querySelector("illthorn-streams-ui");
       if (component) {
         component.entries = args.entries;
       }
     };
-    
+
     const clearEntries = () => {
       args.entries = [];
-      const component = document.querySelector('illthorn-streams-ui');
+      const component = document.querySelector("illthorn-streams-ui");
       if (component) {
         component.entries = args.entries;
       }
     };
-    
+
     return html`
       <div style="width: 450px; height: 400px; background: #1e293b; padding: 1rem; border-radius: 0.5rem; display: flex; flex-direction: column;">
         <div style="color: white; margin-bottom: 0.5rem;">

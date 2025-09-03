@@ -27,7 +27,6 @@ export const kindFrom = (name: TagName) => {
     case "preset":
     case "style":
     case "output":
-    case "stream":
       return TagKind.INLINE;
     default:
       return TagKind.METADATA;
