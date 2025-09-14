@@ -68,6 +68,7 @@ export class ComponentRenderer {
         return this.renderStyledContainer(tag);
 
       // Metadata tags - these don't render but are processed by other systems
+      case "stream":
       case "prompt":
       case "progressBar":
       case "vitals":
@@ -76,7 +77,10 @@ export class ComponentRenderer {
       case "nav":
       case "room":
       case "compass":
-      case "stream":
+      case "inv":
+      case "clearContainer":
+      case "container":
+      case "exposeContainer":
         return { metadata: tag };
 
       default:
@@ -291,7 +295,6 @@ export class ComponentRenderer {
           case "preset":
           case "style":
           case "output":
-          case "stream":
             componentTags++;
             break;
           case ":text":
@@ -343,7 +346,7 @@ export class ComponentRenderer {
    * Check if renderer supports a specific tag type
    */
   supportsTag(tagName: string): boolean {
-    const supportedTags = new Set(["a", "b", "d", ":text", "preset", "style", "output", "stream"]);
+    const supportedTags = new Set(["a", "b", "d", ":text", "preset", "style", "output"]);
     return supportedTags.has(tagName);
   }
 

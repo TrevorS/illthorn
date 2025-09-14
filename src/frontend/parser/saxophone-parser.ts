@@ -291,7 +291,8 @@ export class SaxophoneParser {
    */
   private collectStreamContent(tag: GameTag): void {
     // Find or create a stream tag for this stream type
-    let streamTag = this.completed.find((t) => t.name === "stream" && t.attrs.id === this.currentStream);
+    // Only reuse OPEN stream tags - create new tags for each pushStream/popStream cycle
+    let streamTag = this.completed.find((t) => t.name === "stream" && t.attrs.id === this.currentStream && t.state === TagState.OPEN);
 
     if (!streamTag) {
       // Create new stream tag to collect content

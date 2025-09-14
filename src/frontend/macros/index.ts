@@ -62,6 +62,12 @@ export async function bindMetaMacros() {
     e?.preventDefault();
     Illthorn.bus.dispatchEvent(IllthornEvent.SUBMIT_ILLTHORN_COMMAND, ":clear");
   });
+
+  // Add Ctrl+Shift+D for toggle dev window
+  keyboardjs.on("ctrl+shift+d", (e) => {
+    e?.preventDefault();
+    Illthorn.bus.dispatchEvent(IllthornEvent.SUBMIT_ILLTHORN_COMMAND, ":dev");
+  });
   // todo: handle scrolling from any focused state
   keyboardjs.on("pageup", (e) => {
     e?.preventDefault();
