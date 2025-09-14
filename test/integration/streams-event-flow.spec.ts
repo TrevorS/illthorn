@@ -8,6 +8,7 @@ import type { GameTag } from "../../src/frontend/parser/tag";
 import { makeTag } from "../../src/frontend/parser/tag";
 import type { FrontendSession } from "../../src/frontend/session";
 import { Bus } from "../../src/frontend/util/bus";
+import { createTextTag } from "../mocks";
 import "../../src/frontend/components/session/streams-container.lit";
 
 describe("Streams Event Flow Integration", () => {
@@ -57,6 +58,8 @@ describe("Streams Event Flow Integration", () => {
       const thoughtsTag: GameTag = makeTag("stream");
       thoughtsTag.attrs = { id: "thoughts" };
       thoughtsTag.text = 'Someone thinks, "This is a test thought message"';
+      // Add children for proper component rendering
+      thoughtsTag.children = [createTextTag('Someone thinks, "This is a test thought message"')];
 
       // Dispatch the event like the session would
       bus.dispatchEvent("metadata/stream/thoughts", thoughtsTag);
@@ -84,10 +87,12 @@ describe("Streams Event Flow Integration", () => {
       const speechTag: GameTag = makeTag("stream");
       speechTag.attrs = { id: "speech" };
       speechTag.text = 'Someone says, "Hello everyone!"';
+      speechTag.children = [createTextTag('Someone says, "Hello everyone!"')];
 
       const logonTag: GameTag = makeTag("stream");
       logonTag.attrs = { id: "logon" };
       logonTag.text = "Player has connected.";
+      logonTag.children = [createTextTag("Player has connected.")];
 
       // Dispatch these events
       bus.dispatchEvent("metadata/stream/speech", speechTag);
@@ -117,6 +122,7 @@ describe("Streams Event Flow Integration", () => {
         const streamTag: GameTag = makeTag("stream");
         streamTag.attrs = { id: "thoughts" };
         streamTag.text = text;
+        streamTag.children = [createTextTag(text)];
 
         bus.dispatchEvent("metadata/stream/thoughts", streamTag);
       }
@@ -168,6 +174,7 @@ describe("Streams Event Flow Integration", () => {
       const thoughtsTag: GameTag = makeTag("stream");
       thoughtsTag.attrs = { id: "thoughts" };
       thoughtsTag.text = "Test thought";
+      thoughtsTag.children = [createTextTag("Test thought")];
 
       bus.dispatchEvent("metadata/stream/thoughts", thoughtsTag);
       await container.updateComplete;
@@ -196,6 +203,7 @@ describe("Streams Event Flow Integration", () => {
         const streamTag: GameTag = makeTag("stream");
         streamTag.attrs = { id: "thoughts" };
         streamTag.text = `Rapid thought ${i}`;
+        streamTag.children = [createTextTag(`Rapid thought ${i}`)];
 
         bus.dispatchEvent("metadata/stream/thoughts", streamTag);
         promises.push(container.updateComplete);
@@ -223,6 +231,7 @@ describe("Streams Event Flow Integration", () => {
         const streamTag: GameTag = makeTag("stream");
         streamTag.attrs = { id: "thoughts" };
         streamTag.text = messages[i];
+        streamTag.children = [createTextTag(messages[i])];
 
         bus.dispatchEvent("metadata/stream/thoughts", streamTag);
 
@@ -269,6 +278,7 @@ describe("Streams Event Flow Integration", () => {
       const thoughtsTag: GameTag = makeTag("stream");
       thoughtsTag.attrs = { id: "thoughts" };
       thoughtsTag.text = "Test content";
+      thoughtsTag.children = [createTextTag("Test content")];
 
       bus.dispatchEvent("metadata/stream/thoughts", thoughtsTag);
       await container.updateComplete;
@@ -294,6 +304,7 @@ describe("Streams Event Flow Integration", () => {
         const streamTag: GameTag = makeTag("stream");
         streamTag.attrs = { id: "thoughts" };
         streamTag.text = `Performance test entry ${i}`;
+        streamTag.children = [createTextTag(`Performance test entry ${i}`)];
 
         bus.dispatchEvent("metadata/stream/thoughts", streamTag);
 
