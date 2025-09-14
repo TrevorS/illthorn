@@ -2,10 +2,12 @@
 // ABOUTME: Accepts stream entries as properties and handles presentation only
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { ComponentRenderer } from "../../parser/component-renderer";
 import type { StreamEntry } from "./streams-container.lit";
 
 @customElement("illthorn-streams-ui")
 export class StreamsUI extends LitElement {
+  private _renderer = new ComponentRenderer();
   static styles = css`
     :host {
       display: block;
@@ -200,13 +202,26 @@ export class StreamsUI extends LitElement {
 
     if (changedProperties.has("entries")) {
       // Auto-scroll if user was at bottom before update
-      if (!this.isScrolling) {
-        // Use requestAnimationFrame to ensure DOM is updated
-        requestAnimationFrame(() => {
-          this.scrollToNow();
+      const wasScrolling = this.isScrolling;
+      if (!wasScrolling) {
+        // Wait for DOM to fully update before scrolling, like FeedModernized does
+        this.updateComplete.then(() => {
+          this._scheduleAutoScroll();
         });
       }
     }
+  }
+
+  /**
+   * Schedule auto-scroll using double RAF for DOM update timing
+   * Double RAF ensures DOM has fully updated before scrolling
+   */
+  private _scheduleAutoScroll() {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.scrollToNow();
+      });
+    });
   }
 
   /**
@@ -215,15 +230,20 @@ export class StreamsUI extends LitElement {
   get isScrolling(): boolean {
     // No content scrollable
     if (this.scrollHeight === this.clientHeight) return false;
-    // Check the relative scroll offset from the head
-    return this.scrollHeight - this.scrollTop - this.clientHeight > 1;
+    // Check the relative scroll offset from the bottom with buffer for precision
+    // Using 3 as buffer like the main feed (MIN_SCROLL_BUFFER)
+    return this.scrollHeight - this.scrollTop - this.clientHeight > 3;
   }
 
   /**
    * Scroll to the bottom of the streams panel
    */
   scrollToNow(): this {
-    this.scrollTop = this.scrollHeight;
+    try {
+      this.scrollTop = this.scrollHeight;
+    } catch (error) {
+      console.warn("Failed to scroll streams container:", error);
+    }
     return this;
   }
 
@@ -242,7 +262,12 @@ export class StreamsUI extends LitElement {
     }
 
     return html`
-      ${this.entries.map((entry) => html`<pre class="stream-entry ${entry.streamType}" data-stream-type="${entry.streamType}">${entry.content}</pre>`)}
+      ${this.entries.map((entry) => {
+        // Use ComponentRenderer to render the stream tag's children (the actual content)
+        // Stream tags themselves are metadata containers, the displayable content is in their children
+        const renderResult = this._renderer.render(entry.streamTag.children);
+        return html`<div class="stream-entry ${entry.streamType}" data-stream-type="${entry.streamType}">${renderResult.content.map((template) => template)}</div>`;
+      })}
     `;
   }
 }

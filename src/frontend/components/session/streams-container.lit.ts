@@ -9,7 +9,7 @@ import "./streams-ui.lit";
 
 export interface StreamEntry {
   id: string;
-  content: string;
+  streamTag: GameTag;
   timestamp: Date;
   streamType: string;
 }
@@ -30,14 +30,25 @@ export class StreamsContainer extends LitElement {
   @state()
   private _entries: Array<StreamEntry> = [];
 
+  @state()
+  private _streamFilters: Set<string> = new Set(["thoughts", "speech", "logon", "logoff", "death"]);
+
   private _eventHandlers: Array<{ event: string; handler: (event: CustomEvent<GameTag>) => void; bus: Bus }> = [];
   private _eventListenerSetup = false;
+
+  // Deduplication state: track recent messages by stream type to prevent duplicates
+  private _recentMessages: Map<string, Array<{ text: string; timestamp: number }>> = new Map();
+  private static readonly DUPLICATE_WINDOW_MS = 200; // Consider messages within 200ms as potential duplicates
+
+  // Available stream types
+  private static readonly STREAM_TYPES = ["thoughts", "speech", "logon", "logoff", "death"] as const;
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
 
     if (changedProperties.has("session")) {
       if (this.session && !this._eventListenerSetup) {
+        this._loadStreamFilters(); // Load saved filter settings
         this._setupEventListeners();
         this._eventListenerSetup = true;
       }
@@ -55,38 +66,20 @@ export class StreamsContainer extends LitElement {
       return;
     }
 
+    // Clean up any existing listeners first to prevent duplicates
+    this._cleanupEventListeners();
+
     const bus = this.session.bus;
 
-    // Subscribe to stream events
-    const thoughtsHandler = ({ detail: streamTag }: CustomEvent<GameTag>) => {
-      this._handleStreamEntry(streamTag, "thoughts");
-    };
-    bus.subscribeEvent<GameTag>("metadata/stream/thoughts", thoughtsHandler);
-    this._eventHandlers.push({ event: "metadata/stream/thoughts", handler: thoughtsHandler, bus });
-
-    const speechHandler = ({ detail: streamTag }: CustomEvent<GameTag>) => {
-      this._handleStreamEntry(streamTag, "speech");
-    };
-    bus.subscribeEvent<GameTag>("metadata/stream/speech", speechHandler);
-    this._eventHandlers.push({ event: "metadata/stream/speech", handler: speechHandler, bus });
-
-    const logonHandler = ({ detail: streamTag }: CustomEvent<GameTag>) => {
-      this._handleStreamEntry(streamTag, "logon");
-    };
-    bus.subscribeEvent<GameTag>("metadata/stream/logon", logonHandler);
-    this._eventHandlers.push({ event: "metadata/stream/logon", handler: logonHandler, bus });
-
-    const logoffHandler = ({ detail: streamTag }: CustomEvent<GameTag>) => {
-      this._handleStreamEntry(streamTag, "logoff");
-    };
-    bus.subscribeEvent<GameTag>("metadata/stream/logoff", logoffHandler);
-    this._eventHandlers.push({ event: "metadata/stream/logoff", handler: logoffHandler, bus });
-
-    const deathHandler = ({ detail: streamTag }: CustomEvent<GameTag>) => {
-      this._handleStreamEntry(streamTag, "death");
-    };
-    bus.subscribeEvent<GameTag>("metadata/stream/death", deathHandler);
-    this._eventHandlers.push({ event: "metadata/stream/death", handler: deathHandler, bus });
+    // Subscribe to stream events for each stream type
+    for (const streamType of StreamsContainer.STREAM_TYPES) {
+      const handler = ({ detail: streamTag }: CustomEvent<GameTag>) => {
+        this._handleStreamEntry(streamTag, streamType);
+      };
+      const eventName = `metadata/stream/${streamType}`;
+      bus.subscribeEvent<GameTag>(eventName, handler);
+      this._eventHandlers.push({ event: eventName, handler, bus });
+    }
   }
 
   private _cleanupEventListeners() {
@@ -98,11 +91,37 @@ export class StreamsContainer extends LitElement {
     this._eventHandlers = [];
   }
 
+  /**
+   * Load stream filter settings from storage
+   */
+  private async _loadStreamFilters() {
+    if (window.Settings) {
+      const savedFilters = await window.Settings.get("ui.streams.filters");
+      if (Array.isArray(savedFilters)) {
+        // Validate that saved filters are valid stream types
+        const validFilters = savedFilters.filter((filter) => StreamsContainer.STREAM_TYPES.includes(filter));
+        this._streamFilters = new Set(validFilters);
+      }
+    }
+  }
+
   private _handleStreamEntry(streamTag: GameTag, streamType: string) {
-    // Create stream entry from GameTag
+    // Check if this stream type is filtered out
+    if (!this._streamFilters.has(streamType)) {
+      return; // Skip filtered stream types
+    }
+
+    // Check for duplicate messages to prevent spam from game sending same content twice
+    const textContent = this._extractTextFromStreamTag(streamTag);
+    if (this._isDuplicateMessage(streamType, textContent)) {
+      return; // Skip duplicate messages
+    }
+
+    // Process the GameTag exactly like the main feed does - pass it to streams-ui
+    // which will use ComponentRenderer to render it properly
     const entry: StreamEntry = {
       id: `${streamType}-${Date.now()}-${Math.random()}`,
-      content: this._extractStreamContent(streamTag),
+      streamTag: streamTag, // Pass the entire GameTag for proper rendering
       timestamp: new Date(),
       streamType,
     };
@@ -116,26 +135,90 @@ export class StreamsContainer extends LitElement {
     }
   }
 
-  private _extractStreamContent(streamTag: GameTag): string {
-    // Extract content from the stream tag
-    // This may need adjustment based on actual GameTag structure
-    if (streamTag.text) {
-      return streamTag.text;
+  /**
+   * Set visibility for a specific stream type
+   */
+  setStreamTypeVisibility(streamType: string, visible: boolean): void {
+    if (!(StreamsContainer.STREAM_TYPES as readonly string[]).includes(streamType)) {
+      return; // Invalid stream type
     }
 
-    // If there's no direct text, extract from children
-    if (streamTag.children && streamTag.children.length > 0) {
-      return streamTag.children
-        .map((child) => child.text || "")
-        .filter((text) => text.trim())
-        .join(" ");
+    const newFilters = new Set(this._streamFilters);
+    if (visible) {
+      newFilters.add(streamType);
+    } else {
+      newFilters.delete(streamType);
+    }
+    this._streamFilters = newFilters;
+
+    // Save to settings
+    if (window.Settings) {
+      const filterArray = Array.from(this._streamFilters);
+      window.Settings.set("ui.streams.filters", filterArray);
+    }
+  }
+
+  /**
+   * Get whether a stream type is visible
+   */
+  getStreamTypeVisibility(streamType: string): boolean {
+    return this._streamFilters.has(streamType);
+  }
+
+  /**
+   * Get all available stream types
+   */
+  getAvailableStreamTypes(): readonly string[] {
+    return StreamsContainer.STREAM_TYPES;
+  }
+
+  /**
+   * Extract text content from a stream tag's children for deduplication comparison
+   */
+  private _extractTextFromStreamTag(streamTag: GameTag): string {
+    const extractText = (tag: GameTag): string => {
+      if (tag.name === ":text" && tag.text) {
+        return tag.text;
+      }
+      return tag.children.map(child => extractText(child)).join("");
+    };
+    
+    return streamTag.children.map(child => extractText(child)).join("").trim();
+  }
+
+  /**
+   * Check if a message is a duplicate of a recent message for the same stream type
+   */
+  private _isDuplicateMessage(streamType: string, textContent: string): boolean {
+    if (!textContent) {
+      return false; // Don't consider empty messages as duplicates
     }
 
-    return "";
+    const now = Date.now();
+    const recentForType = this._recentMessages.get(streamType) || [];
+
+    // Clean up old messages outside the duplicate window
+    const cleanedRecent = recentForType.filter(msg => 
+      now - msg.timestamp <= StreamsContainer.DUPLICATE_WINDOW_MS
+    );
+
+    // Check if this text content already exists in recent messages
+    const isDuplicate = cleanedRecent.some(msg => msg.text === textContent);
+
+    if (!isDuplicate) {
+      // Add this message to recent messages
+      cleanedRecent.push({ text: textContent, timestamp: now });
+    }
+
+    // Update the map with cleaned recent messages
+    this._recentMessages.set(streamType, cleanedRecent);
+
+    return isDuplicate;
   }
 
   private _handleClear = () => {
     this._entries = [];
+    this._recentMessages.clear(); // Also clear deduplication cache
   };
 
   render() {

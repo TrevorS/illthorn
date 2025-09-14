@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
 import { html } from "lit";
 import "./streams-ui.lit";
+import { type GameTag, makeTag } from "../../parser/tag";
 import type { StreamEntry } from "./streams-container.lit";
 
 const meta: Meta = {
@@ -24,23 +25,60 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
+// Utility functions for creating GameTags in stories
+
+const createTextTag = (text: string): GameTag => {
+  const tag = makeTag(":text");
+  tag.text = text;
+  return tag;
+};
+
+const createLinkTag = (exist: string, noun: string, text?: string): GameTag => {
+  const tag = makeTag("a");
+  tag.attrs = { exist, noun };
+  tag.text = text || "";
+  return tag;
+};
+
+const createStreamTag = (id: string, children: GameTag[]): GameTag => {
+  const tag = makeTag("stream");
+  tag.attrs = { id };
+  tag.children = children;
+  return tag;
+};
+
 // Sample stream entries for stories
 const thoughtsEntries: StreamEntry[] = [
   {
     id: "thoughts-1",
-    content: 'Someone thinks, "I wonder where the treasure is hidden..."',
+    streamTag: createStreamTag("thoughts", [
+      createTextTag("[Help] "),
+      createTextTag("Adventurer"),
+      createLinkTag("-12345678", "Adventurer"),
+      createTextTag(': "Looking for treasure in the old ruins."\n'),
+    ]),
     timestamp: new Date(Date.now() - 300000),
     streamType: "thoughts",
   },
   {
     id: "thoughts-2",
-    content: 'You think, "This place gives me the creeps."',
+    streamTag: createStreamTag("thoughts", [
+      createTextTag("[General] "),
+      createTextTag("Explorer"),
+      createLinkTag("-87654321", "Explorer"),
+      createTextTag(': "This place gives me the creeps."\n'),
+    ]),
     timestamp: new Date(Date.now() - 240000),
     streamType: "thoughts",
   },
   {
     id: "thoughts-3",
-    content: 'Someone thinks, "Did anyone else hear that noise?"',
+    streamTag: createStreamTag("thoughts", [
+      createTextTag("[OOC] "),
+      createTextTag("Ranger"),
+      createLinkTag("-11223344", "Ranger"),
+      createTextTag(': "Did anyone else hear that noise?"\n'),
+    ]),
     timestamp: new Date(Date.now() - 180000),
     streamType: "thoughts",
   },
@@ -49,43 +87,53 @@ const thoughtsEntries: StreamEntry[] = [
 const mixedEntries: StreamEntry[] = [
   {
     id: "speech-1",
-    content: 'Someone says, "Hello everyone!"',
+    streamTag: createStreamTag("speech", [createTextTag('Someone says, "Hello everyone!"')]),
     timestamp: new Date(Date.now() - 500000),
     streamType: "speech",
   },
   {
     id: "thoughts-1",
-    content: 'You think, "I should probably introduce myself."',
+    streamTag: createStreamTag("thoughts", [
+      createTextTag("[General] "),
+      createTextTag("Newcomer"),
+      createLinkTag("-99887766", "Newcomer"),
+      createTextTag(': "I should probably introduce myself."\n'),
+    ]),
     timestamp: new Date(Date.now() - 450000),
     streamType: "thoughts",
   },
   {
     id: "logon-1",
-    content: "Adventurer has connected.",
+    streamTag: createStreamTag("logon", [createTextTag("Adventurer has connected.")]),
     timestamp: new Date(Date.now() - 400000),
     streamType: "logon",
   },
   {
     id: "speech-2",
-    content: 'You say, "Nice to meet everyone."',
+    streamTag: createStreamTag("speech", [createTextTag('You say, "Nice to meet everyone."')]),
     timestamp: new Date(Date.now() - 350000),
     streamType: "speech",
   },
   {
     id: "death-1",
-    content: "A kobold warrior has been slain!",
+    streamTag: createStreamTag("death", [createTextTag("A kobold warrior has been slain!")]),
     timestamp: new Date(Date.now() - 300000),
     streamType: "death",
   },
   {
     id: "thoughts-2",
-    content: 'Someone thinks, "That was easier than expected."',
+    streamTag: createStreamTag("thoughts", [
+      createTextTag("[Help] "),
+      createTextTag("Warrior"),
+      createLinkTag("-55443322", "Warrior"),
+      createTextTag(': "That was easier than expected."\n'),
+    ]),
     timestamp: new Date(Date.now() - 250000),
     streamType: "thoughts",
   },
   {
     id: "logoff-1",
-    content: "Adventurer has disconnected.",
+    streamTag: createStreamTag("logoff", [createTextTag("Adventurer has disconnected.")]),
     timestamp: new Date(Date.now() - 200000),
     streamType: "logoff",
   },
@@ -144,21 +192,30 @@ export const LongContent: Story = {
     entries: [
       {
         id: "long-1",
-        content:
-          'Someone thinks, "This is a really long thought that spans multiple lines and demonstrates how the streams component handles text wrapping and longer content. It should wrap nicely and maintain readability while fitting within the available space."',
+        streamTag: createStreamTag("thoughts", [
+          createTextTag("[General] "),
+          createTextTag("Philosopher"),
+          createLinkTag("-12345678", "Philosopher"),
+          createTextTag(
+            ': "This is a really long thought that spans multiple lines and demonstrates how the streams component handles text wrapping and longer content. It should wrap nicely and maintain readability while fitting within the available space."\n',
+          ),
+        ]),
         timestamp: new Date(Date.now() - 300000),
         streamType: "thoughts",
       },
       {
         id: "long-2",
-        content:
-          'You say, "I completely agree with that long statement, and I wanted to add my own lengthy response that also demonstrates text wrapping behavior. The streams should handle this gracefully without breaking the layout or causing horizontal scrolling issues."',
+        streamTag: createStreamTag("speech", [
+          createTextTag(
+            'You say, "I completely agree with that long statement, and I wanted to add my own lengthy response that also demonstrates text wrapping behavior. The streams should handle this gracefully without breaking the layout or causing horizontal scrolling issues."',
+          ),
+        ]),
         timestamp: new Date(Date.now() - 240000),
         streamType: "speech",
       },
       {
         id: "short-1",
-        content: 'Someone thinks, "Short thought."',
+        streamTag: createStreamTag("thoughts", [createTextTag("[OOC] "), createTextTag("Thinker"), createLinkTag("-98765432", "Thinker"), createTextTag(': "Short thought."\n')]),
         timestamp: new Date(Date.now() - 180000),
         streamType: "thoughts",
       },
@@ -180,7 +237,14 @@ export const ScrollingBehavior: Story = {
   args: {
     entries: Array.from({ length: 20 }, (_, i) => ({
       id: `entry-${i}`,
-      content: `Stream entry #${i + 1}: ${i % 3 === 0 ? 'Someone thinks, "This is a thought message."' : i % 3 === 1 ? 'Someone says, "This is speech."' : "Game event occurred."}`,
+      streamTag: createStreamTag(
+        i % 3 === 0 ? "thoughts" : i % 3 === 1 ? "speech" : "logon",
+        i % 3 === 0
+          ? [createTextTag("[General] "), createTextTag(`Player${i}`), createLinkTag(`-${i}${i}${i}`, `Player${i}`), createTextTag(': "This is a thought message."\n')]
+          : i % 3 === 1
+            ? [createTextTag(`Someone says, "This is speech entry #${i + 1}."`)]
+            : [createTextTag(`Game event occurred - entry #${i + 1}.`)],
+      ),
       timestamp: new Date(Date.now() - (20 - i) * 60000),
       streamType: i % 3 === 0 ? "thoughts" : i % 3 === 1 ? "speech" : "logon",
     })),
@@ -223,7 +287,17 @@ export const InteractiveDemo: Story = {
 
       const newEntry: StreamEntry = {
         id: `random-${entryCounter++}`,
-        content,
+        streamTag: createStreamTag(
+          streamType,
+          streamType === "thoughts"
+            ? [
+                createTextTag("[General] "),
+                createTextTag(`RandomPlayer${entryCounter}`),
+                createLinkTag(`-${entryCounter}`, `RandomPlayer${entryCounter}`),
+                createTextTag(`: "${content}"\n`),
+              ]
+            : [createTextTag(content)],
+        ),
         timestamp: new Date(),
         streamType,
       };
