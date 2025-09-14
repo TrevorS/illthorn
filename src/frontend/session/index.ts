@@ -143,11 +143,8 @@ export class FrontendSession {
     if (!streamsVisible) {
       // Streams panel is closed - only add specific stream types that don't appear in normal content
       // Speech already appears in main content, inv is system-only
-      const mainFeedStreamTypes = ['thoughts', 'logon', 'logoff', 'death'];
-      const streamTags = metadata.filter((tag) => 
-        tag.name === "stream" && 
-        mainFeedStreamTypes.includes(tag.attrs.id as string)
-      );
+      const mainFeedStreamTypes = ["thoughts", "logon", "logoff", "death"];
+      const streamTags = metadata.filter((tag) => tag.name === "stream" && mainFeedStreamTypes.includes(tag.attrs.id as string));
       for (const streamTag of streamTags) {
         // Add the children of stream tags (the actual content) to the main feed
         contentTags.push(...streamTag.children);

@@ -99,23 +99,6 @@ class DevPanel {
     this.applyFilter();
   }
 
-  private renderNewEntry(entry: LogEntry): void {
-    const logElement = this.createLogElement(entry);
-    this.logsContainer.appendChild(logElement);
-  }
-
-  private renderAllEntries(): void {
-    // Clear current entries (but keep empty state)
-    const entries = this.logsContainer.querySelectorAll(".log-entry");
-    entries.forEach((entry) => entry.remove());
-
-    // Render all buffered entries
-    this.logBuffer.forEach((entry) => {
-      const logElement = this.createLogElement(entry);
-      this.logsContainer.appendChild(logElement);
-    });
-  }
-
   private createLogElement(entry: LogEntry): HTMLElement {
     const logElement = document.createElement("div");
     logElement.className = "log-entry";
@@ -311,7 +294,7 @@ class DevPanel {
         // XML comments
         .replace(/(<!--[\s\S]*?-->)/g, '<span class="xml-comment">$1</span>')
         // XML tags with attributes
-        .replace(/(&lt;\/?)([^&\s>]+)(\s[^&>]*)?(&gt;)/g, (match, open, tagName, attrs, close) => {
+        .replace(/(&lt;\/?)([^&\s>]+)(\s[^&>]*)?(&gt;)/g, (_match, open, tagName, attrs, close) => {
           let result = `<span class="xml-tag">${open}${tagName}</span>`;
           if (attrs) {
             // Highlight attributes: name="value" or name='value'

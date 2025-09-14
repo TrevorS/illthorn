@@ -2,8 +2,8 @@
 // ABOUTME: Tests the presentation component's rendering, scrolling behavior, and entry display
 /// <reference types="vitest/globals" />
 import { afterEach, describe, expect, it } from "vitest";
-import { TagKind, TagState } from "../../parser/tag";
 import { createTextTag } from "../../../../test/mocks";
+import { TagKind, TagState } from "../../parser/tag";
 import type { StreamEntry } from "./streams-container.lit";
 import { StreamsUI } from "./streams-ui.lit";
 
@@ -175,7 +175,7 @@ describe("StreamsUI", () => {
 
       const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
       // Extract expected text from GameTag children
-      const expectedTexts = sampleEntries.map(entry => entry.streamTag.children[0]?.text || "");
+      const expectedTexts = sampleEntries.map((entry) => entry.streamTag.children[0]?.text || "");
 
       expect(entries?.[0]?.textContent?.trim()).toBe(expectedTexts[0]);
       expect(entries?.[1]?.textContent?.trim()).toBe(expectedTexts[1]);
@@ -222,7 +222,7 @@ describe("StreamsUI", () => {
             text: "",
           },
           timestamp: new Date(),
-          streamType: "thoughts"
+          streamType: "thoughts",
         },
         {
           id: "2",
@@ -236,7 +236,7 @@ describe("StreamsUI", () => {
             text: "",
           },
           timestamp: new Date(),
-          streamType: "speech"
+          streamType: "speech",
         },
         {
           id: "3",
@@ -250,7 +250,7 @@ describe("StreamsUI", () => {
             text: "",
           },
           timestamp: new Date(),
-          streamType: "logon"
+          streamType: "logon",
         },
         {
           id: "4",
@@ -264,7 +264,7 @@ describe("StreamsUI", () => {
             text: "",
           },
           timestamp: new Date(),
-          streamType: "logoff"
+          streamType: "logoff",
         },
         {
           id: "5",
@@ -278,7 +278,7 @@ describe("StreamsUI", () => {
             text: "",
           },
           timestamp: new Date(),
-          streamType: "death"
+          streamType: "death",
         },
       ];
 
@@ -374,9 +374,7 @@ describe("StreamsUI", () => {
   describe("Long content handling", () => {
     it("should handle long content without breaking layout", async () => {
       const longContent = "A".repeat(500);
-      const longEntries: StreamEntry[] = [
-        createStreamEntry("long-1", longContent, "thoughts"),
-      ];
+      const longEntries: StreamEntry[] = [createStreamEntry("long-1", longContent, "thoughts")];
 
       const component = setup();
       component.entries = longEntries;
@@ -390,9 +388,7 @@ describe("StreamsUI", () => {
     });
 
     it("should handle entries with special characters", async () => {
-      const specialEntries: StreamEntry[] = [
-        createStreamEntry("special-1", 'Someone thinks, "This has <special> &characters; "quotes" and símböls"', "thoughts"),
-      ];
+      const specialEntries: StreamEntry[] = [createStreamEntry("special-1", 'Someone thinks, "This has <special> &characters; "quotes" and símböls"', "thoughts")];
 
       const component = setup();
       component.entries = specialEntries;

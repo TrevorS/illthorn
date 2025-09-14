@@ -5,7 +5,6 @@ class MockResizeObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
-  constructor() {}
 }
 
 // The virtualizer looks for _ResizeObserver specifically

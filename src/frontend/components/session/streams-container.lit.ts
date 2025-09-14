@@ -180,10 +180,13 @@ export class StreamsContainer extends LitElement {
       if (tag.name === ":text" && tag.text) {
         return tag.text;
       }
-      return tag.children.map(child => extractText(child)).join("");
+      return tag.children.map((child) => extractText(child)).join("");
     };
-    
-    return streamTag.children.map(child => extractText(child)).join("").trim();
+
+    return streamTag.children
+      .map((child) => extractText(child))
+      .join("")
+      .trim();
   }
 
   /**
@@ -198,12 +201,10 @@ export class StreamsContainer extends LitElement {
     const recentForType = this._recentMessages.get(streamType) || [];
 
     // Clean up old messages outside the duplicate window
-    const cleanedRecent = recentForType.filter(msg => 
-      now - msg.timestamp <= StreamsContainer.DUPLICATE_WINDOW_MS
-    );
+    const cleanedRecent = recentForType.filter((msg) => now - msg.timestamp <= StreamsContainer.DUPLICATE_WINDOW_MS);
 
     // Check if this text content already exists in recent messages
-    const isDuplicate = cleanedRecent.some(msg => msg.text === textContent);
+    const isDuplicate = cleanedRecent.some((msg) => msg.text === textContent);
 
     if (!isDuplicate) {
       // Add this message to recent messages

@@ -1,4 +1,4 @@
-// ABOUTME: Modern Lit-based Feed component with batched updates and performance optimizations  
+// ABOUTME: Modern Lit-based Feed component with batched updates and performance optimizations
 // ABOUTME: Uses efficient batching and flush strategies for optimal rendering performance
 
 import { css, html, LitElement } from "lit";
@@ -330,8 +330,7 @@ export class FeedModernized extends LitElement {
     // Update performance statistics
     const renderTime = performance.now() - startTime;
     this._performanceStats.lastRenderTime = renderTime;
-    this._performanceStats.averageRenderTime = 
-      (this._performanceStats.averageRenderTime + renderTime) / 2;
+    this._performanceStats.averageRenderTime = (this._performanceStats.averageRenderTime + renderTime) / 2;
   }
 
   /**
@@ -389,33 +388,6 @@ export class FeedModernized extends LitElement {
     // Apply new limit immediately
     this.flush();
     this.requestUpdate();
-  }
-
-  /**
-   * Get stable identifier for a content item to enable efficient guard caching
-   * This prevents re-rendering of unchanged items when new content is added
-   */
-  private _getItemId(item: ContentItem, index: number): string {
-    switch (item.type) {
-      case "echo": {
-        // Use ContentItem timestamp for stability
-        return `echo-${item.timestamp}`;
-      }
-      case "client": {
-        // Use ContentItem timestamp for stability
-        return `client-${item.timestamp}`;
-      }
-      case "tags": {
-        // For tags, use timestamp as stable ID
-        // This ensures IDs remain stable across flush operations
-        return `tag-${item.timestamp}`;
-      }
-      default: {
-        // Exhaustive switch - this should never happen with proper typing
-        const _exhaustive: never = item;
-        return `unknown-${index}`;
-      }
-    }
   }
 
   /**
@@ -550,12 +522,14 @@ export class FeedModernized extends LitElement {
   render() {
     return html`
       <div class="feed-container" @scroll=${this._handleVirtualScroll} @click=${this._handleClick}>
-        ${this._allContent.map((item, index) => html`
+        ${this._allContent.map(
+          (item, index) => html`
           <illthorn-message-block-lit
             .item=${item}
             .index=${index}
           ></illthorn-message-block-lit>
-        `)}
+        `,
+        )}
       </div>
     `;
   }
@@ -580,9 +554,9 @@ export class FeedModernized extends LitElement {
   getRenderStats() {
     const totalItems = this._allContent.length;
     const pendingItems = this._pendingBatchItems.length;
-    const tagItems = this._allContent.filter(item => item.type === "tags").length;
-    const commandEchoes = this._allContent.filter(item => item.type === "echo").length;
-    const clientMessages = this._allContent.filter(item => item.type === "client").length;
+    const tagItems = this._allContent.filter((item) => item.type === "tags").length;
+    const commandEchoes = this._allContent.filter((item) => item.type === "echo").length;
+    const clientMessages = this._allContent.filter((item) => item.type === "client").length;
 
     return {
       totalItems,

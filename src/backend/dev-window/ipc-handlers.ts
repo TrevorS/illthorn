@@ -51,7 +51,7 @@ Backend.handle(DevWindowMethods.IsOpen, async () => {
 /**
  * Send raw data to dev window
  */
-Backend.handle(DevWindowMethods.SendRawData, async (event, { data, sessionName }: { data: string; sessionName: string }) => {
+Backend.handle(DevWindowMethods.SendRawData, async (_event, { data, sessionName }: { data: string; sessionName: string }) => {
   try {
     log(`Attempting to send raw data to dev window: ${data.length} chars from ${sessionName}`);
     if (isDevWindowOpen()) {
@@ -106,7 +106,7 @@ Backend.handle(DevWindowMethods.TogglePin, async () => {
 /**
  * Send command to main window (for UI feedback)
  */
-Backend.handle("DevWindow.SendToMainWindow", async (event, command: string) => {
+Backend.handle("DevWindow.SendToMainWindow", async (_event, command: string) => {
   try {
     const mainWebContents = useWebContents();
     // Send the command to the main window to trigger UI feedback
