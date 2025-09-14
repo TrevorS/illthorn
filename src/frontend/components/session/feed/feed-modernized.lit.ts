@@ -1,9 +1,8 @@
-// ABOUTME: Modern Lit-based Feed component that renders GameTag arrays directly as components
-// ABOUTME: Eliminates double conversion (GameTag→DOM→HTML→DOM) for 50-75% performance improvement
+// ABOUTME: Modern Lit-based Feed component with batched updates and performance optimizations  
+// ABOUTME: Uses efficient batching and flush strategies for optimal rendering performance
 
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { guard } from "lit/directives/guard.js";
 import { IllthornEvent } from "../../../events";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
@@ -15,6 +14,9 @@ import type { ContentItem } from "./message-block.lit";
 export class FeedModernized extends LitElement {
   static MIN_SCROLL_BUFFER = 300;
   static DEFAULT_SCROLLBACK_SIZE = 20000;
+  static BATCH_UPDATE_DELAY = 16; // One frame (60fps)
+  static IDLE_FLUSH_DELAY = 100; // Auto-flush when idle for 100ms
+  static LARGE_FLUSH_THRESHOLD = 0.25; // Remove 25% when flushing
 
   static styles = css`
     :host {
@@ -39,6 +41,9 @@ export class FeedModernized extends LitElement {
       box-sizing: border-box;
       scrollbar-width: thin;
       scrollbar-color: var(--color-border) transparent;
+      /* Performance optimizations */
+      contain: layout style;
+      will-change: scroll-position;
     }
 
     .feed-container::-webkit-scrollbar {
@@ -88,12 +93,6 @@ export class FeedModernized extends LitElement {
   focused = false;
 
   @state()
-  private _contentTags: Array<Array<GameTag>> = [];
-
-  @state()
-  private _commandEchoes: Array<CommandEchoEvent> = [];
-
-  @state()
   private _allContent: Array<ContentItem> = [];
 
   @state()
@@ -105,6 +104,15 @@ export class FeedModernized extends LitElement {
   private _hasSubscribedToEcho = false;
   private _hasSubscribedToClientMessages = false;
   private _flushTimeout: number | undefined;
+  private _batchUpdateTimeout: number | undefined;
+  private _idleFlushTimeout: number | undefined;
+  private _pendingBatchItems: Array<ContentItem> = [];
+  private _performanceStats = {
+    totalAppends: 0,
+    totalFlushes: 0,
+    lastRenderTime: 0,
+    averageRenderTime: 0,
+  };
 
   async connectedCallback() {
     super.connectedCallback();
@@ -124,6 +132,14 @@ export class FeedModernized extends LitElement {
     // Clear flush timeout
     if (this._flushTimeout) {
       clearTimeout(this._flushTimeout);
+    }
+    // Clear batch update timeout
+    if (this._batchUpdateTimeout) {
+      clearTimeout(this._batchUpdateTimeout);
+    }
+    // Clear idle flush timeout
+    if (this._idleFlushTimeout) {
+      clearTimeout(this._idleFlushTimeout);
     }
     this.destroy();
   }
@@ -174,45 +190,48 @@ export class FeedModernized extends LitElement {
    * Check if the HEAD of the feed is a prompt or not
    */
   has_prompt(): boolean {
-    if (this._contentTags.length === 0) return false;
+    if (this._allContent.length === 0) return false;
 
-    const lastContent = this._contentTags[this._contentTags.length - 1];
-    return lastContent.some((tag) => tag.name === "prompt");
+    const lastItem = this._allContent[this._allContent.length - 1];
+    if (lastItem.type === "tags") {
+      return lastItem.data.some((tag) => tag.name === "prompt");
+    }
+    return false;
   }
 
   /**
    * Primary method: Append GameTag array directly to feed content
+   * Uses batched updates for improved performance during rapid content addition
    */
-  appendGameTags(tags: Array<GameTag>) {
+  appendGameTags(tags: Array<GameTag>, immediate = false) {
     if (tags.length === 0) {
       return;
     }
 
+    // Track performance metrics
+    this._performanceStats.totalAppends++;
+
     const wasScrolling = this.isScrolling;
+    const contentItem: ContentItem = { type: "tags", data: tags, timestamp: performance.now() };
 
-    // Add GameTags to content array (keep for compatibility)
-    this._contentTags = [...this._contentTags, tags];
+    // Add to pending batch instead of immediately updating
+    this._pendingBatchItems.push(contentItem);
 
-    // Add to unified content array
-    this._allContent = [...this._allContent, { type: "tags", data: tags, timestamp: performance.now() }];
-
-    // Schedule flush to manage memory if needed
-    this._scheduleFlush();
-
-    // Trigger re-render
-    this.requestUpdate();
-
-    // Schedule immediate scroll if not manually scrolling and should auto-scroll
-    if (!wasScrolling && this._shouldAutoScroll) {
-      this._scheduleAutoScroll();
+    // Process immediately if requested (useful for tests)
+    if (immediate) {
+      this._processBatchUpdate(wasScrolling);
+    } else {
+      // Schedule batched update with idle detection
+      this._scheduleBatchUpdate(wasScrolling);
+      this._scheduleIdleFlush(wasScrolling);
     }
   }
 
   /**
    * Add a prompt GameTag to the feed
    */
-  appendPrompt(prompt: GameTag) {
-    this.appendGameTags([prompt]);
+  appendPrompt(prompt: GameTag, immediate = false) {
+    this.appendGameTags([prompt], immediate);
   }
 
   /**
@@ -245,31 +264,95 @@ export class FeedModernized extends LitElement {
   }
 
   /**
+   * Schedule a batched update to improve performance during rapid content addition
+   */
+  private _scheduleBatchUpdate(wasScrolling: boolean) {
+    // Clear any existing batch timeout
+    if (this._batchUpdateTimeout) {
+      return; // Batch is already scheduled
+    }
+
+    this._batchUpdateTimeout = window.setTimeout(() => {
+      this._processBatchUpdate(wasScrolling);
+      this._batchUpdateTimeout = undefined;
+    }, FeedModernized.BATCH_UPDATE_DELAY);
+  }
+
+  /**
+   * Schedule idle flush to process batches when no new content arrives
+   */
+  private _scheduleIdleFlush(wasScrolling: boolean) {
+    // Clear any existing idle flush timeout
+    if (this._idleFlushTimeout) {
+      clearTimeout(this._idleFlushTimeout);
+    }
+
+    // Schedule idle flush - this gets reset every time new content arrives
+    this._idleFlushTimeout = window.setTimeout(() => {
+      if (this._pendingBatchItems.length > 0) {
+        this._processBatchUpdate(wasScrolling);
+      }
+      this._idleFlushTimeout = undefined;
+    }, FeedModernized.IDLE_FLUSH_DELAY);
+  }
+
+  /**
+   * Process all pending batch items and update the UI
+   */
+  private _processBatchUpdate(wasScrolling: boolean) {
+    if (this._pendingBatchItems.length === 0) {
+      return;
+    }
+
+    const startTime = performance.now();
+
+    // Clear any pending idle flush since we're processing now
+    if (this._idleFlushTimeout) {
+      clearTimeout(this._idleFlushTimeout);
+      this._idleFlushTimeout = undefined;
+    }
+
+    // Efficiently append all pending items at once
+    this._allContent.push(...this._pendingBatchItems);
+    this._pendingBatchItems = [];
+
+    // Schedule flush to manage memory if needed
+    this._scheduleFlush();
+
+    // Trigger single re-render for all batched items
+    this.requestUpdate();
+
+    // Schedule scroll if needed
+    if (!wasScrolling && this._shouldAutoScroll) {
+      this._scheduleAutoScroll();
+    }
+
+    // Update performance statistics
+    const renderTime = performance.now() - startTime;
+    this._performanceStats.lastRenderTime = renderTime;
+    this._performanceStats.averageRenderTime = 
+      (this._performanceStats.averageRenderTime + renderTime) / 2;
+  }
+
+  /**
    * Remove old content to maintain scrollback buffer limit
-   * Uses sliding window approach to keep memory usage bounded
+   * Uses aggressive flushing strategy for better performance
    */
   flush() {
     if (this._allContent.length <= this._maxScrollbackSize) {
       return this; // No-op if under limit
     }
 
-    // Remove 10% of the scrollback size to create buffer
-    const bufferSize = Math.floor(this._maxScrollbackSize * 0.1);
-    const targetSize = this._maxScrollbackSize - bufferSize;
+    // Track flush operations
+    this._performanceStats.totalFlushes++;
+
+    // Remove 25% of the scrollback size to create substantial buffer
+    const removeCount = Math.floor(this._maxScrollbackSize * FeedModernized.LARGE_FLUSH_THRESHOLD);
+    const targetSize = this._maxScrollbackSize - removeCount;
     const toRemove = this._allContent.length - targetSize;
 
-    // Use slice operations to create new arrays for proper Lit reactivity
-    this._allContent = this._allContent.slice(toRemove);
-    this._contentTags = this._contentTags.slice(toRemove);
-
-    // Clean up command echoes that are no longer in allContent
-    const remainingEchoes = new Set();
-    for (const item of this._allContent) {
-      if (item.type === "echo") {
-        remainingEchoes.add(item.data);
-      }
-    }
-    this._commandEchoes = this._commandEchoes.filter((echo) => remainingEchoes.has(echo));
+    // Use splice for more efficient array modification
+    this._allContent.splice(0, toRemove);
 
     return this;
   }
@@ -366,15 +449,30 @@ export class FeedModernized extends LitElement {
    * Clear all feed content
    */
   clear() {
-    this._contentTags = [];
-    this._commandEchoes = [];
     this._allContent = [];
+    this._pendingBatchItems = [];
 
-    // Clear any pending flush timeout
+    // Clear any pending timeouts
     if (this._flushTimeout) {
       clearTimeout(this._flushTimeout);
       this._flushTimeout = undefined;
     }
+    if (this._batchUpdateTimeout) {
+      clearTimeout(this._batchUpdateTimeout);
+      this._batchUpdateTimeout = undefined;
+    }
+    if (this._idleFlushTimeout) {
+      clearTimeout(this._idleFlushTimeout);
+      this._idleFlushTimeout = undefined;
+    }
+
+    // Reset performance stats
+    this._performanceStats = {
+      totalAppends: 0,
+      totalFlushes: 0,
+      lastRenderTime: 0,
+      averageRenderTime: 0,
+    };
 
     // Force immediate re-render and scroll to bottom
     this.requestUpdate();
@@ -401,9 +499,9 @@ export class FeedModernized extends LitElement {
     }
 
     // Auto-scroll when content is added
-    if (changedProperties.has("_contentTags") || changedProperties.has("_allContent")) {
+    if (changedProperties.has("_allContent")) {
       if (!this.isScrolling && this._shouldAutoScroll) {
-        // Ensure virtualizer is ready, then scroll to bottom
+        // Ensure DOM is ready, then scroll to bottom
         this.updateComplete.then(() => {
           this._scheduleAutoScroll();
         });
@@ -416,21 +514,18 @@ export class FeedModernized extends LitElement {
    */
   private _handleCommandEcho(event: CustomEvent<CommandEchoEvent>) {
     const echoData = event.detail;
+    const wasScrolling = this.isScrolling;
 
-    // Add to command echoes array (keep for compatibility)
-    this._commandEchoes = [...this._commandEchoes, echoData];
+    // Track performance
+    this._performanceStats.totalAppends++;
 
-    // Add to unified content array
-    this._allContent = [...this._allContent, { type: "echo", data: echoData, timestamp: performance.now() }];
+    // Add to pending batch for optimized updates
+    const contentItem: ContentItem = { type: "echo", data: echoData, timestamp: performance.now() };
+    this._pendingBatchItems.push(contentItem);
 
-    // Schedule flush to manage memory if needed
-    this._scheduleFlush();
-    this.requestUpdate();
-
-    // Auto-scroll if appropriate
-    if (!this.isScrolling && this._shouldAutoScroll) {
-      this._scheduleAutoScroll();
-    }
+    // Schedule batched update with idle detection
+    this._scheduleBatchUpdate(wasScrolling);
+    this._scheduleIdleFlush(wasScrolling);
   }
 
   /**
@@ -438,32 +533,29 @@ export class FeedModernized extends LitElement {
    */
   private _handleClientMessage(event: CustomEvent<ClientMessageEvent>) {
     const clientData = event.detail;
+    const wasScrolling = this.isScrolling;
 
-    // Add to unified content array
-    this._allContent = [...this._allContent, { type: "client", data: clientData, timestamp: performance.now() }];
+    // Track performance
+    this._performanceStats.totalAppends++;
 
-    // Schedule flush to manage memory if needed
-    this._scheduleFlush();
-    this.requestUpdate();
+    // Add to pending batch for optimized updates
+    const contentItem: ContentItem = { type: "client", data: clientData, timestamp: performance.now() };
+    this._pendingBatchItems.push(contentItem);
 
-    // Auto-scroll if appropriate
-    if (!this.isScrolling && this._shouldAutoScroll) {
-      this._scheduleAutoScroll();
-    }
+    // Schedule batched update with idle detection
+    this._scheduleBatchUpdate(wasScrolling);
+    this._scheduleIdleFlush(wasScrolling);
   }
 
   render() {
     return html`
       <div class="feed-container" @scroll=${this._handleVirtualScroll} @click=${this._handleClick}>
-        ${this._allContent.map((item, index) =>
-          guard(
-            [this._getItemId(item, index)], // Dependencies - only re-render if ID changes
-            () => html`<illthorn-message-block-lit
-              .item=${item}
-              .index=${index}
-            ></illthorn-message-block-lit>`,
-          ),
-        )}
+        ${this._allContent.map((item, index) => html`
+          <illthorn-message-block-lit
+            .item=${item}
+            .index=${index}
+          ></illthorn-message-block-lit>
+        `)}
       </div>
     `;
   }
@@ -486,19 +578,55 @@ export class FeedModernized extends LitElement {
    * Get rendering statistics for performance monitoring
    */
   getRenderStats() {
-    const totalTagGroups = this._contentTags.length;
     const totalItems = this._allContent.length;
-    const commandEchoes = this._commandEchoes.length;
-    const tagItems = totalItems - commandEchoes;
+    const pendingItems = this._pendingBatchItems.length;
+    const tagItems = this._allContent.filter(item => item.type === "tags").length;
+    const commandEchoes = this._allContent.filter(item => item.type === "echo").length;
+    const clientMessages = this._allContent.filter(item => item.type === "client").length;
 
     return {
-      totalTagGroups,
-      totalTags: tagItems, // Simplified - each tag group is one item
-      componentTags: tagItems, // All tag items become components now
-      metadataTags: 0, // Metadata is processed by MessageBlock components
-      commandEchoes,
       totalItems,
+      pendingItems,
+      tagItems,
+      commandEchoes,
+      clientMessages,
+      maxScrollbackSize: this._maxScrollbackSize,
+      ...this._performanceStats,
     };
+  }
+
+  /**
+   * Get detailed performance metrics
+   */
+  getPerformanceMetrics() {
+    return {
+      ...this._performanceStats,
+      currentBufferSize: this._allContent.length,
+      pendingBatchSize: this._pendingBatchItems.length,
+      maxBufferSize: this._maxScrollbackSize,
+      bufferUtilization: (this._allContent.length / this._maxScrollbackSize) * 100,
+    };
+  }
+
+  /**
+   * Reset performance statistics
+   */
+  resetPerformanceStats() {
+    this._performanceStats = {
+      totalAppends: 0,
+      totalFlushes: 0,
+      lastRenderTime: 0,
+      averageRenderTime: 0,
+    };
+  }
+
+  /**
+   * Force process any pending batch items (useful for testing)
+   */
+  flushPendingBatch() {
+    if (this._pendingBatchItems.length > 0) {
+      this._processBatchUpdate(false);
+    }
   }
 }
 

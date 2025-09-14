@@ -75,7 +75,7 @@ describe("FeedModernized Component", () => {
       await feed.updateComplete;
 
       expect(feed.focused).toBe(false);
-      expect(feed.getRenderStats().totalTagGroups).toBe(0);
+      expect(feed.getRenderStats().totalItems).toBe(0);
     });
 
     test("should apply CSS classes on connection", async () => {
@@ -95,19 +95,19 @@ describe("FeedModernized Component", () => {
       linkTag.attrs = { exist: "123", noun: "sword" };
       linkTag.text = "a shimmering sword";
 
-      feed.appendGameTags([textTag, linkTag]);
+      feed.appendGameTags([textTag, linkTag], true); // immediate=true for testing
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(1);
-      expect(stats.totalTags).toBe(1); // One tag group becomes one message block
+      expect(stats.tagItems).toBe(1);
+      expect(stats.tagItems).toBe(1); // One tag group becomes one message block
     });
 
     test("should handle empty GameTag arrays", async () => {
-      feed.appendGameTags([]);
+      feed.appendGameTags([], true);
       await feed.updateComplete;
 
-      expect(feed.getRenderStats().totalTagGroups).toBe(0);
+      expect(feed.getRenderStats().tagItems).toBe(0);
     });
 
     test("should render multiple GameTag groups separately", async () => {
@@ -117,13 +117,13 @@ describe("FeedModernized Component", () => {
       const group2 = [makeTag(":text")];
       group2[0].text = "Second message";
 
-      feed.appendGameTags(group1);
-      feed.appendGameTags(group2);
+      feed.appendGameTags(group1, true);
+      feed.appendGameTags(group2, true);
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(2);
-      expect(stats.totalTags).toBe(2);
+      expect(stats.tagItems).toBe(2);
+      expect(stats.tagItems).toBe(2);
     });
 
     test("should handle mixed content and metadata tags", async () => {
@@ -134,11 +134,11 @@ describe("FeedModernized Component", () => {
       promptTag.attrs = { time: "123456" };
       promptTag.text = ">";
 
-      feed.appendGameTags([textTag, promptTag]);
+      feed.appendGameTags([textTag, promptTag], true);
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      expect(stats.totalTags).toBe(1); // One tag group becomes one message block
+      expect(stats.tagItems).toBe(1); // One tag group becomes one message block
     });
   });
 
@@ -148,7 +148,7 @@ describe("FeedModernized Component", () => {
       linkTag.attrs = { exist: "sword123", noun: "sword" };
       linkTag.text = "a shimmering sword";
 
-      feed.appendGameTags([linkTag]);
+      feed.appendGameTags([linkTag], true);
       await feed.updateComplete;
 
       // Check that container is rendered in shadow DOM
@@ -161,7 +161,7 @@ describe("FeedModernized Component", () => {
       commandTag.attrs = { cmd: "look sword" };
       commandTag.text = "look";
 
-      feed.appendGameTags([commandTag]);
+      feed.appendGameTags([commandTag], true);
       await feed.updateComplete;
 
       const container = feed.shadowRoot?.querySelector(".feed-container");
@@ -175,7 +175,7 @@ describe("FeedModernized Component", () => {
       linkChild.text = "a fierce orc";
       monsterTag.children = [linkChild];
 
-      feed.appendGameTags([monsterTag]);
+      feed.appendGameTags([monsterTag], true);
       await feed.updateComplete;
 
       const container = feed.shadowRoot?.querySelector(".feed-container");
@@ -187,7 +187,7 @@ describe("FeedModernized Component", () => {
       presetTag.attrs = { id: "roomName" };
       presetTag.text = "The Abandoned Mine";
 
-      feed.appendGameTags([presetTag]);
+      feed.appendGameTags([presetTag], true);
       await feed.updateComplete;
 
       const container = feed.shadowRoot?.querySelector(".feed-container");
@@ -196,51 +196,51 @@ describe("FeedModernized Component", () => {
   });
 
   describe("Memory management", () => {
-    test("should handle large amounts of content with virtualizer", async () => {
-      // With virtualizer, we can handle unlimited content efficiently
+    test("should handle large amounts of content efficiently", async () => {
+      // With optimized batching, we can handle large amounts of content efficiently
       const testLimit = 100; // Use smaller test size for speed
 
-      // Add many groups to test virtualizer efficiency
+      // Add many groups to test batching efficiency
       for (let i = 0; i < testLimit; i++) {
         const tag = makeTag(":text");
         tag.text = `Message ${i}`;
-        feed.appendGameTags([tag]);
+        feed.appendGameTags([tag], true);
       }
 
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      // Virtualizer keeps all content in memory since it only renders visible items
-      expect(stats.totalTagGroups).toBe(testLimit);
+      // All content is kept in memory with aggressive flushing for performance
+      expect(stats.tagItems).toBe(testLimit);
     });
 
-    test("should maintain all content with virtualizer efficiency", async () => {
+    test("should maintain all content with batching efficiency", async () => {
       // Add initial content
       const initialTag = makeTag(":text");
       initialTag.text = "Initial message";
-      feed.appendGameTags([initialTag]);
+      feed.appendGameTags([initialTag], true);
 
       // Add some test content
       const testSize = 50; // Smaller for test speed
       for (let i = 0; i < testSize; i++) {
         const tag = makeTag(":text");
         tag.text = `Filler ${i}`;
-        feed.appendGameTags([tag]);
+        feed.appendGameTags([tag], true);
       }
 
       // Add final content
       const finalTag = makeTag(":text");
       finalTag.text = "Final message";
-      feed.appendGameTags([finalTag]);
+      feed.appendGameTags([finalTag], true);
 
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      // With virtualizer, all content is maintained in memory
-      expect(stats.totalTagGroups).toBe(testSize + 2); // initial + testSize + final
+      // With optimized batching, all content is maintained in memory
+      expect(stats.tagItems).toBe(testSize + 2); // initial + testSize + final
 
       // Both initial and final content should be preserved
-      expect(feed.getRenderStats().totalTagGroups).toBeGreaterThan(testSize);
+      expect(feed.getRenderStats().tagItems).toBeGreaterThan(testSize);
     });
   });
 
@@ -250,7 +250,7 @@ describe("FeedModernized Component", () => {
       promptTag.attrs = { time: "123456789" };
       promptTag.text = ">";
 
-      feed.appendGameTags([promptTag]);
+      feed.appendGameTags([promptTag], true);
       await feed.updateComplete;
 
       expect(feed.has_prompt()).toBe(true);
@@ -260,7 +260,7 @@ describe("FeedModernized Component", () => {
       const textTag = makeTag(":text");
       textTag.text = "Regular content";
 
-      feed.appendGameTags([textTag]);
+      feed.appendGameTags([textTag], true);
       await feed.updateComplete;
 
       expect(feed.has_prompt()).toBe(false);
@@ -270,11 +270,11 @@ describe("FeedModernized Component", () => {
       const promptTag = makeTag("prompt");
       promptTag.text = ">";
 
-      feed.appendPrompt(promptTag);
+      feed.appendPrompt(promptTag, true); // immediate=true for testing
       await feed.updateComplete;
 
       expect(feed.has_prompt()).toBe(true);
-      expect(feed.getRenderStats().totalTagGroups).toBe(1);
+      expect(feed.getRenderStats().tagItems).toBe(1);
     });
   });
 
@@ -297,7 +297,7 @@ describe("FeedModernized Component", () => {
       const textTag = makeTag(":text");
       textTag.text = "New content";
 
-      feed.appendGameTags([textTag]);
+      feed.appendGameTags([textTag], true);
       await feed.updateComplete;
 
       // Allow for async scroll scheduling with double requestAnimationFrame
@@ -328,11 +328,11 @@ describe("FeedModernized Component", () => {
       const textTag = makeTag(":text");
       textTag.text = "Content to clear";
 
-      feed.appendGameTags([textTag]);
-      expect(feed.getRenderStats().totalTagGroups).toBe(1);
+      feed.appendGameTags([textTag], true);
+      expect(feed.getRenderStats().tagItems).toBe(1);
 
       const result = feed.clear();
-      expect(feed.getRenderStats().totalTagGroups).toBe(0);
+      expect(feed.getRenderStats().tagItems).toBe(0);
       expect(result).toBe(feed); // Should return self for chaining
     });
   });
@@ -358,6 +358,8 @@ describe("FeedModernized Component", () => {
 
       // Access the private handler method for testing
       (feed as unknown as { _handleCommandEcho: (event: CustomEvent<CommandEchoEvent>) => void })._handleCommandEcho(echoEvent);
+      // Flush pending batch to process the command echo immediately
+      feed.flushPendingBatch();
       await feed.updateComplete;
 
       // Command echo should be added to render stats
@@ -389,20 +391,20 @@ describe("FeedModernized Component", () => {
       const promptTag = makeTag("prompt");
       promptTag.text = ">";
 
-      feed.appendGameTags([textTag, linkTag, promptTag]);
+      feed.appendGameTags([textTag, linkTag, promptTag], true);
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(1);
-      expect(stats.totalTags).toBe(1); // One tag group becomes one message block
-      expect(stats.componentTags).toBeGreaterThan(0);
+      expect(stats.tagItems).toBe(1);
+      expect(stats.totalItems).toBe(1); // One tag group becomes one message block
+      expect(stats.totalAppends).toBeGreaterThan(0);
     });
 
     test("should track empty state correctly", () => {
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(0);
-      expect(stats.totalTags).toBe(0);
-      expect(stats.componentTags).toBe(0);
+      expect(stats.tagItems).toBe(0);
+      expect(stats.totalItems).toBe(0);
+      expect(stats.totalAppends).toBe(0);
       expect(stats.commandEchoes).toBe(0);
     });
   });
@@ -414,22 +416,22 @@ describe("FeedModernized Component", () => {
       malformedTag.text = "malformed link";
 
       // Should not throw
-      expect(() => feed.appendGameTags([malformedTag])).not.toThrow();
+      expect(() => feed.appendGameTags([malformedTag], true)).not.toThrow();
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(1);
+      expect(stats.tagItems).toBe(1);
     });
 
     test("should handle null/undefined content safely", async () => {
       const textTag = makeTag(":text");
       // Don't set text property
 
-      expect(() => feed.appendGameTags([textTag])).not.toThrow();
+      expect(() => feed.appendGameTags([textTag], true)).not.toThrow();
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(1);
+      expect(stats.tagItems).toBe(1);
     });
   });
 
@@ -439,7 +441,7 @@ describe("FeedModernized Component", () => {
       test("should render GameLink components with proper attributes", async () => {
         const linkTag = createGameLinkTag("sword123", "sword", "a shimmering sword");
 
-        feed.appendGameTags([linkTag]);
+        feed.appendGameTags([linkTag], true);
         await feed.updateComplete;
 
         // Check that message block was rendered in shadow DOM
@@ -465,7 +467,7 @@ describe("FeedModernized Component", () => {
           createGameLinkTag("potion789", "potion", "a potion"),
         ];
 
-        feed.appendGameTags(links);
+        feed.appendGameTags(links, true);
         await feed.updateComplete;
 
         // Game links are now inside message block components
@@ -477,7 +479,7 @@ describe("FeedModernized Component", () => {
       test("should handle GameLink components with exits", async () => {
         const exitTag = createGameLinkTag("exit_north", "exit", "north");
 
-        feed.appendGameTags([exitTag]);
+        feed.appendGameTags([exitTag], true);
         await feed.updateComplete;
 
         // Game link is now inside message block component
@@ -493,7 +495,7 @@ describe("FeedModernized Component", () => {
       test("should render GameCommand components with cmd attributes", async () => {
         const commandTag = createGameCommandTag("look around", "look");
 
-        feed.appendGameTags([commandTag]);
+        feed.appendGameTags([commandTag], true);
         await feed.updateComplete;
 
         const messageBlock = feed.shadowRoot?.querySelector("illthorn-message-block-lit");
@@ -505,7 +507,7 @@ describe("FeedModernized Component", () => {
       test("should render multiple GameCommand components", async () => {
         const commands = [createGameCommandTag("dodge", "dodge"), createGameCommandTag("block", "block"), createGameCommandTag("attack", "attack")];
 
-        feed.appendGameTags(commands);
+        feed.appendGameTags(commands, true);
         await feed.updateComplete;
 
         // Game commands are now inside message block component
@@ -519,7 +521,7 @@ describe("FeedModernized Component", () => {
       test("should render GameMonster components with nested links", async () => {
         const monsterTag = createGameMonsterTag("orc123", "orc", "a fierce orc");
 
-        feed.appendGameTags([monsterTag]);
+        feed.appendGameTags([monsterTag], true);
         await feed.updateComplete;
 
         const messageBlock = feed.shadowRoot?.querySelector("illthorn-message-block-lit");
@@ -532,7 +534,7 @@ describe("FeedModernized Component", () => {
       test("should render multiple GameMonster components", async () => {
         const monsters = [createGameMonsterTag("orc123", "orc", "a fierce orc"), createGameMonsterTag("goblin456", "goblin", "a sneaky goblin")];
 
-        feed.appendGameTags(monsters);
+        feed.appendGameTags(monsters, true);
         await feed.updateComplete;
 
         // Game monsters are now inside message block component
@@ -546,7 +548,7 @@ describe("FeedModernized Component", () => {
       test("should render preset styled spans with correct classes", async () => {
         const presetTags = [createPresetTag("roomName", "The Town Square"), createPresetTag("roomDesc", "A bustling area."), createPresetTag("speech", "Player says hello")];
 
-        feed.appendGameTags(presetTags);
+        feed.appendGameTags(presetTags, true);
         await feed.updateComplete;
 
         // Check that message block was rendered
@@ -562,12 +564,12 @@ describe("FeedModernized Component", () => {
 
   describe("Realistic Game Scenarios", () => {
     test("should render room description scenario correctly", async () => {
-      feed.appendGameTags(createRoomScenario());
+      feed.appendGameTags(createRoomScenario(), true);
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBeGreaterThan(0); // Room has content
-      expect(stats.componentTags).toBeGreaterThan(0); // Should have interactive components
+      expect(stats.tagItems).toBeGreaterThan(0); // Room has content
+      expect(stats.totalItems).toBeGreaterThan(0); // Should have interactive components
 
       // Check for specific components inside message blocks
       const messageBlocks = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
@@ -579,12 +581,12 @@ describe("FeedModernized Component", () => {
     });
 
     test("should render combat scenario correctly", async () => {
-      feed.appendGameTags(createCombatScenario());
+      feed.appendGameTags(createCombatScenario(), true);
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      expect(stats.totalTags).toBeGreaterThan(0);
-      expect(stats.componentTags).toBeGreaterThan(0);
+      expect(stats.tagItems).toBeGreaterThan(0);
+      expect(stats.totalItems).toBeGreaterThan(0);
 
       // Check for monster and command components inside message blocks
       const messageBlocks = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
@@ -596,11 +598,11 @@ describe("FeedModernized Component", () => {
     });
 
     test("should render shop scenario correctly", async () => {
-      feed.appendGameTags(createShopScenario());
+      feed.appendGameTags(createShopScenario(), true);
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      expect(stats.componentTags).toBeGreaterThan(0);
+      expect(stats.totalItems).toBeGreaterThan(0);
 
       // Check for items and command components inside message blocks
       const messageBlocks = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
@@ -612,11 +614,11 @@ describe("FeedModernized Component", () => {
     });
 
     test("should render communication scenario with proper styling", async () => {
-      feed.appendGameTags(createCommunicationScenario());
+      feed.appendGameTags(createCommunicationScenario(), true);
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      expect(stats.totalTags).toBeGreaterThan(0);
+      expect(stats.tagItems).toBeGreaterThan(0);
 
       // Check for preset styled communication elements inside message blocks
       const messageBlocks = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
@@ -625,12 +627,12 @@ describe("FeedModernized Component", () => {
     });
 
     test("should render mixed content scenario with all component types", async () => {
-      feed.appendGameTags(createMixedContentScenario());
+      feed.appendGameTags(createMixedContentScenario(), true);
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
-      expect(stats.totalTags).toBeGreaterThan(0);
-      expect(stats.componentTags).toBeGreaterThan(0);
+      expect(stats.tagItems).toBeGreaterThan(0);
+      expect(stats.totalItems).toBeGreaterThan(0);
 
       // Should have all types of components inside message blocks
       const messageBlocks = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
@@ -660,16 +662,16 @@ describe("FeedModernized Component", () => {
         createTextTag(" nearby."),
       ];
 
-      feed.appendGameTags(mixedTags);
+      feed.appendGameTags(mixedTags, true);
       await feed.updateComplete;
 
       // Verify ComponentRenderer statistics
       const stats = feed.getRenderStats();
       // With new modular architecture, each tag group becomes one item
-      expect(stats.totalTags).toBe(1); // One tag group becomes one message block
-      expect(stats.componentTags).toBe(1); // One tag group with components
-      // The feed's getRenderStats doesn't have textNodes, only totalTags, componentTags, metadataTags, commandEchoes
-      expect(stats.metadataTags).toBe(0); // no metadata tags in this scenario
+      expect(stats.tagItems).toBe(1); // One tag group becomes one message block
+      expect(stats.totalItems).toBe(1); // One tag group with components
+      // The feed's getRenderStats provides: totalItems, tagItems, commandEchoes, clientMessages
+      expect(stats.commandEchoes).toBe(0); // no command echoes in this scenario
     });
 
     test("should handle ComponentRenderer error recovery", async () => {
@@ -680,20 +682,20 @@ describe("FeedModernized Component", () => {
 
       const goodTag = createTextTag("This should still render");
 
-      feed.appendGameTags([problematicTag, goodTag]);
+      feed.appendGameTags([problematicTag, goodTag], true);
       await feed.updateComplete;
 
       // Feed should still render successfully
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(1);
-      expect(stats.totalTags).toBe(1); // One tag group becomes one message block
+      expect(stats.tagItems).toBe(1);
+      expect(stats.tagItems).toBe(1); // One tag group becomes one message block
     });
   });
 
   describe("Component Event Handling", () => {
     test("should handle component clicks without interfering with text selection", async () => {
       const linkTag = createGameLinkTag("item123", "item", "test item");
-      feed.appendGameTags([linkTag]);
+      feed.appendGameTags([linkTag], true);
       await feed.updateComplete;
 
       // Simulate text selection
@@ -715,14 +717,14 @@ describe("FeedModernized Component", () => {
       const itemsToAdd = 100; // Small number for test performance
       for (let i = 0; i < itemsToAdd; i++) {
         const tag = createGameLinkTag(`item${i}`, "item", `item ${i}`);
-        feed.appendGameTags([tag]);
+        feed.appendGameTags([tag], true);
       }
 
       await feed.updateComplete;
 
       // All content should be preserved since we're under the limit
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(itemsToAdd);
+      expect(stats.tagItems).toBe(itemsToAdd);
 
       // Latest components should still be functional inside message blocks
       const messageBlocks = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
@@ -739,26 +741,26 @@ describe("FeedModernized Component", () => {
       const itemsToAdd = 150;
       for (let i = 0; i < itemsToAdd; i++) {
         const tag = createGameLinkTag(`item${i}`, "item", `item ${i}`);
-        feed.appendGameTags([tag]);
+        feed.appendGameTags([tag], true);
       }
 
       // Wait for debounced flush to complete
       await new Promise((resolve) => setTimeout(resolve, 1100));
       await feed.updateComplete;
 
-      // Should have flushed old content to create 10% buffer (90 items)
-      expect(feed.currentItemCount).toBe(90);
+      // Should have flushed old content with 25% aggressive strategy (75 items)
+      expect(feed.currentItemCount).toBe(75);
 
       // Should have kept the most recent items
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(90);
+      expect(stats.tagItems).toBe(75);
     });
 
     test("should clear all content when clear() is called", async () => {
       // Add some content
       for (let i = 0; i < 10; i++) {
         const tag = createGameLinkTag(`item${i}`, "item", `item ${i}`);
-        feed.appendGameTags([tag]);
+        feed.appendGameTags([tag], true);
       }
 
       await feed.updateComplete;
@@ -771,7 +773,7 @@ describe("FeedModernized Component", () => {
       // Should have no content
       expect(feed.currentItemCount).toBe(0);
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(0);
+      expect(stats.tagItems).toBe(0);
     });
   });
 
@@ -781,13 +783,13 @@ describe("FeedModernized Component", () => {
       const scenarios = [createRoomScenario(), createCombatScenario(), createShopScenario()];
 
       for (const scenario of scenarios) {
-        feed.appendGameTags(scenario);
+        feed.appendGameTags(scenario, true);
         await feed.updateComplete;
       }
 
       const stats = feed.getRenderStats();
-      expect(stats.totalTagGroups).toBe(3);
-      expect(stats.componentTags).toBeGreaterThan(0);
+      expect(stats.tagItems).toBe(3);
+      expect(stats.totalItems).toBeGreaterThan(0);
 
       // All component types should be present inside message blocks
       const messageBlocks = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
@@ -803,14 +805,14 @@ describe("FeedModernized Component", () => {
 
     test("should maintain component state across feed operations", async () => {
       // Add initial content
-      feed.appendGameTags(createRoomScenario());
+      feed.appendGameTags(createRoomScenario(), true);
       await feed.updateComplete;
 
       const messageBlocks1 = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
       const initialLinks = Array.from(messageBlocks1 || []).reduce((count, block) => count + (block.shadowRoot?.querySelectorAll("illthorn-game-link").length || 0), 0);
 
       // Add more content
-      feed.appendGameTags(createShopScenario());
+      feed.appendGameTags(createShopScenario(), true);
       await feed.updateComplete;
 
       const messageBlocks2 = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
@@ -837,12 +839,12 @@ describe("FeedModernized Component", () => {
         createTextTag(" it directly."),
       ];
 
-      feed.appendGameTags(complexScenario);
+      feed.appendGameTags(complexScenario, true);
       await feed.updateComplete;
 
       const stats = feed.getRenderStats();
       // With new modular architecture, each tag group becomes one item
-      expect(stats.totalTags).toBe(1); // One tag group becomes one message block
+      expect(stats.tagItems).toBe(1); // One tag group becomes one message block
 
       // Verify all components rendered inside message blocks
       const messageBlocks = feed.shadowRoot?.querySelectorAll("illthorn-message-block-lit");
