@@ -2,6 +2,8 @@
 // ABOUTME: Tests the presentation component's rendering, scrolling behavior, and entry display
 /// <reference types="vitest/globals" />
 import { afterEach, describe, expect, it } from "vitest";
+import { TagKind, TagState } from "../../parser/tag";
+import { createTextTag } from "../../../../test/mocks";
 import type { StreamEntry } from "./streams-container.lit";
 import { StreamsUI } from "./streams-ui.lit";
 
@@ -17,6 +19,22 @@ describe("StreamsUI", () => {
       component.parentNode.removeChild(component);
     }
   };
+
+  // Helper function to create StreamEntry objects with proper GameTag structure
+  const createStreamEntry = (id: string, content: string, streamType: string): StreamEntry => ({
+    id,
+    streamTag: {
+      kind: TagKind.METADATA,
+      name: "stream",
+      gameName: "",
+      attrs: { id: streamType },
+      children: [createTextTag(content)],
+      state: TagState.OPEN,
+      text: "",
+    },
+    timestamp: new Date(),
+    streamType,
+  });
 
   afterEach(() => {
     // Clean up any remaining elements
@@ -71,19 +89,43 @@ describe("StreamsUI", () => {
     const sampleEntries: StreamEntry[] = [
       {
         id: "test-1",
-        content: 'Someone thinks, "This is a test thought"',
+        streamTag: {
+          kind: TagKind.METADATA,
+          name: "stream",
+          gameName: "",
+          attrs: { id: "thoughts" },
+          children: [createTextTag('Someone thinks, "This is a test thought"')],
+          state: TagState.OPEN,
+          text: "",
+        },
         timestamp: new Date(),
         streamType: "thoughts",
       },
       {
         id: "test-2",
-        content: 'Someone says, "Hello everyone!"',
+        streamTag: {
+          kind: TagKind.METADATA,
+          name: "stream",
+          gameName: "",
+          attrs: { id: "speech" },
+          children: [createTextTag('Someone says, "Hello everyone!"')],
+          state: TagState.OPEN,
+          text: "",
+        },
         timestamp: new Date(),
         streamType: "speech",
       },
       {
         id: "test-3",
-        content: "A warrior has fallen in battle!",
+        streamTag: {
+          kind: TagKind.METADATA,
+          name: "stream",
+          gameName: "",
+          attrs: { id: "death" },
+          children: [createTextTag("A warrior has fallen in battle!")],
+          state: TagState.OPEN,
+          text: "",
+        },
         timestamp: new Date(),
         streamType: "death",
       },
@@ -132,9 +174,12 @@ describe("StreamsUI", () => {
       await component.updateComplete;
 
       const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
-      expect(entries?.[0]?.textContent?.trim()).toBe(sampleEntries[0].content);
-      expect(entries?.[1]?.textContent?.trim()).toBe(sampleEntries[1].content);
-      expect(entries?.[2]?.textContent?.trim()).toBe(sampleEntries[2].content);
+      // Extract expected text from GameTag children
+      const expectedTexts = sampleEntries.map(entry => entry.streamTag.children[0]?.text || "");
+
+      expect(entries?.[0]?.textContent?.trim()).toBe(expectedTexts[0]);
+      expect(entries?.[1]?.textContent?.trim()).toBe(expectedTexts[1]);
+      expect(entries?.[2]?.textContent?.trim()).toBe(expectedTexts[2]);
 
       teardown(component);
     });
@@ -165,11 +210,76 @@ describe("StreamsUI", () => {
   describe("Stream type styling", () => {
     it("should handle all stream types correctly", async () => {
       const allStreamTypes: StreamEntry[] = [
-        { id: "1", content: "Thought message", timestamp: new Date(), streamType: "thoughts" },
-        { id: "2", content: "Speech message", timestamp: new Date(), streamType: "speech" },
-        { id: "3", content: "Logon message", timestamp: new Date(), streamType: "logon" },
-        { id: "4", content: "Logoff message", timestamp: new Date(), streamType: "logoff" },
-        { id: "5", content: "Death message", timestamp: new Date(), streamType: "death" },
+        {
+          id: "1",
+          streamTag: {
+            kind: TagKind.METADATA,
+            name: "stream",
+            gameName: "",
+            attrs: { id: "thoughts" },
+            children: [createTextTag("Thought message")],
+            state: TagState.OPEN,
+            text: "",
+          },
+          timestamp: new Date(),
+          streamType: "thoughts"
+        },
+        {
+          id: "2",
+          streamTag: {
+            kind: TagKind.METADATA,
+            name: "stream",
+            gameName: "",
+            attrs: { id: "speech" },
+            children: [createTextTag("Speech message")],
+            state: TagState.OPEN,
+            text: "",
+          },
+          timestamp: new Date(),
+          streamType: "speech"
+        },
+        {
+          id: "3",
+          streamTag: {
+            kind: TagKind.METADATA,
+            name: "stream",
+            gameName: "",
+            attrs: { id: "logon" },
+            children: [createTextTag("Logon message")],
+            state: TagState.OPEN,
+            text: "",
+          },
+          timestamp: new Date(),
+          streamType: "logon"
+        },
+        {
+          id: "4",
+          streamTag: {
+            kind: TagKind.METADATA,
+            name: "stream",
+            gameName: "",
+            attrs: { id: "logoff" },
+            children: [createTextTag("Logoff message")],
+            state: TagState.OPEN,
+            text: "",
+          },
+          timestamp: new Date(),
+          streamType: "logoff"
+        },
+        {
+          id: "5",
+          streamTag: {
+            kind: TagKind.METADATA,
+            name: "stream",
+            gameName: "",
+            attrs: { id: "death" },
+            children: [createTextTag("Death message")],
+            state: TagState.OPEN,
+            text: "",
+          },
+          timestamp: new Date(),
+          streamType: "death"
+        },
       ];
 
       const component = setup();
@@ -221,11 +331,11 @@ describe("StreamsUI", () => {
       });
 
       // Initial entries
-      component.entries = [{ id: "1", content: "First message", timestamp: new Date(), streamType: "thoughts" }];
+      component.entries = [createStreamEntry("1", "First message", "thoughts")];
       await component.updateComplete;
 
       // Add more entries
-      component.entries = [...component.entries, { id: "2", content: "Second message", timestamp: new Date(), streamType: "speech" }];
+      component.entries = [...component.entries, createStreamEntry("2", "Second message", "speech")];
       await component.updateComplete;
 
       // Component should handle the update correctly
@@ -265,12 +375,7 @@ describe("StreamsUI", () => {
     it("should handle long content without breaking layout", async () => {
       const longContent = "A".repeat(500);
       const longEntries: StreamEntry[] = [
-        {
-          id: "long-1",
-          content: longContent,
-          timestamp: new Date(),
-          streamType: "thoughts",
-        },
+        createStreamEntry("long-1", longContent, "thoughts"),
       ];
 
       const component = setup();
@@ -286,12 +391,7 @@ describe("StreamsUI", () => {
 
     it("should handle entries with special characters", async () => {
       const specialEntries: StreamEntry[] = [
-        {
-          id: "special-1",
-          content: 'Someone thinks, "This has <special> &characters; "quotes" and símböls"',
-          timestamp: new Date(),
-          streamType: "thoughts",
-        },
+        createStreamEntry("special-1", 'Someone thinks, "This has <special> &characters; "quotes" and símböls"', "thoughts"),
       ];
 
       const component = setup();
@@ -300,7 +400,7 @@ describe("StreamsUI", () => {
 
       const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
       expect(entries).toHaveLength(1);
-      expect(entries?.[0]?.textContent?.includes("special")).toBe(true);
+      expect(entries?.[0]?.textContent?.includes("characters")).toBe(true);
 
       teardown(component);
     });
@@ -316,7 +416,7 @@ describe("StreamsUI", () => {
       expect(component.shadowRoot?.querySelector(".streams-empty")).toBeTruthy();
 
       // Add entries
-      component.entries = [{ id: "1", content: "New message", timestamp: new Date(), streamType: "thoughts" }];
+      component.entries = [createStreamEntry("1", "New message", "thoughts")];
       await component.updateComplete;
 
       const entries = component.shadowRoot?.querySelectorAll(".stream-entry");
@@ -336,7 +436,7 @@ describe("StreamsUI", () => {
 
       // Rapid updates
       for (let i = 0; i < 10; i++) {
-        component.entries = [{ id: `${i}`, content: `Message ${i}`, timestamp: new Date(), streamType: "thoughts" }];
+        component.entries = [createStreamEntry(`${i}`, `Message ${i}`, "thoughts")];
       }
       await component.updateComplete;
 
