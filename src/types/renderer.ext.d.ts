@@ -30,11 +30,25 @@ export interface ISettingsAPI<T = Record<string, unknown>> {
   set<V>(key: string, value: V): Promise<void>;
 }
 
+export interface IDevWindowAPI {
+  open(): Promise<{ success: boolean; windowId?: number; error?: string }>;
+  close(): Promise<{ success: boolean; error?: string }>;
+  isOpen(): Promise<{ isOpen: boolean }>;
+  sendRawData(data: string, sessionName: string): Promise<{ success: boolean; error?: string }>;
+  clear(): Promise<{ success: boolean; error?: string }>;
+}
+
 declare global {
   interface Window {
     Session: ISessionAPI;
     App: IAppAPI;
     Settings: ISettingsAPI;
+    DevWindow: IDevWindowAPI;
     Illthorn: typeof Illthorn;
+    ipcRenderer: {
+      invoke: (channel: string, ...args: any[]) => Promise<any>;
+      on: (channel: string, listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void) => void;
+      removeListener: (channel: string, listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void) => void;
+    };
   }
 }

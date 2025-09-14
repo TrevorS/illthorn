@@ -7,7 +7,7 @@ import { ComponentRenderer } from "../parser/component-renderer";
 import { SaxophoneParser } from "../parser/saxophone-parser";
 import { type GameTag, makeTag } from "../parser/tag";
 import { Bus } from "../util/bus";
-import { debugRawInput, debugSession, safeStringify } from "../util/logger";
+import { debugDevWindow, debugRawInput, debugSession, safeStringify } from "../util/logger";
 import { dispatchMetadata } from "./helpers";
 import { SessionMap } from "./map";
 
@@ -54,8 +54,8 @@ export class FrontendSession {
   }
 
   private _ensureInitialization() {
-    // Enable streams after a brief delay to allow component setup
-    setTimeout(() => this.streams(true), 0);
+    // Initialization logic can be added here if needed
+    // Stream visibility is now managed by SessionLayout component
   }
 
   get name() {
@@ -66,20 +66,27 @@ export class FrontendSession {
     return this.config.port;
   }
 
-  streams(on: boolean) {
-    // Components should be available since we wait for initialization
-    if (this.ui?.context && this.ui?.feed) {
-      this.ui.context.classList.toggle("streams-on", on);
-      this.ui.feed.scrollToNow();
-    }
-  }
-
   async sendCommand(command: string) {
     await window.Session.sendCommand(this.config, command);
   }
 
   async onMessage(incoming: string) {
     debugRawInput(`[${this.name}] Raw input (${incoming.length} chars): ${safeStringify(incoming, 200)}`);
+
+    // Send raw data to dev window if it's open
+    try {
+      const devWindowStatus = await window.DevWindow.isOpen();
+      debugDevWindow(`[${this.name}] Dev window status:`, devWindowStatus);
+      if (devWindowStatus.isOpen) {
+        debugDevWindow(`[${this.name}] Sending ${incoming.length} chars to dev window`);
+        await window.DevWindow.sendRawData(incoming, this.name);
+        debugDevWindow(`[${this.name}] Successfully sent data to dev window`);
+      } else {
+        debugDevWindow(`[${this.name}] Dev window not open, skipping data send`);
+      }
+    } catch (error) {
+      debugDevWindow(`[${this.name}] Dev window error:`, error);
+    }
 
     // If UI is not available yet, buffer the message for later processing
     if (!this._ui) {
@@ -117,23 +124,11 @@ export class FrontendSession {
     }
 
     // Dispatch metadata events for individual components
-    // Deduplicate stream events by name and id to prevent duplicate entries
-    const seenStreamEvents = new Set<string>();
 
     for (const metaTag of metadata) {
       if (metaTag.name !== "prompt") {
         // prompt is handled separately above
         const eventName = `metadata/${metaTag.name}/${metaTag.attrs.id || metaTag.attrs.name || ""}`.replace(/\/$/, "");
-
-        // Deduplicate stream events
-        if (metaTag.name === "stream") {
-          const streamKey = `${metaTag.name}:${metaTag.attrs.id}`;
-          if (seenStreamEvents.has(streamKey)) {
-            debugSession(`[${this.name}] Skipping duplicate stream event: ${eventName}`);
-            continue;
-          }
-          seenStreamEvents.add(streamKey);
-        }
 
         this.bus.dispatchEvent(eventName, metaTag);
         debugSession(`[${this.name}] Dispatched metadata event: ${eventName}`);
@@ -144,12 +139,20 @@ export class FrontendSession {
     const contentTags = parsed.filter((tag) => !metadata.includes(tag));
 
     // Check if streams should also go to main feed when panel is closed
-    const streamsVisible = this.ui?.context?.classList.contains("streams-on");
+    const streamsVisible = !this.ui?.context?.classList.contains("no-streams");
     if (!streamsVisible) {
-      // Streams panel is closed - add stream content to main feed
-      const streamTags = metadata.filter((tag) => tag.name === "stream" && tag.attrs.id === "thoughts");
-      contentTags.push(...streamTags);
-      debugSession(`[${this.name}] Added ${streamTags.length} stream tags to main feed (streams panel closed)`);
+      // Streams panel is closed - only add specific stream types that don't appear in normal content
+      // Speech already appears in main content, inv is system-only
+      const mainFeedStreamTypes = ['thoughts', 'logon', 'logoff', 'death'];
+      const streamTags = metadata.filter((tag) => 
+        tag.name === "stream" && 
+        mainFeedStreamTypes.includes(tag.attrs.id as string)
+      );
+      for (const streamTag of streamTags) {
+        // Add the children of stream tags (the actual content) to the main feed
+        contentTags.push(...streamTag.children);
+      }
+      debugSession(`[${this.name}] Added content from ${streamTags.length} filtered stream tags to main feed (streams panel closed)`);
     }
 
     // Stream handling is now handled by streams-container via bus events

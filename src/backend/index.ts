@@ -2,3 +2,4 @@
 import "./session/ipc-handlers";
 import "./app/ipc-handlers";
 import "./settings/ipc-handlers";
+import "./dev-window/ipc-handlers";

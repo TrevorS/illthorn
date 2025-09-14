@@ -79,12 +79,17 @@ class IIllthorn {
       `Current items: ${currentItems}`,
       `Memory usage: ${Math.round((currentItems / scrollbackSize) * 100)}%`,
       "",
+      "=== Stream Filters ===",
+      this.getStreamFilterStatus(currentSess),
+      "",
       "Available commands:",
       "  :ui sessions on/off - Toggle session picker",
       "  :ui hud on/off - Toggle HUD",
       "  :ui streams on/off - Toggle streams panel",
       "  :ui scrollback <size> - Set scrollback buffer (100-50000)",
       "  :clear or :cls - Clear game log (Ctrl+Shift+L)",
+      "  :dev - Toggle dev window for raw game data",
+      "  :dev clear - Clear dev window log buffer",
     ].join("\n");
 
     // Output to game feed using client message event (preserves formatting)
@@ -128,6 +133,10 @@ class IIllthorn {
         return this.toggleStreamsUI(false);
       case ":ui":
         return this.showUIStatus();
+      case ":dev":
+        return this.toggleDevWindow();
+      case ":dev clear":
+        return this.clearDevWindow();
       case ":clear":
       case ":cls":
         return this.clearGameLog();
@@ -225,6 +234,111 @@ class IIllthorn {
         timestamp: Date.now(),
       });
     }
+  }
+
+  /**
+   * Toggle the dev window on/off
+   */
+  async toggleDevWindow() {
+    const currentSess = currentSession();
+
+    try {
+      const status = await window.DevWindow.isOpen();
+
+      if (status.isOpen) {
+        // Close the dev window
+        await window.DevWindow.close();
+        if (currentSess?.bus) {
+          currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+            message: "Dev window closed",
+            timestamp: Date.now(),
+          });
+        }
+      } else {
+        // Open the dev window
+        const result = await window.DevWindow.open();
+        if (result.success) {
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: "Dev window opened - raw game data will be displayed there",
+              timestamp: Date.now(),
+            });
+          }
+        } else {
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: `Failed to open dev window: ${result.error || "Unknown error"}`,
+              timestamp: Date.now(),
+            });
+          }
+        }
+      }
+    } catch (error) {
+      if (currentSess?.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: `Dev window error: ${error instanceof Error ? error.message : "Unknown error"}`,
+          timestamp: Date.now(),
+        });
+      }
+    }
+  }
+
+  /**
+   * Clear the dev window log buffer
+   */
+  async clearDevWindow() {
+    const currentSess = currentSession();
+
+    try {
+      const result = await window.DevWindow.clear();
+      if (result.success) {
+        if (currentSess?.bus) {
+          currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+            message: "Dev window cleared",
+            timestamp: Date.now(),
+          });
+        }
+      } else {
+        if (currentSess?.bus) {
+          currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+            message: `Failed to clear dev window: ${result.error || "Unknown error"}`,
+            timestamp: Date.now(),
+          });
+        }
+      }
+    } catch (error) {
+      if (currentSess?.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: `Dev window error: ${error instanceof Error ? error.message : "Unknown error"}`,
+          timestamp: Date.now(),
+        });
+      }
+    }
+  }
+
+  /**
+   * Get current stream filter status for display
+   */
+  private getStreamFilterStatus(session: any): string {
+    if (!session?.ui?.streams) {
+      return "Stream filters: Not available";
+    }
+
+    const streamsContainer = session.ui.streams;
+    const availableTypes = streamsContainer.getAvailableStreamTypes();
+    const enabledTypes = availableTypes.filter((type: string) => streamsContainer.getStreamTypeVisibility(type));
+    const disabledTypes = availableTypes.filter((type: string) => !streamsContainer.getStreamTypeVisibility(type));
+
+    let status = "";
+    if (enabledTypes.length > 0) {
+      status += `Enabled: ${enabledTypes.join(", ")}`;
+    }
+    if (disabledTypes.length > 0) {
+      if (status) status += "\n";
+      status += `Disabled: ${disabledTypes.join(", ")}`;
+    }
+
+    return status || "All stream types enabled";
   }
 }
 
