@@ -1,7 +1,7 @@
 // ABOUTME: Pure UI component for displaying stream content with auto-scrolling behavior
 // ABOUTME: Accepts stream entries as properties and handles presentation only
 import { css, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { ComponentRenderer } from "../../parser/component-renderer";
 import type { StreamEntry } from "./streams-container.lit";
 
@@ -11,43 +11,52 @@ export class StreamsUI extends LitElement {
   static styles = css`
     :host {
       display: block;
-      overflow-y: auto;
       height: 100%;
       width: 100%;
       font-family: inherit;
-      font-size: var(--stream-font-size, var(--base-font-size, 13px));
+      box-sizing: border-box;
+      overflow: hidden;
+      /* Force onto GPU for best rendering */
+      transform: translate3d(0, 0, 0);
+    }
+
+    .streams-container {
+      display: block;
+      height: 100%;
+      width: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
       padding: 0.5em 1em;
       box-sizing: border-box;
       background-color: var(--streams-background, var(--color-surface));
-      flex: 1;
-      position: relative;
+      font-size: var(--stream-font-size, var(--base-font-size, 13px));
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-border) transparent;
+      /* Performance optimizations */
+      contain: layout style;
+      will-change: scroll-position;
+    }
+
+    .streams-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .streams-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .streams-container::-webkit-scrollbar-thumb {
+      background-color: var(--color-border);
+      border-radius: 4px;
+    }
+
+    .streams-container::-webkit-scrollbar-thumb:hover {
+      background-color: var(--color-success);
     }
 
     /* Streams-on border styling (applied externally but needs to work with Shadow DOM) */
     :host(.streams-border) {
       border-bottom: var(--border-width, 3px) solid var(--border-color, var(--color-border));
-    }
-
-    :host(.scroll) {
-      scrollbar-width: thin;
-      scrollbar-color: var(--color-border) transparent;
-    }
-
-    :host(.scroll)::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    :host(.scroll)::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    :host(.scroll)::-webkit-scrollbar-thumb {
-      background-color: var(--color-border);
-      border-radius: 4px;
-    }
-
-    :host(.scroll)::-webkit-scrollbar-thumb:hover {
-      background-color: var(--color-success);
     }
 
     /* Stream content styling */
@@ -192,18 +201,19 @@ export class StreamsUI extends LitElement {
   @property({ type: Array })
   entries: Array<StreamEntry> = [];
 
+  @state()
+  private _shouldAutoScroll = true;
+
   connectedCallback() {
     super.connectedCallback();
-    this.classList.add("scroll");
   }
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
 
     if (changedProperties.has("entries")) {
-      // Auto-scroll if user was at bottom before update
-      const wasScrolling = this.isScrolling;
-      if (!wasScrolling) {
+      // Auto-scroll if user should auto-scroll (based on last scroll position)
+      if (this._shouldAutoScroll) {
         // Wait for DOM to fully update before scrolling, like FeedModernized does
         this.updateComplete.then(() => {
           this._scheduleAutoScroll();
@@ -228,21 +238,30 @@ export class StreamsUI extends LitElement {
    * Check if user is manually scrolling (not at bottom)
    */
   get isScrolling(): boolean {
+    const container = this.shadowRoot?.querySelector(".streams-container") as HTMLElement;
+    if (!container) return false;
+
     // No content scrollable
-    if (this.scrollHeight === this.clientHeight) return false;
+    if (container.scrollHeight === container.clientHeight) return false;
+
     // Check the relative scroll offset from the bottom with buffer for precision
     // Using 3 as buffer like the main feed (MIN_SCROLL_BUFFER)
-    return this.scrollHeight - this.scrollTop - this.clientHeight > 3;
+    return container.scrollHeight - container.scrollTop - container.clientHeight > 3;
   }
 
   /**
    * Scroll to the bottom of the streams panel
    */
   scrollToNow(): this {
-    try {
-      this.scrollTop = this.scrollHeight;
-    } catch (error) {
-      console.warn("Failed to scroll streams container:", error);
+    // Find the scrollable container
+    const container = this.shadowRoot?.querySelector(".streams-container") as HTMLElement;
+    if (container) {
+      try {
+        container.scrollTop = container.scrollHeight;
+        this._shouldAutoScroll = true;
+      } catch (error) {
+        console.warn("Failed to scroll streams container:", error);
+      }
     }
     return this;
   }
@@ -254,20 +273,41 @@ export class StreamsUI extends LitElement {
     this.dispatchEvent(new CustomEvent("clear"));
   }
 
-  render() {
-    if (this.entries.length === 0) {
-      return html`
-        <div class="streams-empty">Streams Panel</div>
-      `;
-    }
+  /**
+   * Enable auto-scroll and scroll to bottom
+   */
+  enableAutoScroll(): this {
+    this._shouldAutoScroll = true;
+    this.scrollToNow();
+    return this;
+  }
 
+  /**
+   * Handle scroll events to detect manual scrolling
+   */
+  private _handleVirtualScroll(e: Event) {
+    const target = e.target as HTMLElement;
+    if (!target) return;
+
+    const { scrollHeight, scrollTop, clientHeight } = target;
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 3;
+    this._shouldAutoScroll = isAtBottom;
+  }
+
+  render() {
     return html`
-      ${this.entries.map((entry) => {
-        // Use ComponentRenderer to render the stream tag's children (the actual content)
-        // Stream tags themselves are metadata containers, the displayable content is in their children
-        const renderResult = this._renderer.render(entry.streamTag.children);
-        return html`<div class="stream-entry ${entry.streamType}" data-stream-type="${entry.streamType}">${renderResult.content.map((template) => template)}</div>`;
-      })}
+      <div class="streams-container" @scroll=${this._handleVirtualScroll}>
+        ${
+          this.entries.length === 0
+            ? html`<div class="streams-empty">Streams Panel</div>`
+            : this.entries.map((entry) => {
+                // Use ComponentRenderer to render the stream tag's children (the actual content)
+                // Stream tags themselves are metadata containers, the displayable content is in their children
+                const renderResult = this._renderer.render(entry.streamTag.children);
+                return html`<div class="stream-entry ${entry.streamType}" data-stream-type="${entry.streamType}">${renderResult.content.map((template) => template)}</div>`;
+              })
+        }
+      </div>
     `;
   }
 }

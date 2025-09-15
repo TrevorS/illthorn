@@ -46,8 +46,11 @@ declare global {
     DevWindow: IDevWindowAPI;
     Illthorn: typeof Illthorn;
     ipcRenderer: {
+      // biome-ignore lint/suspicious/noExplicitAny: IPC channels require generic any types for dynamic data
       invoke: (channel: string, ...args: any[]) => Promise<any>;
+      // biome-ignore lint/suspicious/noExplicitAny: IPC channels require generic any types for dynamic data
       on: (channel: string, listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void) => void;
+      // biome-ignore lint/suspicious/noExplicitAny: IPC channels require generic any types for dynamic data
       removeListener: (channel: string, listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void) => void;
     };
   }

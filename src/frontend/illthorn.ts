@@ -319,7 +319,7 @@ class IIllthorn {
   /**
    * Get current stream filter status for display
    */
-  private getStreamFilterStatus(session: any): string {
+  private getStreamFilterStatus(session: FrontendSession | undefined): string {
     if (!session?.ui?.streams) {
       return "Stream filters: Not available";
     }

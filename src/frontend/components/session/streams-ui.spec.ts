@@ -76,10 +76,12 @@ describe("StreamsUI", () => {
       teardown(component);
     });
 
-    it("should apply scroll class on connection", () => {
+    it("should render streams container", async () => {
       const component = setup();
+      await component.updateComplete;
 
-      expect(component.classList.contains("scroll")).toBe(true);
+      const container = component.shadowRoot?.querySelector(".streams-container");
+      expect(container).toBeTruthy();
 
       teardown(component);
     });
