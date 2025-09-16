@@ -222,6 +222,29 @@ export class StreamsContainer extends LitElement {
     this._recentMessages.clear(); // Also clear deduplication cache
   };
 
+  /**
+   * Clear all stream entries
+   */
+  clearAllStreams(): void {
+    this._entries = [];
+    this._recentMessages.clear();
+  }
+
+  /**
+   * Clear entries for a specific stream type
+   */
+  clearStreamType(streamType: string): void {
+    if (!(StreamsContainer.STREAM_TYPES as readonly string[]).includes(streamType)) {
+      return; // Invalid stream type
+    }
+
+    // Remove entries for the specified stream type
+    this._entries = this._entries.filter((entry) => entry.streamType !== streamType);
+
+    // Clear deduplication cache for this stream type
+    this._recentMessages.delete(streamType);
+  }
+
   render() {
     return html`
       <illthorn-streams-ui 

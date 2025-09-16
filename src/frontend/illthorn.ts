@@ -88,6 +88,8 @@ class IIllthorn {
       "  :ui streams on/off - Toggle streams panel",
       "  :ui scrollback <size> - Set scrollback buffer (100-50000)",
       "  :clear or :cls - Clear game log (Ctrl+Shift+L)",
+      "  :stream clear - Clear all streams",
+      "  :stream clear <type> - Clear specific stream (thoughts, speech, logon, logoff, death)",
       "  :dev - Toggle dev window for raw game data",
       "  :dev clear - Clear dev window log buffer",
     ].join("\n");
@@ -140,6 +142,9 @@ class IIllthorn {
       case ":clear":
       case ":cls":
         return this.clearGameLog();
+      case ":stream clear":
+      case ":streams clear":
+        return this.clearAllStreams();
     }
 
     // Handle scrollback size commands
@@ -152,6 +157,15 @@ class IIllthorn {
         }
       }
       return this.showScrollbackUsage();
+    }
+
+    // Handle stream clear commands with specific types
+    if (command.startsWith(":stream clear ") || command.startsWith(":streams clear ")) {
+      const parts = command.split(" ");
+      if (parts.length === 3) {
+        const streamType = parts[2];
+        return this.clearStreamType(streamType);
+      }
     }
   }
 
@@ -220,6 +234,66 @@ class IIllthorn {
           timestamp: Date.now(),
         });
       }
+    }
+  }
+
+  /**
+   * Clear all streams in the current session
+   */
+  clearAllStreams() {
+    const currentSess = currentSession();
+    if (currentSess?.ui.streams?.clearAllStreams) {
+      currentSess.ui.streams.clearAllStreams();
+
+      if (currentSess.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: "All streams cleared",
+          timestamp: Date.now(),
+        });
+      }
+    } else {
+      if (currentSess?.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: "No active streams found",
+          timestamp: Date.now(),
+        });
+      }
+    }
+  }
+
+  /**
+   * Clear a specific stream type in the current session
+   */
+  clearStreamType(streamType: string) {
+    const currentSess = currentSession();
+    if (!currentSess?.ui.streams) {
+      if (currentSess?.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: "No active streams found",
+          timestamp: Date.now(),
+        });
+      }
+      return;
+    }
+
+    const availableTypes = currentSess.ui.streams.getAvailableStreamTypes();
+    if (!availableTypes.includes(streamType)) {
+      if (currentSess.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: `Invalid stream type: ${streamType}\nAvailable types: ${availableTypes.join(", ")}`,
+          timestamp: Date.now(),
+        });
+      }
+      return;
+    }
+
+    currentSess.ui.streams.clearStreamType(streamType);
+
+    if (currentSess.bus) {
+      currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+        message: `${streamType} stream cleared`,
+        timestamp: Date.now(),
+      });
     }
   }
 
