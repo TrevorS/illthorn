@@ -5,6 +5,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
 import type { Bus } from "../../../util/bus";
+import { SessionStateMixin } from "../../mixins/session-state-mixin";
 import "./vitals-ui.lit";
 import type { VitalsUI } from "./vitals-ui.lit";
 
@@ -15,7 +16,7 @@ interface VitalData {
 }
 
 @customElement("illthorn-vitals-container")
-export class VitalsContainer extends LitElement {
+export class VitalsContainer extends SessionStateMixin(LitElement) {
   static styles = css`
     :host {
       display: block;
@@ -48,12 +49,43 @@ export class VitalsContainer extends LitElement {
 
   private _eventHandlers: Array<{ event: string; handler: (event: CustomEvent<GameTag>) => void; bus: Bus }> = [];
 
+  protected getStateToStore(): Record<string, unknown> {
+    return {
+      health: this._health,
+      mana: this._mana,
+      stamina: this._stamina,
+      spirit: this._spirit,
+      mind: this._mind,
+      stance: this._stance,
+      encumbrance: this._encumbrance,
+    };
+  }
+
+  protected restoreState(state: Record<string, unknown>): void {
+    this._health = (state.health as VitalData) || { label: "health" };
+    this._mana = (state.mana as VitalData) || { label: "mana" };
+    this._stamina = (state.stamina as VitalData) || { label: "stamina" };
+    this._spirit = (state.spirit as VitalData) || { label: "spirit" };
+    this._mind = (state.mind as VitalData) || { label: "mind" };
+    this._stance = (state.stance as VitalData) || { label: "stance", value: "offensive", percent: 0 };
+    this._encumbrance = (state.encumbrance as VitalData) || { label: "encumbrance", value: "none", percent: 0 };
+  }
+
+  protected getStorageKeyPrefix(): string {
+    return "vitals";
+  }
+
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
 
     if (changedProperties.has("session")) {
       this._setupEventListeners();
     }
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    // Don't setup listeners here, wait for session to be available via updated()
   }
 
   disconnectedCallback() {
@@ -73,24 +105,28 @@ export class VitalsContainer extends LitElement {
     // Standard vitals
     const healthHandler = ({ detail: feedInfo }: CustomEvent<GameTag>) => {
       this._health = this.processStandardVital(feedInfo);
+      this.persistState();
     };
     bus.subscribeEvent<GameTag>("metadata/progressBar/health", healthHandler);
     this._eventHandlers.push({ event: "metadata/progressBar/health", handler: healthHandler, bus });
 
     const manaHandler = ({ detail: feedInfo }: CustomEvent<GameTag>) => {
       this._mana = this.processStandardVital(feedInfo);
+      this.persistState();
     };
     bus.subscribeEvent<GameTag>("metadata/progressBar/mana", manaHandler);
     this._eventHandlers.push({ event: "metadata/progressBar/mana", handler: manaHandler, bus });
 
     const staminaHandler = ({ detail: feedInfo }: CustomEvent<GameTag>) => {
       this._stamina = this.processStandardVital(feedInfo);
+      this.persistState();
     };
     bus.subscribeEvent<GameTag>("metadata/progressBar/stamina", staminaHandler);
     this._eventHandlers.push({ event: "metadata/progressBar/stamina", handler: staminaHandler, bus });
 
     const spiritHandler = ({ detail: feedInfo }: CustomEvent<GameTag>) => {
       this._spirit = this.processStandardVital(feedInfo);
+      this.persistState();
     };
     bus.subscribeEvent<GameTag>("metadata/progressBar/spirit", spiritHandler);
     this._eventHandlers.push({ event: "metadata/progressBar/spirit", handler: spiritHandler, bus });
@@ -103,6 +139,7 @@ export class VitalsContainer extends LitElement {
         percent: parseInt((attrs.value as string) || "0"),
         value: (attrs.text as string) || "",
       };
+      this.persistState();
     };
     bus.subscribeEvent<GameTag>("metadata/progressBar/mindState", mindHandler);
     this._eventHandlers.push({ event: "metadata/progressBar/mindState", handler: mindHandler, bus });
@@ -116,6 +153,7 @@ export class VitalsContainer extends LitElement {
         percent: 0, // Stance doesn't use percentage
         value: humanizedValue,
       };
+      this.persistState();
     };
     bus.subscribeEvent<GameTag>("metadata/progressBar/pbarStance", stanceHandler);
     this._eventHandlers.push({ event: "metadata/progressBar/pbarStance", handler: stanceHandler, bus });
@@ -128,6 +166,7 @@ export class VitalsContainer extends LitElement {
         percent: 0, // Encumbrance doesn't use percentage
         value: value.toLowerCase(),
       };
+      this.persistState();
     };
     bus.subscribeEvent<GameTag>("metadata/progressBar/encumlevel", encumbranceHandler);
     this._eventHandlers.push({ event: "metadata/progressBar/encumlevel", handler: encumbranceHandler, bus });

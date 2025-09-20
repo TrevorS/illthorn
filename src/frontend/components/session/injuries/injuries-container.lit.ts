@@ -6,6 +6,7 @@ import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
 import type { Bus } from "../../../util/bus";
 import { debugInjuries, safeStringify } from "../../../util/logger";
+import { SessionStateMixin } from "../../mixins/session-state-mixin";
 import "./injuries-ui.lit";
 import type { InjuriesUI } from "./injuries-ui.lit";
 
@@ -60,7 +61,7 @@ const DISPLAY_NAMES = new Map([
 ]);
 
 @customElement("illthorn-injuries-container")
-export class InjuriesContainer extends LitElement {
+export class InjuriesContainer extends SessionStateMixin(LitElement) {
   static styles = css`
     :host {
       display: block;
@@ -75,9 +76,28 @@ export class InjuriesContainer extends LitElement {
 
   private _eventHandlers: Array<{ event: string; handler: (event: CustomEvent<GameTag>) => void; bus: Bus }> = [];
 
+  protected getStateToStore(): Record<string, unknown> {
+    return {
+      injuries: this._injuries,
+    };
+  }
+
+  protected restoreState(state: Record<string, unknown>): void {
+    this._injuries = (state.injuries as Array<ProcessedInjury>) || [];
+  }
+
+  protected getStorageKeyPrefix(): string {
+    return "injuries";
+  }
+
   constructor() {
     super();
     debugInjuries("🎭 InjuriesContainer created");
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._setupEventListeners();
   }
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {
@@ -236,6 +256,7 @@ export class InjuriesContainer extends LitElement {
 
     // Reprocess all injuries
     this._injuries = this.processInjuries(rawInjuries);
+    this.persistState();
   }
 
   private processDialogData(dialogTag: GameTag) {
@@ -278,6 +299,7 @@ export class InjuriesContainer extends LitElement {
     if (rawInjuries.length > 0) {
       debugInjuries("🎯 Found %d injuries/scars: %s", rawInjuries.length, safeStringify(rawInjuries));
       this._injuries = this.processInjuries(rawInjuries);
+      this.persistState();
     } else {
       // If we only see healthy parts, clear injuries
       const hasHealthyPartsOnly = imageChildren.some((child) => child.attrs.name === child.attrs.id && child.attrs.id !== "healthSkin");
@@ -285,6 +307,7 @@ export class InjuriesContainer extends LitElement {
         // Only clear if we see multiple healthy parts (full body scan)
         debugInjuries("🟢 All parts healthy - clearing injuries");
         this._injuries = [];
+        this.persistState();
       }
     }
   }

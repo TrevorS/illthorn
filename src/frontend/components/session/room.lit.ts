@@ -4,9 +4,10 @@ import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { GameTag } from "../../parser/tag";
 import type { FrontendSession as Session } from "../../session/index";
+import { SessionStateMixin } from "../mixins/session-state-mixin";
 
 @customElement("illthorn-room-lit")
-export class Room extends LitElement {
+export class Room extends SessionStateMixin(LitElement) {
   static styles = css`
     :host {
       display: flex;
@@ -39,18 +40,45 @@ export class Room extends LitElement {
 
   private _eventListenerSetup = false;
 
+  protected getStateToStore(): Record<string, unknown> {
+    return {
+      roomId: this._roomId,
+      roomTitle: this._roomTitle,
+    };
+  }
+
+  protected restoreState(state: Record<string, unknown>): void {
+    this._roomId = (state.roomId as string) || "";
+    this._roomTitle = (state.roomTitle as string) || "";
+  }
+
+  protected getStorageKeyPrefix(): string {
+    return "room";
+  }
+
   connectedCallback() {
     super.connectedCallback();
+    // Setup listeners immediately if session is available
+    this._trySetupEventListeners();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._eventListenerSetup = false;
   }
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
 
     if (changedProperties.has("session")) {
-      if (this.session && !this._eventListenerSetup) {
-        this.setupEventListeners();
-        this._eventListenerSetup = true;
-      }
+      this._trySetupEventListeners();
+    }
+  }
+
+  private _trySetupEventListeners() {
+    if (this.session && !this._eventListenerSetup) {
+      this.setupEventListeners();
+      this._eventListenerSetup = true;
     }
   }
 
@@ -61,12 +89,14 @@ export class Room extends LitElement {
 
     this.session.bus.subscribeEvent<GameTag>("metadata/nav", ({ detail: nav }) => {
       this._roomId = (nav.attrs?.rm as string) || "";
+      this.persistState();
       this.requestUpdate();
     });
 
     this.session.bus.subscribeEvent<GameTag>("metadata/streamWindow/room", ({ detail: streamWindow }) => {
       const title = (streamWindow.attrs?.subtitle || "").toString();
       this._roomTitle = title.replace(/^-\s/, "");
+      this.persistState();
       this.requestUpdate();
     });
   }

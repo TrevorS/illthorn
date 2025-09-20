@@ -5,11 +5,12 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
 import { logEffectsEvent } from "../../../util/logger";
+import { SessionStateMixin } from "../../mixins/session-state-mixin";
 import "./effects-ui.lit";
 import type { SpellEffectData } from "./effects-ui.lit";
 
 @customElement("illthorn-effects-container")
-export class EffectsContainer extends LitElement {
+export class EffectsContainer extends SessionStateMixin(LitElement) {
   @property({ type: Object })
   session: Session | null = null;
 
@@ -20,6 +21,20 @@ export class EffectsContainer extends LitElement {
   private _spellEffects: Array<SpellEffectData> = [];
 
   private _eventListenerSetup = false;
+
+  protected getStateToStore(): Record<string, unknown> {
+    return {
+      spellEffects: this._spellEffects,
+    };
+  }
+
+  protected restoreState(state: Record<string, unknown>): void {
+    this._spellEffects = (state.spellEffects as Array<SpellEffectData>) || [];
+  }
+
+  protected getStorageKeyPrefix(): string {
+    return `effects-${this.name}`;
+  }
 
   constructor(session?: Session, name?: string) {
     super();
@@ -78,6 +93,7 @@ export class EffectsContainer extends LitElement {
     if (dialog.children.length === 0) {
       logEffectsEvent(this.constructor.name, `No children found in dialog for ${this.name} - clearing effects`);
       this._spellEffects = [];
+      this.persistState();
       return;
     }
 
@@ -99,6 +115,7 @@ export class EffectsContainer extends LitElement {
       logEffectsEvent(this.constructor.name, `Mapped progress bar to spell effect`, effectData);
       return effectData;
     });
+    this.persistState();
 
     logEffectsEvent(this.constructor.name, `Final spell effects count: ${this._spellEffects.length}`);
   }

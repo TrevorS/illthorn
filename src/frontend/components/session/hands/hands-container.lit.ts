@@ -5,10 +5,11 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession } from "../../../session/index";
 import type { Bus } from "../../../util/bus";
+import { SessionStateMixin } from "../../mixins/session-state-mixin";
 import "./hands-ui.lit";
 
 @customElement("illthorn-hands-container")
-export class HandsContainer extends LitElement {
+export class HandsContainer extends SessionStateMixin(LitElement) {
   static styles = css`
     :host {
       display: block;
@@ -28,6 +29,24 @@ export class HandsContainer extends LitElement {
   private _spellContent = "None";
 
   private _eventHandlers: Array<{ event: string; handler: (event: CustomEvent<GameTag>) => void; bus: Bus }> = [];
+
+  protected getStateToStore(): Record<string, unknown> {
+    return {
+      leftContent: this._leftContent,
+      rightContent: this._rightContent,
+      spellContent: this._spellContent,
+    };
+  }
+
+  protected restoreState(state: Record<string, unknown>): void {
+    this._leftContent = (state.leftContent as string) || "Empty";
+    this._rightContent = (state.rightContent as string) || "Empty";
+    this._spellContent = (state.spellContent as string) || "None";
+  }
+
+  protected getStorageKeyPrefix(): string {
+    return "hands";
+  }
 
   connectedCallback() {
     super.connectedCallback();
@@ -53,14 +72,17 @@ export class HandsContainer extends LitElement {
     // Create handlers
     const leftHandler = ({ detail: hand }: CustomEvent<GameTag>) => {
       this._leftContent = hand.children?.[0]?.text || "Empty";
+      this.persistState();
     };
 
     const rightHandler = ({ detail: hand }: CustomEvent<GameTag>) => {
       this._rightContent = hand.children?.[0]?.text || "Empty";
+      this.persistState();
     };
 
     const spellHandler = ({ detail: hand }: CustomEvent<GameTag>) => {
       this._spellContent = hand.children?.[0]?.text || "None";
+      this.persistState();
     };
 
     // Subscribe to events
