@@ -1,0 +1,10 @@
+[settings]
+enabled = true
+case_sensitive = false
+
+# Example pattern (delete this section)
+[[patterns]]
+name = "example"
+pattern = "\\btest\\b"
+color = "#ff0000"
+bold = true

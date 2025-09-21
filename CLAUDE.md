@@ -31,6 +31,7 @@ Environment variables can be configured as needed for development.
 - **Type Check**: `yarn typecheck` - Runs TypeScript compiler type checking
 - **Test**: `yarn test` - Runs Vitest test suite with verbose output
 - **Test with UI**: `yarn test:ui` - Runs Vitest with browser UI
+- **Test watch mode**: `yarn test:watch` - Runs tests in watch mode
 - **Test coverage**: `yarn test:coverage` - Generates coverage report
 - **Single test**: `yarn test test/components/session/injuries/injuries.lit.spec.ts` - Run specific test file
 
@@ -83,11 +84,16 @@ The backend uses a modular IPC (Inter-Process Communication) pattern:
 ## Development Notes
 
 ### Package Management
-- Uses Yarn 4.9.2 (specified in volta config: Node 22.11.0)  
+- Uses Yarn 4.9.2 (specified in volta config: Node 22.11.0)
 - Electron Forge with Vite plugin for build tooling and packaging
 - Vite for bundling with SCSS support
 - Biome for code formatting and linting (replaces ESLint/Prettier)
 - Storybook for component development and documentation
+
+### Build Configuration
+- **Electron Forge**: Configured in `forge.config.ts` with multiple makers (ZIP, DEB, RPM, Squirrel)
+- **Vite Configuration**: Separate configs for main process, preload, and renderer
+- **Multi-platform Support**: Builds for macOS, Windows, and Linux distributions
 
 ### Testing Setup
 - Vitest test framework with TypeScript support
@@ -161,6 +167,11 @@ Frontend commands prefixed with `:` (vim-style):
 - `:stream <name> <state>` - Toggle stream panels (thoughts, speech, logon, logoff, death)
 - `:hilite add <group> <pattern>` - Add highlight patterns with regex
 - `:hilite group <group> <property>=<value>` - Style highlight groups with CSS
+- `:hilite reload` - Reload highlight configuration
+- `:hilite remove <type> <text>` - Remove pattern or group (use `confirm` for groups with patterns)
+- `:rename <new name>` - Rename the currently focused session
+- `:swap <other name>` - Swap names between sessions if mixed up during connection
+- `:config` - Display current Illthorn configuration
 
 ### Lit Component Development Patterns
 
@@ -251,7 +262,7 @@ Node.js/TypeScript Electron project
 
 ### Last Updated
 
-2025-08-18
+2025-09-20
 
 ## Component Architecture Details
 

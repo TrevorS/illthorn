@@ -2,12 +2,14 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 import { contextBridge, ipcRenderer } from "electron";
 import * as AppAPI from "./backend/app/mainworld-api";
+import * as ConfigAPI from "./backend/config/mainworld-api";
 import { devWindowApi } from "./backend/dev-window/mainworld-api";
 import * as SessionAPI from "./backend/session/mainworld-api";
 import * as SettingsAPI from "./backend/settings/mainworld-api";
 
 contextBridge.exposeInMainWorld("Session", SessionAPI);
 contextBridge.exposeInMainWorld("App", AppAPI);
+contextBridge.exposeInMainWorld("Config", ConfigAPI);
 contextBridge.exposeInMainWorld("Settings", SettingsAPI);
 contextBridge.exposeInMainWorld("DevWindow", devWindowApi);
 

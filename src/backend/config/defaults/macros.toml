@@ -1,0 +1,7 @@
+[settings]
+enabled = true
+
+# Example macros (delete this section)
+[examples]
+"f1" = "look"
+"ctrl+1" = "stance offensive"
