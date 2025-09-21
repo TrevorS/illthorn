@@ -25,7 +25,6 @@ export default defineConfig({
         'electron-store',
         'debug',
         'keyboardjs',
-        'mark.js',
         'ws',
         // Add other Node.js built-ins and electron-specific modules
         ...Object.keys(require('./package.json').dependencies || {}),

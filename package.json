@@ -39,7 +39,6 @@
     "@types/debug": "^4.1.7",
     "@types/events": "^3",
     "@types/jsdom": "^21.1.7",
-    "@types/mark.js": "^8.11.8",
     "@types/node": "^24.1.0",
     "@types/path-browserify": "^1",
     "@types/semver": "^7",
@@ -69,7 +68,6 @@
     "electron-store": "^8.1.0",
     "keyboardjs": "^2.7.0",
     "lit": "^3.3.1",
-    "mark.js": "^8.11.1",
     "saxophone": "^0.8.0",
     "ws": "^8.12.1"
   },

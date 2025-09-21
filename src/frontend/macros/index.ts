@@ -7,29 +7,22 @@ import { debugMacros } from "../util/logger";
 
 type MacroProfile = Record<string, string>;
 
+// TEMP: Stub function for transition period - will be replaced with config-based loading in Phase 3
 export async function loadMacros(): Promise<MacroProfile> {
-  const loaded = await window.Settings.get<MacroProfile>("macros");
-  if (loaded) return loaded;
+  debugMacros("loadMacros: returning empty object (legacy Settings removed)");
   return {};
 }
 
+// TEMP: Stub function for transition period - will be replaced with config-based binding in Phase 3
 export async function bindUserMacros() {
-  const macros = await loadMacros();
-  Object.entries(macros).forEach(([keyCombo, command]) => {
-    debugMacros("bind -> %s -> %s", keyCombo, command);
-    keyboardjs.addListener(keyCombo.toLocaleLowerCase(), () => {
-      command.split(/\r/).forEach((line) => {
-        Illthorn.bus.dispatchEvent(IllthornEvent.MACRO, line);
-      });
-    });
-  });
+  debugMacros("bindUserMacros: no-op (legacy Settings removed)");
+  // No user macros loaded during transition
 }
 
+// TEMP: Stub function for transition period - will be replaced with config-based unbinding in Phase 3
 export async function unbindUserMacros() {
-  const macros = await loadMacros();
-  Object.entries(macros).forEach(([keyCombo, _command]) => {
-    keyboardjs.unbind(keyCombo);
-  });
+  debugMacros("unbindUserMacros: no-op (legacy Settings removed)");
+  // No user macros to unbind during transition
 }
 
 export async function bindMetaMacros() {

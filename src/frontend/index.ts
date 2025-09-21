@@ -8,7 +8,7 @@ import "./components/session/feed/command-echo.lit";
 // Shoelace Web Components integration
 import { setBasePath } from "@shoelace-style/shoelace/dist/utilities/base-path.js";
 import { ItemHighlighter } from "./components/game-elements/item-highlighting";
-import { reloadHilites } from "./hilites";
+import { reloadHilites } from "./hilites-stub";
 import { bindMacros } from "./macros";
 import { renderAllSessions } from "./session/connect-all";
 import "@shoelace-style/shoelace/dist/themes/dark.css";

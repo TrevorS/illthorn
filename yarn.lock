@@ -1715,15 +1715,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jquery@npm:*":
-  version: 3.5.32
-  resolution: "@types/jquery@npm:3.5.32"
-  dependencies:
-    "@types/sizzle": "npm:*"
-  checksum: 10c0/4a17ad6819b89026c21323656ab01b0b263f9d470910a87c8740920ff98319d503c7352b85b50134a39724ecbfccabc73aa4c741dfdd460cf8bbe714f9259054
-  languageName: node
-  linkType: hard
-
 "@types/jsdom@npm:^21.1.7":
   version: 21.1.7
   resolution: "@types/jsdom@npm:21.1.7"
@@ -1748,15 +1739,6 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10c0/ff8f54fc49621210291f815fe5b15d809fd7d032941b3180743440bd507ecdf08b9e844625fa346af568c84bf34114eb378dcdc3e921a08ba1e2a08d7e3c809c
-  languageName: node
-  linkType: hard
-
-"@types/mark.js@npm:^8.11.8":
-  version: 8.11.12
-  resolution: "@types/mark.js@npm:8.11.12"
-  dependencies:
-    "@types/jquery": "npm:*"
-  checksum: 10c0/dcbaa2d634da5c13745f24744c57102a25d9483acd2b75ce518bb38131b58d84ee16d20abd709338c4331fb975795333637d426919dabbc11c7ef811cfa766d6
   languageName: node
   linkType: hard
 
@@ -1805,13 +1787,6 @@ __metadata:
   version: 7.7.0
   resolution: "@types/semver@npm:7.7.0"
   checksum: 10c0/6b5f65f647474338abbd6ee91a6bbab434662ddb8fe39464edcbcfc96484d388baad9eb506dff217b6fc1727a88894930eb1f308617161ac0f376fe06be4e1ee
-  languageName: node
-  linkType: hard
-
-"@types/sizzle@npm:*":
-  version: 2.3.9
-  resolution: "@types/sizzle@npm:2.3.9"
-  checksum: 10c0/db0277ff62e8ebe6cdae2020fd045fd7fd19f29a3a2ce13c555b14fb00e105e79004883732118b9f2e8b943cb302645e9eddb4e7bdeef1a171da679cd4c32b72
   languageName: node
   linkType: hard
 
@@ -4248,7 +4223,6 @@ __metadata:
     "@types/events": "npm:^3"
     "@types/jsdom": "npm:^21.1.7"
     "@types/keyboardjs": "npm:^2.5.0"
-    "@types/mark.js": "npm:^8.11.8"
     "@types/node": "npm:^24.1.0"
     "@types/path-browserify": "npm:^1"
     "@types/semver": "npm:^7"
@@ -4262,7 +4236,6 @@ __metadata:
     jsdom: "npm:^26.1.0"
     keyboardjs: "npm:^2.7.0"
     lit: "npm:^3.3.1"
-    mark.js: "npm:^8.11.1"
     path-browserify: "npm:^1.0.1"
     sass: "npm:^1.58.3"
     saxophone: "npm:^0.8.0"
@@ -4891,13 +4864,6 @@ __metadata:
   dependencies:
     p-defer: "npm:^1.0.0"
   checksum: 10c0/7495236c7b0950956c144fd8b4bc6399d4e78072a8840a4232fe1c4faccbb5eb5d842e5c0a56a60afc36d723f315c1c672325ca03c1b328650f7fcc478f385fd
-  languageName: node
-  linkType: hard
-
-"mark.js@npm:^8.11.1":
-  version: 8.11.1
-  resolution: "mark.js@npm:8.11.1"
-  checksum: 10c0/5e69e776db61abdd857b5cbb7070c8a3b1b0e5c12bf077fcd5a8c6f17b1f85ed65275aba5662b57136d1b9f82b54bb34d4ef4220f7703c9a7ab806ae1e208cff
   languageName: node
   linkType: hard
 
