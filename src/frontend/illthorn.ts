@@ -184,6 +184,22 @@ class IIllthorn {
         return this.clearStreamType(streamType);
       }
     }
+
+    // Catch-all for unknown : commands
+    if (command.startsWith(":")) {
+      const baseCommand = command.split(" ")[0];
+      this.showError(`Unknown command: ${baseCommand}
+
+Available commands:
+  :hilite - Highlight configuration
+  :macro - Macro configuration
+  :config - Configuration management
+  :ui - User interface controls
+  :stream/:streams - Stream management
+  :c - Connect to session
+  :cls - Clear game log
+  :dq - Disconnect session`);
+    }
   }
 
   /**
@@ -433,17 +449,35 @@ class IIllthorn {
   }
 
   /**
+   * Helper method to show messages to the current session
+   */
+  private showMessage(message: string): void {
+    const currentSess = currentSession();
+    if (currentSess?.bus) {
+      currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+        message,
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  /**
+   * Helper method to show error messages to the current session
+   */
+  private showError(message: string): void {
+    this.showMessage(`⚠️ ${message}`);
+  }
+
+  /**
    * Handle :hilite commands
    */
   private async handleHighlightCommand(command: string): Promise<void> {
-    const currentSess = currentSession();
     const parts = command.split(" ");
     const subCommand = parts[1];
 
     if (!subCommand) {
       // Show available hilite commands
-      if (currentSess?.bus) {
-        const helpMessage = `Available :hilite commands:
+      const helpMessage = `Available :hilite commands:
 :hilite reload - Reload highlights from config
 :hilite list - Show loaded patterns
 :hilite test <pattern> <text> - Test pattern against text
@@ -451,11 +485,7 @@ class IIllthorn {
 :hilite on - Enable highlights
 :hilite off - Disable highlights`;
 
-        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-          message: helpMessage,
-          timestamp: Date.now(),
-        });
-      }
+      this.showMessage(helpMessage);
       return;
     }
 
@@ -463,43 +493,23 @@ class IIllthorn {
       switch (subCommand) {
         case "reload":
           await highlightManager.reload();
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: "Highlights reloaded from config",
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage("Highlights reloaded from config");
           break;
 
         case "list": {
           const allPatterns = highlightManager.getAllPatterns();
           if (allPatterns.length === 0) {
-            if (currentSess?.bus) {
-              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-                message: "No highlight patterns loaded",
-                timestamp: Date.now(),
-              });
-            }
+            this.showMessage("No highlight patterns loaded");
           } else {
             const listMessage = `Loaded highlight patterns (${allPatterns.length}):\n${allPatterns.map((p, i) => `  ${i + 1}. ${p.name}: /${p.pattern}/`).join("\n")}`;
-            if (currentSess?.bus) {
-              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-                message: listMessage,
-                timestamp: Date.now(),
-              });
-            }
+            this.showMessage(listMessage);
           }
           break;
         }
 
         case "test": {
           if (parts.length < 4) {
-            if (currentSess?.bus) {
-              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-                message: "Usage: :hilite test <pattern> <text>",
-                timestamp: Date.now(),
-              });
-            }
+            this.showMessage("Usage: :hilite test <pattern> <text>");
             return;
           }
           // Remove surrounding quotes if present
@@ -509,60 +519,30 @@ class IIllthorn {
             .join(" ")
             .replace(/^["'](.*)["']$/, "$1");
           const testResult = highlightManager.testPattern(pattern, testText);
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: `Pattern test result: ${testResult.length > 0 ? "MATCH" : "NO MATCH"}`,
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage(`Pattern test result: ${testResult.length > 0 ? "MATCH" : "NO MATCH"}`);
           break;
         }
 
         case "edit":
           await window.Config.openInEditor("highlights.toml");
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: "Opening highlights.toml in editor",
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage("Opening highlights.toml in editor");
           break;
 
         case "on":
           await highlightManager.setEnabled(true);
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: "Highlights enabled",
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage("Highlights enabled");
           break;
 
         case "off":
           await highlightManager.setEnabled(false);
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: "Highlights disabled",
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage("Highlights disabled");
           break;
 
         default:
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: `Unknown hilite command: ${subCommand}\nTry :hilite for help`,
-              timestamp: Date.now(),
-            });
-          }
+          this.showError(`Unknown hilite command: ${subCommand}\nTry :hilite for help`);
       }
     } catch (error) {
-      if (currentSess?.bus) {
-        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-          message: `Highlight command failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-          timestamp: Date.now(),
-        });
-      }
+      this.showError(`Highlight command failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
@@ -570,14 +550,12 @@ class IIllthorn {
    * Handle :macro commands
    */
   private async handleMacroCommand(command: string): Promise<void> {
-    const currentSess = currentSession();
     const parts = command.split(" ");
     const subCommand = parts[1];
 
     if (!subCommand) {
       // Show available macro commands
-      if (currentSess?.bus) {
-        const helpMessage = `Available :macro commands:
+      const helpMessage = `Available :macro commands:
 :macro reload - Reload macros from config
 :macro list - Show bound macros by category
 :macro edit - Open macros.toml in editor
@@ -585,11 +563,7 @@ class IIllthorn {
 :macro off - Disable macros
 :macro test <key> - Show what a key binding would execute`;
 
-        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-          message: helpMessage,
-          timestamp: Date.now(),
-        });
-      }
+      this.showMessage(helpMessage);
       return;
     }
 
@@ -597,23 +571,13 @@ class IIllthorn {
       switch (subCommand) {
         case "reload":
           await macroManager.reload();
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: "Macros reloaded from config",
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage("Macros reloaded from config");
           break;
 
         case "list": {
           const bindings = macroManager.getBindings();
           if (bindings.length === 0) {
-            if (currentSess?.bus) {
-              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-                message: "No macro bindings loaded",
-                timestamp: Date.now(),
-              });
-            }
+            this.showMessage("No macro bindings loaded");
           } else {
             // Group bindings by category
             const categorizedBindings = bindings.reduce(
@@ -635,91 +599,46 @@ class IIllthorn {
               });
             });
 
-            if (currentSess?.bus) {
-              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-                message: listMessage.trim(),
-                timestamp: Date.now(),
-              });
-            }
+            this.showMessage(listMessage.trim());
           }
           break;
         }
 
         case "edit":
           await window.Config.openInEditor("macros.toml");
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: "Opening macros.toml in editor",
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage("Opening macros.toml in editor");
           break;
 
         case "on":
           await macroManager.setEnabled(true);
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: "Macros enabled",
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage("Macros enabled");
           break;
 
         case "off":
           await macroManager.setEnabled(false);
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: "Macros disabled",
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage("Macros disabled");
           break;
 
         case "test": {
           if (parts.length < 3) {
-            if (currentSess?.bus) {
-              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-                message: "Usage: :macro test <key>",
-                timestamp: Date.now(),
-              });
-            }
+            this.showMessage("Usage: :macro test <key>");
             return;
           }
           const key = parts[2];
           const binding = macroManager.getBindings().find((b) => b.key === key);
           if (binding) {
-            if (currentSess?.bus) {
-              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-                message: `Key binding: ${key} → ${binding.command}`,
-                timestamp: Date.now(),
-              });
-            }
+            this.showMessage(`Key binding: ${key} → ${binding.command}`);
           } else {
-            if (currentSess?.bus) {
-              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-                message: `No binding found for key: ${key}`,
-                timestamp: Date.now(),
-              });
-            }
+            this.showMessage(`No binding found for key: ${key}`);
           }
           break;
         }
 
         default:
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: `Unknown macro command: ${subCommand}\nTry :macro for help`,
-              timestamp: Date.now(),
-            });
-          }
+          this.showError(`Unknown macro command: ${subCommand}\nTry :macro for help`);
       }
     } catch (error) {
-      if (currentSess?.bus) {
-        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-          message: `Macro command failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-          timestamp: Date.now(),
-        });
-      }
+      this.showError(`Macro command failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
@@ -727,7 +646,6 @@ class IIllthorn {
    * Handle :config commands
    */
   private async handleConfigCommand(command: string): Promise<void> {
-    const currentSess = currentSession();
     const parts = command.split(" ");
     const subCommand = parts[1];
 
@@ -735,19 +653,11 @@ class IIllthorn {
       // Show config directory path and status
       try {
         const configPath = await window.Config.getConfigPath();
-        if (currentSess?.bus) {
-          currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-            message: `Config directory: ${configPath}\n\nAvailable :config commands:\n:config open - Open config directory\n:config reload - Reload all configurations\n:config edit <file> - Open specific config file`,
-            timestamp: Date.now(),
-          });
-        }
+        this.showMessage(
+          `Config directory: ${configPath}\n\nAvailable :config commands:\n:config open - Open config directory\n:config reload - Reload all configurations\n:config edit <file> - Open specific config file`,
+        );
       } catch (error) {
-        if (currentSess?.bus) {
-          currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-            message: `Failed to get config path: ${error instanceof Error ? error.message : "Unknown error"}`,
-            timestamp: Date.now(),
-          });
-        }
+        this.showError(`Failed to get config path: ${error instanceof Error ? error.message : "Unknown error"}`);
       }
       return;
     }
@@ -756,70 +666,35 @@ class IIllthorn {
       switch (subCommand) {
         case "open":
           await window.Config.openConfigDir();
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: "Config directory opened in file explorer",
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage("Config directory opened in file explorer");
           break;
 
         case "reload":
           await highlightManager.reload();
           await macroManager.reload();
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: "All configurations reloaded",
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage("All configurations reloaded");
           break;
 
         case "edit": {
           if (parts.length < 3) {
-            if (currentSess?.bus) {
-              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-                message: "Usage: :config edit <file>\nAvailable files: highlights.toml, macros.toml",
-                timestamp: Date.now(),
-              });
-            }
+            this.showMessage("Usage: :config edit <file>\nAvailable files: highlights.toml, macros.toml");
             return;
           }
           const filename = parts[2];
           if (!filename.endsWith(".toml")) {
-            if (currentSess?.bus) {
-              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-                message: "Only .toml files can be edited",
-                timestamp: Date.now(),
-              });
-            }
+            this.showError("Only .toml files can be edited");
             return;
           }
           await window.Config.openInEditor(filename);
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: `Opening ${filename} in editor`,
-              timestamp: Date.now(),
-            });
-          }
+          this.showMessage(`Opening ${filename} in editor`);
           break;
         }
 
         default:
-          if (currentSess?.bus) {
-            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-              message: `Unknown config command: ${subCommand}\nTry :config for help`,
-              timestamp: Date.now(),
-            });
-          }
+          this.showError(`Unknown config command: ${subCommand}\nTry :config for help`);
       }
     } catch (error) {
-      if (currentSess?.bus) {
-        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-          message: `Config command failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-          timestamp: Date.now(),
-        });
-      }
+      this.showError(`Config command failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 }
