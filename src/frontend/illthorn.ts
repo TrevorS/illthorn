@@ -1,4 +1,6 @@
 import { IllthornEvent } from "./events";
+import { highlightManager } from "./highlights";
+import { macroManager } from "./macros";
 import type { FrontendSession } from "./session";
 import { renderAllSessions } from "./session/connect-all";
 import { currentSession, endSession } from "./session/helpers";
@@ -145,6 +147,21 @@ class IIllthorn {
       case ":stream clear":
       case ":streams clear":
         return this.clearAllStreams();
+    }
+
+    // Handle hilite commands
+    if (command.startsWith(":hilite ") || command === ":hilite") {
+      return this.handleHighlightCommand(command);
+    }
+
+    // Handle macro commands
+    if (command.startsWith(":macro ") || command === ":macro") {
+      return this.handleMacroCommand(command);
+    }
+
+    // Handle config commands
+    if (command.startsWith(":config ") || command === ":config") {
+      return this.handleConfigCommand(command);
     }
 
     // Handle scrollback size commands
@@ -413,6 +430,397 @@ class IIllthorn {
     }
 
     return status || "All stream types enabled";
+  }
+
+  /**
+   * Handle :hilite commands
+   */
+  private async handleHighlightCommand(command: string): Promise<void> {
+    const currentSess = currentSession();
+    const parts = command.split(" ");
+    const subCommand = parts[1];
+
+    if (!subCommand) {
+      // Show available hilite commands
+      if (currentSess?.bus) {
+        const helpMessage = `Available :hilite commands:
+:hilite reload - Reload highlights from config
+:hilite list - Show loaded patterns
+:hilite test <pattern> <text> - Test pattern against text
+:hilite edit - Open highlights.toml in editor
+:hilite on - Enable highlights
+:hilite off - Disable highlights`;
+
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: helpMessage,
+          timestamp: Date.now(),
+        });
+      }
+      return;
+    }
+
+    try {
+      switch (subCommand) {
+        case "reload":
+          await highlightManager.reload();
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: "Highlights reloaded from config",
+              timestamp: Date.now(),
+            });
+          }
+          break;
+
+        case "list": {
+          const allPatterns = highlightManager.getAllPatterns();
+          if (allPatterns.length === 0) {
+            if (currentSess?.bus) {
+              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+                message: "No highlight patterns loaded",
+                timestamp: Date.now(),
+              });
+            }
+          } else {
+            const listMessage = `Loaded highlight patterns (${allPatterns.length}):\n${allPatterns.map((p, i) => `  ${i + 1}. ${p.name}: /${p.pattern}/`).join("\n")}`;
+            if (currentSess?.bus) {
+              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+                message: listMessage,
+                timestamp: Date.now(),
+              });
+            }
+          }
+          break;
+        }
+
+        case "test": {
+          if (parts.length < 4) {
+            if (currentSess?.bus) {
+              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+                message: "Usage: :hilite test <pattern> <text>",
+                timestamp: Date.now(),
+              });
+            }
+            return;
+          }
+          // Remove surrounding quotes if present
+          const pattern = parts[2].replace(/^["'](.*)["']$/, "$1");
+          const testText = parts
+            .slice(3)
+            .join(" ")
+            .replace(/^["'](.*)["']$/, "$1");
+          const testResult = highlightManager.testPattern(pattern, testText);
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: `Pattern test result: ${testResult.length > 0 ? "MATCH" : "NO MATCH"}`,
+              timestamp: Date.now(),
+            });
+          }
+          break;
+        }
+
+        case "edit":
+          await window.Config.openInEditor("highlights.toml");
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: "Opening highlights.toml in editor",
+              timestamp: Date.now(),
+            });
+          }
+          break;
+
+        case "on":
+          await highlightManager.setEnabled(true);
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: "Highlights enabled",
+              timestamp: Date.now(),
+            });
+          }
+          break;
+
+        case "off":
+          await highlightManager.setEnabled(false);
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: "Highlights disabled",
+              timestamp: Date.now(),
+            });
+          }
+          break;
+
+        default:
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: `Unknown hilite command: ${subCommand}\nTry :hilite for help`,
+              timestamp: Date.now(),
+            });
+          }
+      }
+    } catch (error) {
+      if (currentSess?.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: `Highlight command failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+          timestamp: Date.now(),
+        });
+      }
+    }
+  }
+
+  /**
+   * Handle :macro commands
+   */
+  private async handleMacroCommand(command: string): Promise<void> {
+    const currentSess = currentSession();
+    const parts = command.split(" ");
+    const subCommand = parts[1];
+
+    if (!subCommand) {
+      // Show available macro commands
+      if (currentSess?.bus) {
+        const helpMessage = `Available :macro commands:
+:macro reload - Reload macros from config
+:macro list - Show bound macros by category
+:macro edit - Open macros.toml in editor
+:macro on - Enable macros
+:macro off - Disable macros
+:macro test <key> - Show what a key binding would execute`;
+
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: helpMessage,
+          timestamp: Date.now(),
+        });
+      }
+      return;
+    }
+
+    try {
+      switch (subCommand) {
+        case "reload":
+          await macroManager.reload();
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: "Macros reloaded from config",
+              timestamp: Date.now(),
+            });
+          }
+          break;
+
+        case "list": {
+          const bindings = macroManager.getBindings();
+          if (bindings.length === 0) {
+            if (currentSess?.bus) {
+              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+                message: "No macro bindings loaded",
+                timestamp: Date.now(),
+              });
+            }
+          } else {
+            // Group bindings by category
+            const categorizedBindings = bindings.reduce(
+              (acc, binding) => {
+                if (!acc[binding.category]) {
+                  acc[binding.category] = [];
+                }
+                acc[binding.category].push(binding);
+                return acc;
+              },
+              {} as Record<string, typeof bindings>,
+            );
+
+            let listMessage = `Loaded macros:\n`;
+            Object.entries(categorizedBindings).forEach(([category, categoryBindings]) => {
+              listMessage += `  [${category}]\n`;
+              categoryBindings.forEach((binding) => {
+                listMessage += `    ${binding.key} → ${binding.command}\n`;
+              });
+            });
+
+            if (currentSess?.bus) {
+              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+                message: listMessage.trim(),
+                timestamp: Date.now(),
+              });
+            }
+          }
+          break;
+        }
+
+        case "edit":
+          await window.Config.openInEditor("macros.toml");
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: "Opening macros.toml in editor",
+              timestamp: Date.now(),
+            });
+          }
+          break;
+
+        case "on":
+          await macroManager.setEnabled(true);
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: "Macros enabled",
+              timestamp: Date.now(),
+            });
+          }
+          break;
+
+        case "off":
+          await macroManager.setEnabled(false);
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: "Macros disabled",
+              timestamp: Date.now(),
+            });
+          }
+          break;
+
+        case "test": {
+          if (parts.length < 3) {
+            if (currentSess?.bus) {
+              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+                message: "Usage: :macro test <key>",
+                timestamp: Date.now(),
+              });
+            }
+            return;
+          }
+          const key = parts[2];
+          const binding = macroManager.getBindings().find((b) => b.key === key);
+          if (binding) {
+            if (currentSess?.bus) {
+              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+                message: `Key binding: ${key} → ${binding.command}`,
+                timestamp: Date.now(),
+              });
+            }
+          } else {
+            if (currentSess?.bus) {
+              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+                message: `No binding found for key: ${key}`,
+                timestamp: Date.now(),
+              });
+            }
+          }
+          break;
+        }
+
+        default:
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: `Unknown macro command: ${subCommand}\nTry :macro for help`,
+              timestamp: Date.now(),
+            });
+          }
+      }
+    } catch (error) {
+      if (currentSess?.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: `Macro command failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+          timestamp: Date.now(),
+        });
+      }
+    }
+  }
+
+  /**
+   * Handle :config commands
+   */
+  private async handleConfigCommand(command: string): Promise<void> {
+    const currentSess = currentSession();
+    const parts = command.split(" ");
+    const subCommand = parts[1];
+
+    if (!subCommand) {
+      // Show config directory path and status
+      try {
+        const configPath = await window.Config.getConfigPath();
+        if (currentSess?.bus) {
+          currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+            message: `Config directory: ${configPath}\n\nAvailable :config commands:\n:config open - Open config directory\n:config reload - Reload all configurations\n:config edit <file> - Open specific config file`,
+            timestamp: Date.now(),
+          });
+        }
+      } catch (error) {
+        if (currentSess?.bus) {
+          currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+            message: `Failed to get config path: ${error instanceof Error ? error.message : "Unknown error"}`,
+            timestamp: Date.now(),
+          });
+        }
+      }
+      return;
+    }
+
+    try {
+      switch (subCommand) {
+        case "open":
+          await window.Config.openConfigDir();
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: "Config directory opened in file explorer",
+              timestamp: Date.now(),
+            });
+          }
+          break;
+
+        case "reload":
+          await highlightManager.reload();
+          await macroManager.reload();
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: "All configurations reloaded",
+              timestamp: Date.now(),
+            });
+          }
+          break;
+
+        case "edit": {
+          if (parts.length < 3) {
+            if (currentSess?.bus) {
+              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+                message: "Usage: :config edit <file>\nAvailable files: highlights.toml, macros.toml",
+                timestamp: Date.now(),
+              });
+            }
+            return;
+          }
+          const filename = parts[2];
+          if (!filename.endsWith(".toml")) {
+            if (currentSess?.bus) {
+              currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+                message: "Only .toml files can be edited",
+                timestamp: Date.now(),
+              });
+            }
+            return;
+          }
+          await window.Config.openInEditor(filename);
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: `Opening ${filename} in editor`,
+              timestamp: Date.now(),
+            });
+          }
+          break;
+        }
+
+        default:
+          if (currentSess?.bus) {
+            currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+              message: `Unknown config command: ${subCommand}\nTry :config for help`,
+              timestamp: Date.now(),
+            });
+          }
+      }
+    } catch (error) {
+      if (currentSess?.bus) {
+        currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
+          message: `Config command failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+          timestamp: Date.now(),
+        });
+      }
+    }
   }
 }
 

@@ -1,7 +1,7 @@
 // ABOUTME: Test suite for CommandEchoLit component verifying Shoelace integration and interactive features
 // ABOUTME: Tests command display, copy functionality, timestamp formatting, and accessibility
 
-import type SlTag from "@shoelace-style/shoelace/dist/components/tag/tag.component.js";
+import type SlBadge from "@shoelace-style/shoelace/dist/components/badge/badge.component.js";
 import type SlTooltip from "@shoelace-style/shoelace/dist/components/tooltip/tooltip.component.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CommandEchoLit } from "../../../../src/frontend/components/session/feed/command-echo.lit";
@@ -77,6 +77,12 @@ describe("CommandEchoLit", () => {
       component = setup({ timestamp });
       expect(component.timestamp).toBe(timestamp);
     });
+
+    it("should accept prompt property", () => {
+      component = setup();
+      component.prompt = "s>";
+      expect(component.prompt).toBe("s>");
+    });
   });
 
   describe("Regular Command Display", () => {
@@ -85,12 +91,12 @@ describe("CommandEchoLit", () => {
       await component.updateComplete;
     });
 
-    it("should display regular command with proper tag", async () => {
-      const tag = component.shadowRoot?.querySelector("sl-tag") as SlTag;
-      expect(tag).toBeDefined();
-      expect(tag.variant).toBe("neutral");
-      expect(tag.size).toBe("small");
-      expect(tag.textContent?.trim()).toBe(">");
+    it("should display regular command with proper badge", async () => {
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge).toBeDefined();
+      expect(badge.variant).toBe("neutral");
+      expect(badge.pill).toBe(true);
+      expect(badge.textContent?.trim()).toBe(">");
     });
 
     it("should not have is-replay attribute", () => {
@@ -115,11 +121,11 @@ describe("CommandEchoLit", () => {
       await component.updateComplete;
     });
 
-    it("should display replay command with proper tag", () => {
-      const tag = component.shadowRoot?.querySelector("sl-tag") as SlTag;
-      expect(tag).toBeDefined();
-      expect(tag.variant).toBe("primary");
-      expect(tag.textContent?.trim()).toBe("Replay");
+    it("should display replay command with proper badge", () => {
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge).toBeDefined();
+      expect(badge.variant).toBe("primary");
+      expect(badge.textContent?.trim()).toBe("Replay");
     });
 
     it("should have is-replay attribute", () => {
@@ -258,18 +264,18 @@ describe("CommandEchoLit", () => {
       component = setup({ command: "[go2]&gt;east", isReplay: false });
       await component.updateComplete;
 
-      const tag = component.shadowRoot?.querySelector("sl-tag") as SlTag;
-      expect(tag.variant).toBe("warning");
-      expect(tag.textContent?.trim()).toBe("Script");
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.variant).toBe("warning");
+      expect(badge.textContent?.trim()).toBe("Lich");
     });
 
     it("should detect Lich script format with decoded entities", async () => {
       component = setup({ command: "[combat]>attack", isReplay: false });
       await component.updateComplete;
 
-      const tag = component.shadowRoot?.querySelector("sl-tag") as SlTag;
-      expect(tag.variant).toBe("warning");
-      expect(tag.textContent?.trim()).toBe("Script");
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.variant).toBe("warning");
+      expect(badge.textContent?.trim()).toBe("Lich");
     });
 
     it("should show decoded command text for Lich scripts", async () => {
@@ -284,18 +290,100 @@ describe("CommandEchoLit", () => {
       component = setup({ command: "wield sword", isReplay: false });
       await component.updateComplete;
 
-      const tag = component.shadowRoot?.querySelector("sl-tag") as SlTag;
-      expect(tag.variant).toBe("neutral");
-      expect(tag.textContent?.trim()).toBe(">");
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.variant).toBe("neutral");
+      expect(badge.textContent?.trim()).toBe(">");
     });
 
     it("should prioritize replay over script detection", async () => {
       component = setup({ command: "[go2]&gt;north", isReplay: true });
       await component.updateComplete;
 
-      const tag = component.shadowRoot?.querySelector("sl-tag") as SlTag;
-      expect(tag.variant).toBe("primary");
-      expect(tag.textContent?.trim()).toBe("Replay");
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.variant).toBe("primary");
+      expect(badge.textContent?.trim()).toBe("Replay");
+    });
+
+    it("should detect manual Lich commands starting with semicolon", async () => {
+      component = setup({ command: ";go2", isReplay: false });
+      await component.updateComplete;
+
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.variant).toBe("warning");
+      expect(badge.textContent?.trim()).toBe("Lich");
+    });
+
+    it("should detect complex manual Lich commands", async () => {
+      component = setup({ command: ";ecaster", isReplay: false });
+      await component.updateComplete;
+
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.variant).toBe("warning");
+      expect(badge.textContent?.trim()).toBe("Lich");
+    });
+
+    it("should show full command text for semicolon Lich commands", async () => {
+      component = setup({ command: ";go2 bank", isReplay: false });
+      await component.updateComplete;
+
+      const commandText = component.shadowRoot?.querySelector(".command-text");
+      expect(commandText?.textContent?.trim()).toBe(";go2 bank");
+    });
+  });
+
+  describe("Prompt Display", () => {
+    it("should display default prompt when no prompt provided", async () => {
+      component = setup({ command: "look", isReplay: false });
+      await component.updateComplete;
+
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.textContent?.trim()).toBe(">");
+    });
+
+    it("should display custom prompt when provided", async () => {
+      component = setup({ command: "north", isReplay: false });
+      component.prompt = "s>";
+      await component.updateComplete;
+
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.textContent?.trim()).toBe("s>");
+    });
+
+    it("should display complex prompt with entity decoding", async () => {
+      component = setup({ command: "east", isReplay: false });
+      component.prompt = "P&gt;";
+      await component.updateComplete;
+
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.textContent?.trim()).toBe("P>");
+    });
+
+    it("should not display prompt for replay commands", async () => {
+      component = setup({ command: "cast", isReplay: true });
+      component.prompt = "s>";
+      await component.updateComplete;
+
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.textContent?.trim()).toBe("Replay");
+    });
+
+    it("should not display prompt for macro commands", async () => {
+      component = setup({ command: "stance off", isReplay: false });
+      component.isMacro = true;
+      component.prompt = "P>";
+      await component.updateComplete;
+
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.textContent?.trim()).toBe("Macro");
+    });
+
+    it("should not display prompt for Lich commands", async () => {
+      component = setup({ command: ";go2", isReplay: false });
+      component.prompt = "s>";
+      await component.updateComplete;
+
+      const badge = component.shadowRoot?.querySelector("sl-badge") as SlBadge;
+      expect(badge.textContent?.trim()).toBe("Lich");
     });
   });
 
@@ -345,11 +433,11 @@ describe("CommandEchoLit", () => {
       const container = component.shadowRoot?.querySelector(".command-container");
       expect(container).toBeDefined();
 
-      const tag = container?.querySelector("sl-tag");
+      const badge = container?.querySelector("sl-badge");
       const tooltip = container?.querySelector("sl-tooltip");
       const commandText = tooltip?.querySelector(".command-text");
 
-      expect(tag).toBeDefined();
+      expect(badge).toBeDefined();
       expect(tooltip).toBeDefined();
       expect(commandText).toBeDefined();
     });

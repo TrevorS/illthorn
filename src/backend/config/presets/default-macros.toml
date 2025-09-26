@@ -1,0 +1,80 @@
+# Default Macros Preset for Gemstone IV
+# Basic macros for common commands and actions
+
+[settings]
+enabled = true
+
+# Combat stances (Ctrl+Number keys)
+[combat]
+"ctrl+1" = "stance offensive"
+"ctrl+2" = "stance advance"
+"ctrl+3" = "stance forward"
+"ctrl+4" = "stance neutral"
+"ctrl+5" = "stance guarded"
+"ctrl+6" = "stance defensive"
+
+# Movement macros (Ctrl+Numpad)
+[movement]
+"ctrl+numpad8" = "north"
+"ctrl+numpad2" = "south"
+"ctrl+numpad4" = "west"
+"ctrl+numpad6" = "east"
+"ctrl+numpad7" = "northwest"
+"ctrl+numpad9" = "northeast"
+"ctrl+numpad1" = "southwest"
+"ctrl+numpad3" = "southeast"
+"ctrl+numpad5" = "look"
+
+# Quick actions (Function keys)
+[actions]
+"f1" = "look"
+"f2" = "inventory"
+"f3" = "health"
+"f4" = "mana"
+"f5" = "time"
+"f6" = "who"
+"f7" = "whisper"
+"f8" = "say"
+"f9" = "yell"
+"f10" = "think"
+"f11" = "prep"
+"f12" = "cast"
+
+# Combat commands (Alt+Number keys)
+[combat-actions]
+"alt+1" = "attack"
+"alt+2" = "guard"
+"alt+3" = "parry"
+"alt+4" = "dodge"
+"alt+5" = "block"
+"alt+6" = "feint"
+"alt+7" = "aim"
+"alt+8" = "ambush"
+"alt+9" = "hide"
+
+# Social commands (Shift+Function keys)
+[social]
+"shift+f1" = "bow"
+"shift+f2" = "curtsy"
+"shift+f3" = "wave"
+"shift+f4" = "nod"
+"shift+f5" = "smile"
+"shift+f6" = "laugh"
+"shift+f7" = "dance"
+"shift+f8" = "cheer"
+"shift+f9" = "applaud"
+
+# Utility commands
+[utility]
+"ctrl+r" = "rest"
+"ctrl+s" = "stand"
+"ctrl+h" = "health"
+"ctrl+m" = "mana"
+"ctrl+l" = "look"
+"ctrl+i" = "inventory"
+"ctrl+w" = "who"
+"ctrl+t" = "time"
+
+# Multi-line macro example for complex actions
+[complex]
+"ctrl+shift+h" = "prep heal\ncast self\nprep heal\ncast self"

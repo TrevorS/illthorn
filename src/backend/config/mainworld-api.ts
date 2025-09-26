@@ -1,6 +1,6 @@
 // ABOUTME: Frontend-accessible API for config operations via IPC
 import { ipcRenderer as IPC } from "electron";
-import { ConfigMethods, type HighlightConfig, type MacroConfig } from "./methods";
+import { type ConfigFileChangeEvent, ConfigMethods, type HighlightConfig, type MacroConfig } from "./methods";
 
 export async function getConfigPath(): Promise<string> {
   return await IPC.invoke(ConfigMethods.GetPath);
@@ -28,4 +28,22 @@ export async function openInEditor(filename: string): Promise<void> {
 
 export async function openConfigDir(): Promise<void> {
   return await IPC.invoke(ConfigMethods.OpenConfigDir);
+}
+
+export async function startWatcher(): Promise<{ success: boolean }> {
+  return await IPC.invoke(ConfigMethods.StartWatcher);
+}
+
+export async function stopWatcher(): Promise<{ success: boolean }> {
+  return await IPC.invoke(ConfigMethods.StopWatcher);
+}
+
+export function onFileChange(listener: (event: ConfigFileChangeEvent) => void): void {
+  IPC.on("config:file-changed", (_event, fileChangeEvent: ConfigFileChangeEvent) => {
+    listener(fileChangeEvent);
+  });
+}
+
+export function removeAllFileChangeListeners(): void {
+  IPC.removeAllListeners("config:file-changed");
 }

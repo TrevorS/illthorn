@@ -25,6 +25,11 @@ export interface MacroConfig {
   [category: string]: Record<string, string> | { enabled: boolean };
 }
 
+export interface ConfigFileChangeEvent {
+  filename: string;
+  changeType: "change" | "rename";
+}
+
 // Extend global window interface to include Config API
 declare global {
   interface Window {
@@ -36,6 +41,10 @@ declare global {
       saveMacros(config: MacroConfig): Promise<void>;
       openInEditor(filename: string): Promise<void>;
       openConfigDir(): Promise<void>;
+      startWatcher(): Promise<{ success: boolean }>;
+      stopWatcher(): Promise<{ success: boolean }>;
+      onFileChange(listener: (event: ConfigFileChangeEvent) => void): void;
+      removeAllFileChangeListeners(): void;
     };
   }
 }

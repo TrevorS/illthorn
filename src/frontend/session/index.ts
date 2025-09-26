@@ -26,6 +26,7 @@ export class FrontendSession {
   readonly actionButton: SessionButton;
   private _ui?: SessionUI;
   private _messageBuffer: Array<string> = [];
+  private _currentPrompt: string = "";
 
   constructor(readonly config: Illthorn.Session.Config) {
     this.parser = new SaxophoneParser();
@@ -64,6 +65,10 @@ export class FrontendSession {
 
   get port() {
     return this.config.port;
+  }
+
+  get currentPrompt(): string {
+    return this._currentPrompt;
   }
 
   async sendCommand(command: string) {
@@ -119,6 +124,14 @@ export class FrontendSession {
         debugSession(`[${this.name}] Using direct prompt text: "${promptText}"`);
       }
       promptTag.text = promptText;
+
+      // Store current prompt for command echo system
+      if (promptText) {
+        // Decode HTML entities in prompt text
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = promptText;
+        this._currentPrompt = tempDiv.textContent || tempDiv.innerText || promptText;
+      }
 
       this.bus.dispatchEvent("prompt", promptTag);
     }

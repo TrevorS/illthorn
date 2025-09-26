@@ -1,0 +1,81 @@
+# Communication Highlights Preset for Gemstone IV
+# Highlights chat channels, player names, and communication patterns
+
+[settings]
+enabled = true
+case_sensitive = false
+
+# OOC channels
+[[patterns]]
+name = "ooc-chat"
+pattern = "\\b(OOC|\\[OOC\\]|\\(OOC\\))\\b"
+color = "#95a5a6"
+italic = true
+
+# Says and speech
+[[patterns]]
+name = "speech"
+pattern = "\\b(says?|asks?|exclaims?|whispers?|mutters?)\\b"
+color = "#3498db"
+
+# Guild and group channels
+[[patterns]]
+name = "guild-chat"
+pattern = "\\b(\\[Guild\\]|\\[Group\\]|\\[Party\\]|\\[Fellowship\\])\\b"
+color = "#e67e22"
+bold = true
+
+# System messages and game announcements
+[[patterns]]
+name = "system-messages"
+pattern = "\\b(SYSTEM|ANNOUNCE|GAME|SERVER|MAINTENANCE)\\b"
+color = "#e74c3c"
+bold = true
+background = "#2c3e50"
+
+# Player character names (common patterns)
+[[patterns]]
+name = "player-names"
+pattern = "\\b[A-Z][a-z]{2,}\\s+(says?|asks?|exclaims?|whispers?)"
+color = "#f39c12"
+
+# Thought channel
+[[patterns]]
+name = "thoughts"
+pattern = "\\b(thinks?|ponders?|\\[Thought\\])\\b"
+color = "#9b59b6"
+italic = true
+
+# ESP and mental communication
+[[patterns]]
+name = "esp"
+pattern = "\\b(ESP|mental|telepathic|mind|psychic)\\b"
+color = "#8e44ad"
+italic = true
+
+# Emotes and actions
+[[patterns]]
+name = "emotes"
+pattern = "\\b(emotes?|acts?|gestures?|nods?|smiles?|laughs?|grins?)\\b"
+color = "#1abc9c"
+
+# Death and ghost communication
+[[patterns]]
+name = "death-speech"
+pattern = "\\b(ghostly|spiritual|ethereal|spectral)\\b"
+color = "#34495e"
+italic = true
+
+# Merchant and trading chat
+[[patterns]]
+name = "trading"
+pattern = "\\b(WTB|WTS|TRADE|SELL|BUY|AUCTION|RAFFLE)\\b"
+color = "#f1c40f"
+bold = true
+
+# Help and newbie channels
+[[patterns]]
+name = "help-channels"
+pattern = "\\b(\\[Help\\]|\\[Newbie\\]|\\[Mentor\\])\\b"
+color = "#2ecc71"
+bold = true

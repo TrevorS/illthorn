@@ -33,18 +33,19 @@ vi.mock("../../../src/backend/logger", () => ({
 }));
 
 describe("Config IPC Handlers", () => {
-  let handlers: Record<string, Function>;
+  let handlers: Record<string, (...args: unknown[]) => unknown>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     handlers = {};
 
     // Capture the handlers that are registered
-    vi.mocked(ipcMain.handle).mockImplementation((channel: string, handler: Function) => {
+    vi.mocked(ipcMain.handle).mockImplementation((channel: string, handler: (...args: unknown[]) => unknown) => {
       handlers[channel] = handler;
     });
 
-    // Import the handlers to register them
+    // Clear module cache and import fresh
+    vi.resetModules();
     await import("../../../src/backend/config/ipc-handlers");
   });
 

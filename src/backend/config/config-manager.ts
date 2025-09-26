@@ -1,10 +1,10 @@
 // ABOUTME: Core configuration management - handles TOML loading/saving and cross-platform paths
 
+import { promises as fs } from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 import * as TOML from "@iarna/toml";
 import { shell } from "electron";
-import { promises as fs } from "fs";
-import * as os from "os";
-import * as path from "path";
 import { log } from "../logger";
 import type { HighlightConfig, MacroConfig } from "./methods";
 
@@ -133,10 +133,11 @@ export class ConfigManager {
     return {
       settings: {
         enabled: true,
+        echo_commands: true,
       },
       examples: {
-        f1: "look",
-        "ctrl+1": "stance offensive",
+        f1: "stance offensive",
+        f2: "stance defensive",
       },
     };
   }

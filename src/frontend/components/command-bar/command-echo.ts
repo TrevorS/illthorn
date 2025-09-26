@@ -8,6 +8,8 @@ import { debugCommands } from "../../util/logger";
 export interface CommandEchoEvent {
   command: string;
   isReplay: boolean;
+  isMacro?: boolean;
+  prompt?: string;
   timestamp: number;
 }
 
@@ -23,20 +25,27 @@ export class CommandEchoSystem {
    * Echo a regular command to the game feed
    */
   echoCommand(command: string): void {
-    this.dispatchEcho(command, false);
+    this.dispatchEcho(command, false, false);
   }
 
   /**
    * Echo a replayed command to the game feed
    */
   echoReplay(command: string): void {
-    this.dispatchEcho(command, true);
+    this.dispatchEcho(command, true, false);
+  }
+
+  /**
+   * Echo a macro command to the game feed
+   */
+  echoMacro(command: string): void {
+    this.dispatchEcho(command, false, true);
   }
 
   /**
    * Dispatch the echo event via session bus for feed component to handle
    */
-  private dispatchEcho(command: string, isReplay: boolean): void {
+  private dispatchEcho(command: string, isReplay: boolean, isMacro: boolean): void {
     if (!this.session?.bus) {
       debugCommands("CommandEchoSystem: No session bus available for command echo");
       return;
@@ -45,6 +54,8 @@ export class CommandEchoSystem {
     const event: CommandEchoEvent = {
       command,
       isReplay,
+      isMacro,
+      prompt: isReplay || isMacro ? undefined : this.session.currentPrompt,
       timestamp: Date.now(),
     };
 

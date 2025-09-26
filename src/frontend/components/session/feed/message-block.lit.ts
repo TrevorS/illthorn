@@ -3,6 +3,9 @@
 
 import { css, html, LitElement, nothing, type TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { IllthornEvent } from "../../../events";
+import { highlightManager } from "../../../highlights";
 import { ComponentRenderer, type RenderResult } from "../../../parser/component-renderer";
 import type { GameTag } from "../../../parser/tag";
 import type { ClientMessageEvent, CommandEchoEvent } from "../../command-bar/command-echo";
@@ -147,6 +150,191 @@ export class MessageBlock extends LitElement {
   `;
 
   private _renderer = new ComponentRenderer();
+  private _highlightReloadListener: ((event: CustomEvent) => void) | null = null;
+
+  connectedCallback() {
+    super.connectedCallback();
+
+    // Adopt the global highlight stylesheet into this Shadow DOM
+    this._adoptHighlightStyles();
+
+    // Subscribe to highlight reload events to update styles
+    this._highlightReloadListener = () => {
+      // Re-adopt styles when highlights are reloaded (styles may have changed)
+      this._adoptHighlightStyles();
+      // Note: Content re-rendering will happen automatically when config changes trigger updates
+    };
+
+    if (window.Illthorn?.bus) {
+      window.Illthorn.bus.subscribeEvent(IllthornEvent.HIGHLIGHTS_RELOADED, this._highlightReloadListener);
+    }
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+
+    // Unsubscribe from events
+    if (this._highlightReloadListener && window.Illthorn?.bus) {
+      window.Illthorn.bus._ele.removeEventListener(IllthornEvent.HIGHLIGHTS_RELOADED, this._highlightReloadListener as EventListener);
+    }
+  }
+
+  /**
+   * Adopt the global highlight stylesheet into this Shadow DOM
+   */
+  private _adoptHighlightStyles(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    try {
+      // Get the highlight stylesheet from the global document
+      // Check if adoptedStyleSheets is available (not available in JSDOM test environment)
+      if (!document.adoptedStyleSheets) {
+        return;
+      }
+
+      const globalHighlightSheet = document.adoptedStyleSheets.find((sheet) => {
+        // The highlight manager adds its stylesheet to the global document
+        // We can identify it by checking if it has highlight class rules
+        try {
+          const rules = Array.from(sheet.cssRules || []);
+          return rules.some((rule) => rule instanceof CSSStyleRule && rule.selectorText && rule.selectorText.includes(".highlight-"));
+        } catch (_e) {
+          // Can't access rules (cross-origin), skip
+          return false;
+        }
+      });
+
+      if (globalHighlightSheet) {
+        // Add the highlight stylesheet to this Shadow DOM's adopted stylesheets
+        const existingSheets = this.shadowRoot.adoptedStyleSheets || [];
+
+        // Remove any existing highlight sheets first to avoid duplicates
+        const filteredSheets = existingSheets.filter((sheet) => {
+          try {
+            const rules = Array.from(sheet.cssRules || []);
+            return !rules.some((rule) => rule instanceof CSSStyleRule && rule.selectorText && rule.selectorText.includes(".highlight-"));
+          } catch (_e) {
+            return true; // Keep non-highlight sheets
+          }
+        });
+
+        this.shadowRoot.adoptedStyleSheets = [...filteredSheets, globalHighlightSheet];
+      } else {
+        // Fallback: look for the style element approach
+        const styleElement = document.getElementById("highlight-manager-styles") as HTMLStyleElement;
+        if (styleElement) {
+          // Create a new stylesheet from the style element content
+          const newSheet = new CSSStyleSheet();
+          newSheet.replaceSync(styleElement.textContent || "");
+
+          const existingSheets = this.shadowRoot.adoptedStyleSheets || [];
+          this.shadowRoot.adoptedStyleSheets = [...existingSheets, newSheet];
+        }
+      }
+    } catch (error) {
+      console.warn("Failed to adopt highlight styles:", error);
+    }
+  }
+
+  /**
+   * Apply highlights to template content during render time
+   */
+  private _processContentWithHighlights(content: Array<TemplateResult>): Array<TemplateResult> {
+    if (!highlightManager.getPatterns().length) {
+      return content;
+    }
+
+    return content.map((template) => {
+      // Extract text from the template to apply highlights
+      const textContent = this._extractTextFromTemplate(template);
+      if (!textContent) {
+        return template;
+      }
+
+      const highlightedText = this._applyHighlightsToText(textContent);
+      if (highlightedText === textContent) {
+        return template; // No highlights applied
+      }
+
+      // Return new template with highlighted content
+      return html`${unsafeHTML(highlightedText)}`;
+    });
+  }
+
+  /**
+   * Extract text content from a Lit template
+   */
+  private _extractTextFromTemplate(template: TemplateResult): string | null {
+    try {
+      // Create a temporary element to extract text content
+      const tempDiv = document.createElement("div");
+
+      // Render the template to get its string representation
+      const parts = template.strings;
+      const values = template.values;
+
+      let result = "";
+      for (let i = 0; i < parts.length; i++) {
+        result += parts[i];
+        if (i < values.length) {
+          const value = values[i];
+          if (typeof value === "string") {
+            result += value;
+          } else {
+            // Complex template, skip highlighting for now
+            return null;
+          }
+        }
+      }
+
+      tempDiv.innerHTML = result;
+      return tempDiv.textContent;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  /**
+   * Apply highlight patterns to plain text and return HTML with spans
+   */
+  private _applyHighlightsToText(text: string): string {
+    let resultHTML = text;
+    let hasMatches = false;
+    const patterns = highlightManager.getPatterns();
+
+    // Apply all patterns, with higher priority patterns overriding lower ones
+    patterns
+      .sort((a, b) => b.priority - a.priority)
+      .forEach((pattern) => {
+        // Collect all matches with their positions for this pattern
+        const replacements: Array<{ start: number; end: number; replacement: string }> = [];
+
+        // Find matches in the current resultHTML (which may contain previous pattern results)
+        const matches = resultHTML.matchAll(pattern.regex);
+        for (const match of matches) {
+          if (match[0] && match.index !== undefined) {
+            replacements.push({
+              start: match.index,
+              end: match.index + match[0].length,
+              replacement: `<span class="${pattern.className}">${match[0]}</span>`,
+            });
+          }
+        }
+
+        // Apply replacements from end to start to maintain positions
+        if (replacements.length > 0) {
+          replacements.sort((a, b) => b.start - a.start);
+          for (const rep of replacements) {
+            resultHTML = resultHTML.slice(0, rep.start) + rep.replacement + resultHTML.slice(rep.end);
+            hasMatches = true;
+          }
+        }
+      });
+
+    return hasMatches ? resultHTML : text;
+  }
 
   /**
    * Check if a tag group contains meaningful content (not just whitespace)
@@ -179,12 +367,14 @@ export class MessageBlock extends LitElement {
         const hasContent = this._hasNonEmptyContent(this.item.data);
 
         if (renderResult.content.length > 0 && hasContent) {
-          return html`<div class="message-content">${renderResult.content}</div>`;
+          // Apply highlights during render time
+          const highlightedContent = this._processContentWithHighlights(renderResult.content);
+          return html`<div class="message-content">${highlightedContent}</div>`;
         }
         break;
       }
       case "echo": {
-        return html`<illthorn-command-echo-lit .command=${this.item.data.command} .isReplay=${this.item.data.isReplay} .timestamp=${this.item.data.timestamp}></illthorn-command-echo-lit>`;
+        return html`<illthorn-command-echo-lit .command=${this.item.data.command} .isReplay=${this.item.data.isReplay} .isMacro=${this.item.data.isMacro} .prompt=${this.item.data.prompt} .timestamp=${this.item.data.timestamp}></illthorn-command-echo-lit>`;
       }
       case "client": {
         return html`<illthorn-client-message-lit .message=${this.item.data.message} .timestamp=${this.item.data.timestamp}></illthorn-client-message-lit>`;
@@ -198,6 +388,9 @@ export class MessageBlock extends LitElement {
 
     return nothing;
   }
+
+  // Note: Highlighting is now applied during render time, not after DOM updates
+  // This eliminates DOM traversal and text node replacement
 
   /**
    * Get interaction context for external systems

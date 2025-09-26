@@ -1,0 +1,73 @@
+# Item Highlights Preset for Gemstone IV
+# Highlights valuable items, containers, and equipment
+
+[settings]
+enabled = true
+case_sensitive = false
+
+# Valuable gems and jewelry
+[[patterns]]
+name = "gems"
+pattern = "\\b(diamond|ruby|emerald|sapphire|topaz|opal|pearl|crystal|gem|stone)\\b"
+color = "#e74c3c"
+bold = true
+
+# Precious metals
+[[patterns]]
+name = "metals"
+pattern = "\\b(gold|silver|platinum|mithril|steel|iron|bronze|copper)\\b"
+color = "#f39c12"
+
+# Containers and storage
+[[patterns]]
+name = "containers"
+pattern = "\\b(chest|box|bag|sack|pouch|case|trunk|coffer|strongbox)\\b"
+color = "#2ecc71"
+bold = true
+
+# Weapons (detailed patterns)
+[[patterns]]
+name = "weapons"
+pattern = "\\b(broadsword|longsword|shortsword|rapier|scimitar|falchion|axe|mace|hammer|staff|wand|bow|crossbow|dagger|dirk|stiletto)\\b"
+color = "#3498db"
+
+# Armor pieces
+[[patterns]]
+name = "armor"
+pattern = "\\b(helm|helmet|hauberk|chainmail|leather|plate|shield|gauntlets|boots|greaves|bracers|vambraces)\\b"
+color = "#9b59b6"
+
+# Magical items
+[[patterns]]
+name = "magic-items"
+pattern = "\\b(enchanted?|magical?|blessed?|cursed?|glowing|shimmering|pulsing|rune|sigil|amulet|talisman|orb)\\b"
+color = "#e67e22"
+italic = true
+
+# Currency and coins
+[[patterns]]
+name = "currency"
+pattern = "\\b(coins?|silvers?|gold|crowns?|ducats?|notes?)\\b"
+color = "#f1c40f"
+bold = true
+
+# Food and consumables
+[[patterns]]
+name = "consumables"
+pattern = "\\b(bread|meat|fruit|wine|ale|beer|potion|tincture|powder|herb|plant)\\b"
+color = "#27ae60"
+
+# Books and scrolls
+[[patterns]]
+name = "books"
+pattern = "\\b(book|tome|scroll|parchment|manuscript|journal|diary|manual)\\b"
+color = "#34495e"
+italic = true
+
+# Rare and unique items
+[[patterns]]
+name = "rare-items"
+pattern = "\\b(artifact|relic|legendary|ancient|masterwork|exquisite|magnificent|perfect)\\b"
+color = "#8e44ad"
+bold = true
+background = "#f39c12"

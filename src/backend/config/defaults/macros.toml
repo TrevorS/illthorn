@@ -1,7 +1,8 @@
 [settings]
 enabled = true
+echo_commands = true
 
 # Example macros (delete this section)
 [examples]
-"f1" = "look"
-"ctrl+1" = "stance offensive"
+"f1" = "stance offensive"
+"f2" = "stance defensive"

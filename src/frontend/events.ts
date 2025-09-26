@@ -28,4 +28,16 @@ export enum IllthornEvent {
    * when a client/system message should be displayed in the game feed
    */
   CLIENT_MESSAGE = "client/message",
+  /**
+   * when highlights config is reloaded and components should refresh
+   */
+  HIGHLIGHTS_RELOADED = "config/highlights-reloaded",
+  /**
+   * when macros config is reloaded
+   */
+  MACROS_RELOADED = "config/macros-reloaded",
+  /**
+   * when config loading encounters an error
+   */
+  CONFIG_ERROR = "config/error",
 }

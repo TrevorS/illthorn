@@ -4,25 +4,36 @@ import { IllthornEvent } from "../events";
 import { Illthorn } from "../illthorn";
 import { currentSession, focusSession } from "../session/helpers";
 import { debugMacros } from "../util/logger";
+import { macroManager } from "./manager";
 
+export type { MacroBinding } from "./manager";
+// Export manager and types
+export { MacroManager, macroManager } from "./manager";
+
+// Legacy type for compatibility
 type MacroProfile = Record<string, string>;
 
-// TEMP: Stub function for transition period - will be replaced with config-based loading in Phase 3
+// Updated function using new manager
 export async function loadMacros(): Promise<MacroProfile> {
-  debugMacros("loadMacros: returning empty object (legacy Settings removed)");
-  return {};
+  debugMacros("loadMacros: using new MacroManager");
+  const bindings = macroManager.getBindings();
+  const profile: MacroProfile = {};
+  bindings.forEach((binding) => {
+    profile[binding.key] = binding.command;
+  });
+  return profile;
 }
 
-// TEMP: Stub function for transition period - will be replaced with config-based binding in Phase 3
+// Updated function using new manager
 export async function bindUserMacros() {
-  debugMacros("bindUserMacros: no-op (legacy Settings removed)");
-  // No user macros loaded during transition
+  debugMacros("bindUserMacros: delegating to MacroManager");
+  await macroManager.bindUserMacros();
 }
 
-// TEMP: Stub function for transition period - will be replaced with config-based unbinding in Phase 3
+// Updated function using new manager
 export async function unbindUserMacros() {
-  debugMacros("unbindUserMacros: no-op (legacy Settings removed)");
-  // No user macros to unbind during transition
+  debugMacros("unbindUserMacros: delegating to MacroManager");
+  await macroManager.unbindUserMacros();
 }
 
 export async function bindMetaMacros() {
@@ -84,6 +95,10 @@ export async function bindMetaMacros() {
 }
 
 export async function bindMacros() {
-  await bindUserMacros();
+  // Initialize manager if not already done
+  await macroManager.initialize(); // This already calls bindUserMacros() internally
   await bindMetaMacros();
 }
+
+// Convenience function for easy access
+export const getMacroManager = () => macroManager;

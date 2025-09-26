@@ -1,8 +1,9 @@
 // ABOUTME: IPC handlers for config operations - connects frontend API calls to config manager
-import { ipcMain as Backend } from "electron";
+import { ipcMain as Backend, type BrowserWindow } from "electron";
 import { log } from "../logger";
 import { configManager } from "./config-manager";
-import { ConfigMethods, type HighlightConfig, type MacroConfig } from "./methods";
+import { type ConfigFileChangeEvent, ConfigMethods, type HighlightConfig, type MacroConfig } from "./methods";
+import { configWatcher } from "./watcher";
 
 log("attaching config ipc handlers");
 
@@ -69,6 +70,45 @@ Backend.handle(ConfigMethods.OpenConfigDir, async () => {
     log("opened config directory");
   } catch (error) {
     log("error opening config directory: %s", error);
+    throw error;
+  }
+});
+
+// Store reference to main window for sending events
+let mainWindow: BrowserWindow | null = null;
+
+export function setMainWindow(window: BrowserWindow): void {
+  mainWindow = window;
+}
+
+Backend.handle(ConfigMethods.StartWatcher, async () => {
+  try {
+    const configPath = await configManager.getConfigPath();
+
+    // Set up file change listener to send events to frontend
+    configWatcher.onFileChange((event: ConfigFileChangeEvent) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("config:file-changed", event);
+        log("sent file change event to frontend: %s", event.filename);
+      }
+    });
+
+    configWatcher.start(configPath);
+    log("started config file watcher for: %s", configPath);
+    return { success: true };
+  } catch (error) {
+    log("error starting config watcher: %s", error);
+    throw error;
+  }
+});
+
+Backend.handle(ConfigMethods.StopWatcher, async () => {
+  try {
+    configWatcher.stopAll();
+    log("stopped config file watcher");
+    return { success: true };
+  } catch (error) {
+    log("error stopping config watcher: %s", error);
     throw error;
   }
 });

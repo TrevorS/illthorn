@@ -1,0 +1,61 @@
+# Combat Highlights Preset for Gemstone IV
+# Highlights common combat text patterns with appropriate colors
+
+[settings]
+enabled = true
+case_sensitive = false
+
+# Critical hits and massive damage
+[[patterns]]
+name = "critical-hit"
+pattern = "\\b(critical|devastating|massive|crushing|incredible)\\b"
+color = "#ff6b6b"
+bold = true
+
+# Miss and dodge patterns
+[[patterns]]
+name = "miss"
+pattern = "\\b(miss|dodge|evade|parry|block)s?\\b"
+color = "#95a5a6"
+italic = true
+
+# Death and knockout patterns
+[[patterns]]
+name = "death"
+pattern = "\\b(dies?|death|killed?|knockout|unconscious|stunned)\\b"
+color = "#e74c3c"
+bold = true
+
+# Weapon and spell names
+[[patterns]]
+name = "weapons"
+pattern = "\\b(sword|axe|mace|dagger|bow|arrow|spell|magic|flame|ice|lightning)\\b"
+color = "#f39c12"
+
+# Status effects
+[[patterns]]
+name = "status-effects"
+pattern = "\\b(poisoned?|diseased?|cursed?|blessed?|enchanted?)\\b"
+color = "#9b59b6"
+italic = true
+
+# Damage numbers (simple pattern for common formats)
+[[patterns]]
+name = "damage-numbers"
+pattern = "\\b\\d+\\s+(damage|points?)\\b"
+color = "#e67e22"
+bold = true
+
+# Combat verbs
+[[patterns]]
+name = "combat-verbs"
+pattern = "\\b(attack|strike|hit|slash|thrust|swing|cast|channel)s?\\b"
+color = "#3498db"
+
+# Warning patterns
+[[patterns]]
+name = "warnings"
+pattern = "\\b(danger|warning|careful|trap|ambush)\\b"
+color = "#f1c40f"
+bold = true
+background = "#8b4513"

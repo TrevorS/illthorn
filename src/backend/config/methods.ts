@@ -7,6 +7,8 @@ export enum ConfigMethods {
   SaveMacros = "config/saveMacros",
   OpenInEditor = "config/openInEditor",
   OpenConfigDir = "config/openConfigDir",
+  StartWatcher = "config/startWatcher",
+  StopWatcher = "config/stopWatcher",
 }
 
 export interface HighlightPattern {
@@ -30,6 +32,12 @@ export interface HighlightConfig {
 export interface MacroConfig {
   settings: {
     enabled: boolean;
+    echo_commands?: boolean;
   };
-  [category: string]: Record<string, string> | { enabled: boolean };
+  [category: string]: Record<string, string> | { enabled: boolean; echo_commands?: boolean };
+}
+
+export interface ConfigFileChangeEvent {
+  filename: string;
+  changeType: "change" | "rename";
 }

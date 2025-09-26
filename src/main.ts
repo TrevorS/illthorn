@@ -2,6 +2,7 @@ import path from "node:path";
 import { config } from "dotenv";
 import { app, BrowserWindow, screen, shell } from "electron";
 import "./backend";
+import { setMainWindow } from "./backend/config/ipc-handlers";
 import { setWebContents } from "./backend/webcontents";
 
 // Load environment variables from .env file
@@ -28,6 +29,7 @@ const createWindow = async (): Promise<void> => {
   });
 
   setWebContents(mainWindow.webContents);
+  setMainWindow(mainWindow);
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);

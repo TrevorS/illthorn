@@ -3,7 +3,7 @@
 
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import "@shoelace-style/shoelace/dist/components/tag/tag.js";
+import "@shoelace-style/shoelace/dist/components/badge/badge.js";
 import "@shoelace-style/shoelace/dist/components/tooltip/tooltip.js";
 
 @customElement("illthorn-command-echo-lit")
@@ -35,19 +35,35 @@ export class CommandEchoLit extends LitElement {
       gap: 4px;
     }
 
-    sl-tag {
-      --sl-color-neutral-600: var(--color-command-echo, var(--color-text-secondary, #ccc));
-      --sl-color-primary-600: var(--color-command-echo-replay, var(--color-text-secondary, #ffcc00));
+    sl-badge::part(base) {
+      font-size: 0.7em;
+      font-family: var(--font-family-monospace, "MonoLisa", monospace);
+      padding: 2px 6px;
+      font-weight: 600;
+      line-height: 1.2;
+      border: 1px solid transparent;
     }
 
-    sl-tag::part(base) {
-      font-size: 0.75em;
-      font-family: var(--font-family-monospace, "MonoLisa", monospace);
-      border: none;
-      padding: 1px 6px;
-      opacity: 0.8;
-      height: auto;
-      line-height: 1;
+    /* Ensure badges are visible with proper contrast */
+    sl-badge[variant="neutral"]::part(base) {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      color: var(--color-text-secondary, #ccc) !important;
+      border: 1px solid var(--color-border, #666) !important;
+    }
+
+    sl-badge[variant="primary"]::part(base) {
+      background-color: var(--color-info, #4a9eff) !important;
+      color: var(--color-background-primary, #fff) !important;
+    }
+
+    sl-badge[variant="success"]::part(base) {
+      background-color: var(--color-success, #22c55e) !important;
+      color: var(--color-background-primary, #fff) !important;
+    }
+
+    sl-badge[variant="warning"]::part(base) {
+      background-color: var(--color-warning, #f59e0b) !important;
+      color: var(--color-background-primary, #000) !important;
     }
 
     .command-text {
@@ -85,8 +101,14 @@ export class CommandEchoLit extends LitElement {
   @property({ type: Boolean, attribute: "is-replay", reflect: true })
   isReplay = false;
 
+  @property({ type: Boolean, attribute: "is-macro", reflect: true })
+  isMacro = false;
+
   @property({ type: Number })
   timestamp = 0;
+
+  @property({ type: String })
+  prompt = "";
 
   private async _copyCommand() {
     if (!this.command) return;
@@ -135,9 +157,15 @@ export class CommandEchoLit extends LitElement {
   }
 
   /**
-   * Check if command is from a Lich script (format: [scriptname]>command)
+   * Check if command is from a Lich script or manual Lich command
    */
   private _isLichScript(command: string): boolean {
+    // Check for manual Lich commands starting with semicolon
+    if (command.startsWith(";")) {
+      return true;
+    }
+
+    // Check for script output format: [scriptname]>command
     return /^\[.*\]&gt;/.test(command) || /^\[.*\]>/.test(command);
   }
 
@@ -153,19 +181,24 @@ export class CommandEchoLit extends LitElement {
     if (this.isReplay) {
       prefix = "Replay";
       variant = "primary";
+    } else if (this.isMacro) {
+      prefix = "Macro";
+      variant = "success"; // Green color for macros
     } else if (isLichScript) {
-      prefix = "Script";
-      variant = "warning"; // Different color for Lich scripts
+      prefix = "Lich";
+      variant = "warning"; // Different color for Lich commands
     } else {
-      prefix = ">";
+      // For regular commands, use the actual prompt if available
+      // Fall back to generic ">" only when no prompt is captured (legacy/error case)
+      prefix = this.prompt ? this._decodeHTMLEntities(this.prompt) : ">";
       variant = "neutral";
     }
 
     return html`
       <div class="command-container">
-        <sl-tag variant="${variant}" size="small">
+        <sl-badge variant="${variant}" pill>
           ${prefix}
-        </sl-tag>
+        </sl-badge>
         <sl-tooltip content="Click to copy • ${this._formatTimestamp()}" placement="top">
           <span class="command-text" @click=${this._copyCommand}>
             ${decodedCommand}

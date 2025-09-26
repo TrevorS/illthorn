@@ -3,6 +3,7 @@
 
 import type { LitElement } from "lit";
 import { property, state } from "lit/decorators.js";
+import { highlightManager } from "../../highlights";
 import type { Constructor } from "../../types/constructor";
 
 export interface HighlightPattern {
@@ -46,34 +47,21 @@ export const HighlightingMixin = <T extends new (...args: any[]) => LitElement>(
     }
 
     /**
-     * Load user-defined highlight patterns from settings
+     * Load user-defined highlight patterns from new HighlightManager
      */
     private async loadUserHighlights() {
       if (this._userPatternsLoaded) return;
 
       try {
-        const settings = await this._getHighlightSettings();
-        if (settings?.patterns) {
-          const patterns: Array<HighlightPattern> = [];
+        // Ensure highlight manager is initialized
+        await highlightManager.initialize();
 
-          Object.entries(settings.patterns).forEach(([pattern, className], index) => {
-            try {
-              const regex = this._parsePattern(pattern);
-              patterns.push({
-                regex,
-                className: className as string,
-                priority: index,
-              });
-            } catch (e) {
-              console.warn(`Invalid highlight regex: ${pattern}`, e);
-            }
-          });
-
-          this.highlightPatterns = [...this.highlightPatterns, ...patterns];
-          this._userPatternsLoaded = true;
-        }
+        // Get patterns from the new manager
+        const patterns = highlightManager.getPatterns();
+        this.highlightPatterns = [...this.highlightPatterns, ...patterns];
+        this._userPatternsLoaded = true;
       } catch (e) {
-        console.warn("Failed to load highlight patterns", e);
+        console.warn("Failed to load highlight patterns from HighlightManager", e);
       }
     }
 
@@ -89,21 +77,6 @@ export const HighlightingMixin = <T extends new (...args: any[]) => LitElement>(
       } else {
         return new RegExp(pattern, "gi");
       }
-    }
-
-    /**
-     * Get highlight settings from storage
-     */
-    private async _getHighlightSettings(): Promise<HighlightSettings | null> {
-      try {
-        // Check if we have the Settings API available
-        if (typeof window !== "undefined" && window.Settings) {
-          return await window.Settings.get<HighlightSettings>("hilites");
-        }
-      } catch (e) {
-        console.warn("Failed to access settings:", e);
-      }
-      return null;
     }
 
     /**
