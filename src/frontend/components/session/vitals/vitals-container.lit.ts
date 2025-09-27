@@ -96,14 +96,14 @@ export class VitalsContainer extends BaseContainerComponent {
         }),
       },
       {
-        eventName: "metadata/progressBar/mind",
+        eventName: "metadata/progressBar/mindState",
         handler: this.createStatePersistingHandler((tag: GameTag) => {
-          const vital = this.processStandardVital(tag);
-          // Mind follows different logic - prepend number with % sign if not present
-          if (vital.value && !vital.value.includes("%")) {
-            vital.value = `${vital.value}%`;
-          }
-          this._mind = vital;
+          const { attrs } = tag;
+          this._mind = {
+            label: "mind",
+            percent: parseInt((attrs.value as string) || "0"),
+            value: (attrs.text as string) || "",
+          };
         }),
       },
       {
