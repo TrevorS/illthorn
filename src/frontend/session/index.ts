@@ -174,7 +174,7 @@ export class FrontendSession {
         (this.ui.feed as { appendGameTags: (tags: Array<GameTag>) => void }).appendGameTags(contentTags);
       } else if (this.ui?.feed) {
         // Fallback for legacy Feed - this should be removed after migration
-        console.warn("Using legacy Feed component - consider migrating to FeedModernized");
+        debugSession("Using legacy Feed component - consider migrating to FeedModernized");
       }
     }
 

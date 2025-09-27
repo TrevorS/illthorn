@@ -7,6 +7,7 @@ const NAMESPACE = "illthorn:backend";
 export const debugBackend = debug(NAMESPACE);
 export const debugSession = debug(`${NAMESPACE}:session`);
 export const debugIpc = debug(`${NAMESPACE}:ipc`);
+export const debugConfig = debug(`${NAMESPACE}:config`);
 
 // Legacy export for backward compatibility
 export const log = debugBackend;

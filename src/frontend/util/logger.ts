@@ -20,6 +20,7 @@ export const debugParser = Debug(`${NAMESPACE}:parser`);
 export const debugMacros = Debug(`${NAMESPACE}:macros`);
 export const debugCommands = Debug(`${NAMESPACE}:commands`);
 export const debugDevWindow = Debug(`${NAMESPACE}:dev-window`);
+export const debugConfig = Debug(`${NAMESPACE}:config`);
 
 // Utility function to safely stringify objects for logging
 export function safeStringify(obj: unknown, maxLength = 500): string {

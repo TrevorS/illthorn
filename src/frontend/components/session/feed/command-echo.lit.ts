@@ -93,6 +93,16 @@ export class CommandEchoLit extends LitElement {
       font-size: 0.8em;
       font-family: var(--font-family-monospace, "MonoLisa", monospace);
     }
+
+    /* Copy feedback animation */
+    .copy-flash {
+      animation: copyFlash 0.3s ease-out;
+    }
+
+    @keyframes copyFlash {
+      0% { background-color: var(--color-success, #10b981); }
+      100% { background-color: transparent; }
+    }
   `;
 
   @property({ type: String })
@@ -118,7 +128,7 @@ export class CommandEchoLit extends LitElement {
 
     try {
       await navigator.clipboard.writeText(decodedCommand);
-      // TODO: Could add a brief visual feedback here like a flash or temporary icon change
+      this._showCopyFeedback();
     } catch (_error) {
       // Fallback for older browsers or when clipboard API is not available
       const textArea = document.createElement("textarea");
@@ -131,11 +141,19 @@ export class CommandEchoLit extends LitElement {
       textArea.select();
       try {
         document.execCommand("copy");
+        this._showCopyFeedback();
       } catch (execError) {
         console.warn("Failed to copy command to clipboard:", execError);
       }
       document.body.removeChild(textArea);
     }
+  }
+
+  private _showCopyFeedback() {
+    this.classList.add("copy-flash");
+    setTimeout(() => {
+      this.classList.remove("copy-flash");
+    }, 300);
   }
 
   private _formatTimestamp(): string {

@@ -104,7 +104,6 @@ export class ItemHighlighter {
     }
 
     try {
-      // TODO: Integrate with settings system
       const settings = (await window.Settings?.get("itemHighlighting")) as Record<string, boolean> | undefined;
       ItemHighlighter.settingsCache = settings || {};
     } catch (_e) {

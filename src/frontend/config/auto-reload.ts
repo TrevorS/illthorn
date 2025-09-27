@@ -5,6 +5,7 @@ import { IllthornEvent } from "../events";
 import { highlightManager } from "../highlights";
 import { macroManager } from "../macros";
 import { currentSession } from "../session/helpers";
+import { debugConfig } from "../util/logger";
 import type { ConfigFileChangeEvent } from "./api";
 
 /**
@@ -18,7 +19,7 @@ export class AutoReloader {
    */
   async start(): Promise<void> {
     if (this.isWatcherStarted) {
-      console.debug("Config auto-reloader already started");
+      debugConfig("Config auto-reloader already started");
       return;
     }
 
@@ -26,16 +27,18 @@ export class AutoReloader {
       // Start the backend file watcher
       const result = await window.Config.startWatcher();
       if (result.success) {
-        console.debug("Config file watcher started successfully");
+        debugConfig("Config file watcher started successfully");
         this.isWatcherStarted = true;
 
         // Set up file change listener
         window.Config.onFileChange(this.handleFileChange.bind(this));
       } else {
         console.warn("Failed to start config file watcher");
+        debugConfig("Failed to start config file watcher");
       }
     } catch (error) {
       console.warn("Error starting config auto-reloader:", error);
+      debugConfig("Error starting config auto-reloader:", error);
     }
   }
 
@@ -54,13 +57,15 @@ export class AutoReloader {
       // Stop the backend file watcher
       const result = await window.Config.stopWatcher();
       if (result.success) {
-        console.debug("Config file watcher stopped successfully");
+        debugConfig("Config file watcher stopped successfully");
         this.isWatcherStarted = false;
       } else {
         console.warn("Failed to stop config file watcher");
+        debugConfig("Failed to stop config file watcher");
       }
     } catch (error) {
       console.warn("Error stopping config auto-reloader:", error);
+      debugConfig("Error stopping config auto-reloader:", error);
     }
   }
 
@@ -68,7 +73,7 @@ export class AutoReloader {
    * Handle config file changes
    */
   private async handleFileChange(event: ConfigFileChangeEvent): Promise<void> {
-    console.debug(`Config file changed: ${event.filename} (${event.changeType})`);
+    debugConfig(`Config file changed: ${event.filename} (${event.changeType})`);
 
     try {
       if (event.filename === "highlights.toml") {
@@ -76,10 +81,11 @@ export class AutoReloader {
       } else if (event.filename === "macros.toml") {
         await this.reloadMacros();
       } else {
-        console.debug(`Ignoring change to unrecognized config file: ${event.filename}`);
+        debugConfig(`Ignoring change to unrecognized config file: ${event.filename}`);
       }
     } catch (error) {
       console.warn(`Failed to reload config for ${event.filename}:`, error);
+      debugConfig(`Failed to reload config for ${event.filename}:`, error);
       this.showErrorMessage(`Config reload failed for ${event.filename}: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }

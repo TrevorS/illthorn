@@ -3,6 +3,7 @@
 
 import { type FSWatcher, watch } from "node:fs";
 import path from "node:path";
+import { debugConfig } from "../logger";
 
 export interface ConfigFileChangeEvent {
   filename: string;
@@ -24,7 +25,7 @@ export class ConfigWatcher {
    */
   start(configPath: string): void {
     if (this.watchers.has(configPath)) {
-      console.debug(`Already watching config directory: ${configPath}`);
+      debugConfig(`Already watching config directory: ${configPath}`);
       return;
     }
 
@@ -43,13 +44,15 @@ export class ConfigWatcher {
 
       watcher.on("error", (error) => {
         console.warn(`Config watcher error for ${configPath}:`, error);
+        debugConfig(`Config watcher error for ${configPath}:`, error);
         this.watchers.delete(configPath);
       });
 
       this.watchers.set(configPath, watcher);
-      console.debug(`Started watching config directory: ${configPath}`);
+      debugConfig(`Started watching config directory: ${configPath}`);
     } catch (error) {
       console.warn(`Failed to start config watcher for ${configPath}:`, error);
+      debugConfig(`Failed to start config watcher for ${configPath}:`, error);
     }
   }
 
@@ -61,7 +64,7 @@ export class ConfigWatcher {
     if (watcher) {
       watcher.close();
       this.watchers.delete(configPath);
-      console.debug(`Stopped watching config directory: ${configPath}`);
+      debugConfig(`Stopped watching config directory: ${configPath}`);
     }
   }
 
@@ -71,7 +74,7 @@ export class ConfigWatcher {
   stopAll(): void {
     for (const [configPath, watcher] of this.watchers) {
       watcher.close();
-      console.debug(`Stopped watching config directory: ${configPath}`);
+      debugConfig(`Stopped watching config directory: ${configPath}`);
     }
     this.watchers.clear();
     this.debounceTimeouts.clear();
@@ -115,12 +118,13 @@ export class ConfigWatcher {
    * Notify all listeners about a file change
    */
   private notifyFileChange(event: ConfigFileChangeEvent): void {
-    console.debug(`Config file changed: ${event.filename} (${event.changeType})`);
+    debugConfig(`Config file changed: ${event.filename} (${event.changeType})`);
     this.changeListeners.forEach((listener) => {
       try {
         listener(event);
       } catch (error) {
         console.warn("Error in config file change listener:", error);
+        debugConfig("Error in config file change listener:", error);
       }
     });
   }
