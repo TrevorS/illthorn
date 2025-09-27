@@ -2,7 +2,7 @@
 // ABOUTME: Replaces stubbed macro functions with proper Config API integration
 
 import keyboardjs from "keyboardjs";
-import type { MacroConfig } from "../../backend/config/methods";
+import type { MacroConfig } from "../../shared/types/config.types";
 import { IllthornEvent } from "../events";
 import { currentSession } from "../session/helpers";
 import { debugMacros } from "../util/logger";

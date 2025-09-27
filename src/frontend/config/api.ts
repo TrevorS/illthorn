@@ -1,34 +1,10 @@
 // ABOUTME: Frontend TypeScript interfaces for config API and global window extensions
+// ABOUTME: Now uses centralized type definitions from shared directory
 
-export interface HighlightPattern {
-  name: string;
-  pattern: string;
-  color?: string;
-  background?: string;
-  bold?: boolean;
-  italic?: boolean;
-  underline?: boolean;
-}
+import type { ConfigFileChangeEvent, HighlightConfig, HighlightPattern, MacroConfig } from "../../shared/types/config.types";
 
-export interface HighlightConfig {
-  settings: {
-    enabled: boolean;
-    case_sensitive: boolean;
-  };
-  patterns: Array<HighlightPattern>;
-}
-
-export interface MacroConfig {
-  settings: {
-    enabled: boolean;
-  };
-  [category: string]: Record<string, string> | { enabled: boolean };
-}
-
-export interface ConfigFileChangeEvent {
-  filename: string;
-  changeType: "change" | "rename";
-}
+// Re-export for backward compatibility
+export type { HighlightPattern, HighlightConfig, MacroConfig, ConfigFileChangeEvent };
 
 // Extend global window interface to include Config API
 declare global {

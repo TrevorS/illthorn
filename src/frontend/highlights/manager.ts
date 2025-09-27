@@ -1,7 +1,7 @@
 // ABOUTME: Clean highlight manager using TOML-based config system
 // ABOUTME: Replaces UserHighlightManager with proper Config API integration
 
-import type { HighlightConfig, HighlightPattern } from "../../backend/config/methods";
+import type { HighlightConfig, HighlightPattern } from "../../shared/types/config.types";
 import { IllthornEvent } from "../events";
 
 export interface CompiledPattern {

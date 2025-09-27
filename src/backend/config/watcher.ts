@@ -3,12 +3,11 @@
 
 import { type FSWatcher, watch } from "node:fs";
 import path from "node:path";
+import type { ConfigFileChangeEvent as BaseConfigFileChangeEvent } from "../../shared/types/config.types";
 import { debugConfig } from "../logger";
 
-export interface ConfigFileChangeEvent {
-  filename: string;
-  fullPath: string;
-  changeType: "change" | "rename";
+export interface ConfigFileChangeEvent extends BaseConfigFileChangeEvent {
+  fullPath: string; // Required in watcher context
 }
 
 /**

@@ -73,7 +73,7 @@ describe("VitalsContainer", () => {
       expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/progressBar/mana", expect.any(Function));
       expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/progressBar/stamina", expect.any(Function));
       expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/progressBar/spirit", expect.any(Function));
-      expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/progressBar/mindState", expect.any(Function));
+      expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/progressBar/mind", expect.any(Function));
       expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/progressBar/pbarStance", expect.any(Function));
       expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/progressBar/encumlevel", expect.any(Function));
 
@@ -293,19 +293,19 @@ describe("VitalsContainer", () => {
         kind: TagKind.METADATA,
         name: "progressBar",
         gameName: "",
-        attrs: { id: "mindState", value: "100", text: "clear as a bell" },
+        attrs: { id: "mind", value: "100", text: "mind clear" },
         children: [],
         state: TagState.OPEN,
         text: "",
       };
 
-      eventCallbacks["metadata/progressBar/mindState"]({ detail: mockMindVital } as CustomEvent<GameTag>);
+      eventCallbacks["metadata/progressBar/mind"]({ detail: mockMindVital } as CustomEvent<GameTag>);
       await container.updateComplete;
 
       // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
       const uiComponent = container.shadowRoot?.querySelector("illthorn-vitals-ui") as any;
       expect(uiComponent?.mindData?.label).toBe("mind");
-      expect(uiComponent?.mindData?.value).toBe("clear as a bell");
+      expect(uiComponent?.mindData?.value).toBe("clear%");
       expect(uiComponent?.mindData?.percent).toBe(100);
     });
 

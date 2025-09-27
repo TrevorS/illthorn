@@ -1,11 +1,10 @@
 // ABOUTME: Smart container component for vitals that handles session integration and business logic
-// ABOUTME: Manages vital data state and coordinates with VitalsUI for presentation
-import { css, html, LitElement } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+// ABOUTME: Manages vital data state and coordinates with VitalsUI for presentation - now using BaseContainerComponent
+
+import { css, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
 import type { GameTag } from "../../../parser/tag";
-import type { FrontendSession as Session } from "../../../session/index";
-import type { Bus } from "../../../util/bus";
-import { SessionStateMixin } from "../../mixins/session-state-mixin";
+import { BaseContainerComponent } from "../../mixins/base-container.lit";
 import "./vitals-ui.lit";
 import type { VitalsUI } from "./vitals-ui.lit";
 
@@ -16,15 +15,12 @@ interface VitalData {
 }
 
 @customElement("illthorn-vitals-container")
-export class VitalsContainer extends SessionStateMixin(LitElement) {
+export class VitalsContainer extends BaseContainerComponent {
   static styles = css`
     :host {
       display: block;
     }
   `;
-
-  @property({ type: Object })
-  session?: Session;
 
   @state()
   private _health: VitalData = { label: "health" };
@@ -46,8 +42,6 @@ export class VitalsContainer extends SessionStateMixin(LitElement) {
 
   @state()
   private _encumbrance: VitalData = { label: "encumbrance", value: "none", percent: 0 };
-
-  private _eventHandlers: Array<{ event: string; handler: (event: CustomEvent<GameTag>) => void; bus: Bus }> = [];
 
   protected getStateToStore(): Record<string, unknown> {
     return {
@@ -75,110 +69,69 @@ export class VitalsContainer extends SessionStateMixin(LitElement) {
     return "vitals";
   }
 
-  updated(changedProperties: Map<string | number | symbol, unknown>) {
-    super.updated(changedProperties);
-
-    if (changedProperties.has("session")) {
-      this._setupEventListeners();
-    }
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    // Don't setup listeners here, wait for session to be available via updated()
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this._cleanupEventListeners();
-  }
-
-  private _setupEventListeners() {
-    this._cleanupEventListeners();
-
-    if (!this.session?.bus) {
-      return;
-    }
-
-    const bus = this.session.bus;
-
-    // Standard vitals
-    const healthHandler = ({ detail: feedInfo }: CustomEvent<GameTag>) => {
-      this._health = this.processStandardVital(feedInfo);
-      this.persistState();
-    };
-    bus.subscribeEvent<GameTag>("metadata/progressBar/health", healthHandler);
-    this._eventHandlers.push({ event: "metadata/progressBar/health", handler: healthHandler, bus });
-
-    const manaHandler = ({ detail: feedInfo }: CustomEvent<GameTag>) => {
-      this._mana = this.processStandardVital(feedInfo);
-      this.persistState();
-    };
-    bus.subscribeEvent<GameTag>("metadata/progressBar/mana", manaHandler);
-    this._eventHandlers.push({ event: "metadata/progressBar/mana", handler: manaHandler, bus });
-
-    const staminaHandler = ({ detail: feedInfo }: CustomEvent<GameTag>) => {
-      this._stamina = this.processStandardVital(feedInfo);
-      this.persistState();
-    };
-    bus.subscribeEvent<GameTag>("metadata/progressBar/stamina", staminaHandler);
-    this._eventHandlers.push({ event: "metadata/progressBar/stamina", handler: staminaHandler, bus });
-
-    const spiritHandler = ({ detail: feedInfo }: CustomEvent<GameTag>) => {
-      this._spirit = this.processStandardVital(feedInfo);
-      this.persistState();
-    };
-    bus.subscribeEvent<GameTag>("metadata/progressBar/spirit", spiritHandler);
-    this._eventHandlers.push({ event: "metadata/progressBar/spirit", handler: spiritHandler, bus });
-
-    // Special vitals
-    const mindHandler = ({ detail: feedInfo }: CustomEvent<GameTag>) => {
-      const { attrs } = feedInfo;
-      this._mind = {
-        label: "mind",
-        percent: parseInt((attrs.value as string) || "0"),
-        value: (attrs.text as string) || "",
-      };
-      this.persistState();
-    };
-    bus.subscribeEvent<GameTag>("metadata/progressBar/mindState", mindHandler);
-    this._eventHandlers.push({ event: "metadata/progressBar/mindState", handler: mindHandler, bus });
-
-    const stanceHandler = ({ detail: feedInfo }: CustomEvent<GameTag>) => {
-      const { attrs } = feedInfo;
-      const value = (attrs.text as string) || "";
-      const humanizedValue = value.split(/\s/)[0] || value;
-      this._stance = {
-        label: "stance",
-        percent: 0, // Stance doesn't use percentage
-        value: humanizedValue,
-      };
-      this.persistState();
-    };
-    bus.subscribeEvent<GameTag>("metadata/progressBar/pbarStance", stanceHandler);
-    this._eventHandlers.push({ event: "metadata/progressBar/pbarStance", handler: stanceHandler, bus });
-
-    const encumbranceHandler = ({ detail: feedInfo }: CustomEvent<GameTag>) => {
-      const { attrs } = feedInfo;
-      const value = (attrs.text as string) || "";
-      this._encumbrance = {
-        label: "encumbrance",
-        percent: 0, // Encumbrance doesn't use percentage
-        value: value.toLowerCase(),
-      };
-      this.persistState();
-    };
-    bus.subscribeEvent<GameTag>("metadata/progressBar/encumlevel", encumbranceHandler);
-    this._eventHandlers.push({ event: "metadata/progressBar/encumlevel", handler: encumbranceHandler, bus });
-  }
-
-  private _cleanupEventListeners() {
-    this._eventHandlers.forEach(({ event, handler, bus }) => {
-      if (bus?._ele) {
-        bus._ele.removeEventListener(event, handler as EventListener);
-      }
-    });
-    this._eventHandlers = [];
+  protected getSessionEventSubscriptions() {
+    return [
+      {
+        eventName: "metadata/progressBar/health",
+        handler: this.createStatePersistingHandler((tag: GameTag) => {
+          this._health = this.processStandardVital(tag);
+        }),
+      },
+      {
+        eventName: "metadata/progressBar/mana",
+        handler: this.createStatePersistingHandler((tag: GameTag) => {
+          this._mana = this.processStandardVital(tag);
+        }),
+      },
+      {
+        eventName: "metadata/progressBar/stamina",
+        handler: this.createStatePersistingHandler((tag: GameTag) => {
+          this._stamina = this.processStandardVital(tag);
+        }),
+      },
+      {
+        eventName: "metadata/progressBar/spirit",
+        handler: this.createStatePersistingHandler((tag: GameTag) => {
+          this._spirit = this.processStandardVital(tag);
+        }),
+      },
+      {
+        eventName: "metadata/progressBar/mind",
+        handler: this.createStatePersistingHandler((tag: GameTag) => {
+          const vital = this.processStandardVital(tag);
+          // Mind follows different logic - prepend number with % sign if not present
+          if (vital.value && !vital.value.includes("%")) {
+            vital.value = `${vital.value}%`;
+          }
+          this._mind = vital;
+        }),
+      },
+      {
+        eventName: "metadata/progressBar/pbarStance",
+        handler: this.createStatePersistingHandler((tag: GameTag) => {
+          const { attrs } = tag;
+          const value = (attrs.text as string) || "";
+          const humanizedValue = value.split(/\s/)[0] || value;
+          this._stance = {
+            label: "stance",
+            percent: 0, // Stance doesn't use percentage
+            value: humanizedValue,
+          };
+        }),
+      },
+      {
+        eventName: "metadata/progressBar/encumlevel",
+        handler: this.createStatePersistingHandler((tag: GameTag) => {
+          const { attrs } = tag;
+          const value = (attrs.text as string) || "";
+          this._encumbrance = {
+            label: "encumbrance",
+            percent: 0, // Encumbrance doesn't use percentage
+            value: value.toLowerCase(),
+          };
+        }),
+      },
+    ];
   }
 
   private processStandardVital(feedInfo: GameTag): VitalData {
