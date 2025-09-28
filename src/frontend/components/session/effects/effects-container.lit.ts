@@ -46,13 +46,7 @@ export class EffectsContainer extends BaseContainerComponent {
 
     // Re-setup event listeners if name changes (since event name depends on name)
     if (changedProperties.has("name") && this.isSessionReady) {
-      // Use a more specific approach to re-setup event listeners
-      // This is a bit of a hack but necessary since name changes require event re-subscription
-      const previousSession = this.session;
-      this.session = undefined;
-      this.requestUpdate();
-      this.session = previousSession;
-      this.requestUpdate();
+      this.refreshEventSubscriptions();
     }
   }
 

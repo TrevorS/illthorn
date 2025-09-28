@@ -37,10 +37,7 @@ export async function unbindUserMacros() {
 }
 
 export async function bindMetaMacros() {
-  keyboardjs.on("tab", (e) => {
-    e?.preventDefault();
-    // todo: tab completion
-  });
+  // Tab completion is now handled by the CLI component
 
   keyboardjs.on("right", (_) => {
     document.dispatchEvent(new Event("autocomplete/right"));

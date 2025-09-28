@@ -248,6 +248,25 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
     this.session.history.resetPosition();
   }
 
+  performTabCompletion(): void {
+    if (!this.session) return;
+
+    const currentValue = this.getCurrentValue();
+    const cursorPosition = this.getCursorPosition();
+
+    // Only complete commands that start with ':'
+    if (!currentValue.startsWith(":")) {
+      return;
+    }
+
+    // Find the completion
+    const completion = this._findCompletion(currentValue, cursorPosition);
+    if (completion) {
+      this.setValue(completion);
+      this.setCursorPosition(completion.length);
+    }
+  }
+
   // Command replay functionality
   private _replayLastCommand() {
     if (this._lastExecutedCommand.length === 0) return;
@@ -277,6 +296,73 @@ export class CLI extends LitElement implements ReadlineKeyBindings {
         this.session?.sendCommand(c);
       }
     });
+  }
+
+  private _findCompletion(input: string, _cursorPosition: number): string | null {
+    // Define available commands based on the actual implementation
+    const commands = [
+      ":c",
+      ":dq",
+      ":ui",
+      ":ui hud on",
+      ":ui hud off",
+      ":ui sessions on",
+      ":ui sessions off",
+      ":ui streams on",
+      ":ui streams off",
+      ":dev",
+      ":dev clear",
+      ":clear",
+      ":cls",
+      ":stream clear",
+      ":streams clear",
+      ":hilite",
+      ":hilite reload",
+      ":hilite list",
+      ":hilite test",
+      ":hilite edit",
+      ":hilite on",
+      ":hilite off",
+      ":macro",
+      ":macro reload",
+      ":macro list",
+      ":macro edit",
+      ":macro on",
+      ":macro off",
+      ":macro test",
+      ":config",
+      ":config open",
+      ":config reload",
+      ":config edit",
+    ];
+
+    // Find commands that start with the current input
+    const matches = commands.filter((cmd) => cmd.startsWith(input));
+
+    if (matches.length === 0) {
+      return null;
+    }
+
+    if (matches.length === 1) {
+      // Single match - complete it
+      return matches[0];
+    }
+
+    // Multiple matches - find the longest common prefix
+    let commonPrefix = matches[0];
+    for (let i = 1; i < matches.length; i++) {
+      while (!matches[i].startsWith(commonPrefix)) {
+        commonPrefix = commonPrefix.slice(0, -1);
+      }
+    }
+
+    // If the common prefix is longer than current input, use it
+    if (commonPrefix.length > input.length) {
+      return commonPrefix;
+    }
+
+    // Otherwise, cycle through options or show first match
+    return matches[0];
   }
 
   private _handleKeyDown(e: KeyboardEvent) {

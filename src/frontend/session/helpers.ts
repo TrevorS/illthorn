@@ -36,15 +36,6 @@ export function focusSession(session: Session) {
   return session;
 }
 
-export function renderSession(session: Session, _container: HTMLElement) {
-  // Legacy function - session rendering is now handled by AppRoot component
-  // This is kept for API compatibility but session rendering happens automatically
-  // via the SESSION_FOCUS event and AppRoot's handleSessionFocus method
-  debugSession("renderSession() is deprecated - session rendering happens automatically via AppRoot");
-  session.onFocus();
-  return session;
-}
-
 export function sendCommandToGame(session: Session, cmd: string, _id = "cli") {
   cmd = cmd.toString().trim();
   if (cmd.length === 0) return;

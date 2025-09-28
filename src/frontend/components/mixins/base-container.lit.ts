@@ -161,4 +161,15 @@ export abstract class BaseContainerComponent extends SessionStateMixin(LitElemen
   protected get sessionBus(): Bus | undefined {
     return this.session?.bus;
   }
+
+  /**
+   * Protected method to refresh event subscriptions when component properties change
+   * Useful for cases where event subscription depends on component state (e.g., name changes)
+   */
+  protected refreshEventSubscriptions(): void {
+    if (this.isSessionReady && this._eventListenerSetup) {
+      this._cleanupEventListeners();
+      this._setupEventListeners();
+    }
+  }
 }

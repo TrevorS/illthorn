@@ -11,7 +11,6 @@ vi.mock("../../src/frontend/session/helpers", async (importOriginal) => {
   return {
     ...actual,
     focusSession: vi.fn(),
-    renderSession: vi.fn(),
   };
 });
 

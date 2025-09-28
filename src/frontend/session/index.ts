@@ -5,7 +5,7 @@ import { CommandHistory } from "../components/command-bar/command-history";
 import type { SessionUI } from "../components/session-layout.lit";
 import { ComponentRenderer } from "../parser/component-renderer";
 import { SaxophoneParser } from "../parser/saxophone-parser";
-import { type GameTag, makeTag } from "../parser/tag";
+import { makeTag } from "../parser/tag";
 import { Bus } from "../util/bus";
 import { debugDevWindow, debugRawInput, debugSession, safeStringify } from "../util/logger";
 import { dispatchMetadata } from "./helpers";
@@ -168,21 +168,14 @@ export class FrontendSession {
     // Stream handling is now handled by streams-container via bus events
 
     // Render main content using modern component system
-    if (contentTags.length > 0) {
-      if (this.ui?.feed && "appendGameTags" in this.ui.feed) {
-        // Modern FeedModernized component
-        (this.ui.feed as { appendGameTags: (tags: Array<GameTag>) => void }).appendGameTags(contentTags);
-      } else if (this.ui?.feed) {
-        // Fallback for legacy Feed - this should be removed after migration
-        debugSession("Using legacy Feed component - consider migrating to FeedModernized");
-      }
+    if (contentTags.length > 0 && this.ui?.feed) {
+      // All feeds are now FeedModernized components
+      this.ui.feed.appendGameTags(contentTags);
     }
 
     // Handle separate prompt rendering if needed
     if (this.ui?.feed && !this.ui.feed.has_prompt() && promptInfo) {
-      if ("appendPrompt" in this.ui.feed) {
-        (this.ui.feed as { appendPrompt: (prompt: GameTag) => void }).appendPrompt(promptInfo);
-      }
+      this.ui.feed.appendPrompt(promptInfo);
     }
 
     // Process metadata for other systems (vitals, injuries, etc.)

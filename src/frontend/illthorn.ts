@@ -9,11 +9,6 @@ import { Bus } from "./util/bus";
 
 class IIllthorn {
   constructor(readonly bus: Bus = new Bus()) {
-    this.bus.subscribeEvent<FrontendSession>(IllthornEvent.SESSION_FOCUS, ({ detail: session }) => {
-      document.title = session.name;
-      this.renderSession(session);
-    });
-
     this.bus.subscribeEvent<string>(IllthornEvent.MACRO, ({ detail: macro }) => {
       const currentSess = currentSession();
       if (currentSess) currentSess.handleMacro(macro);
@@ -105,13 +100,6 @@ class IIllthorn {
     } else {
       console.log("No session bus available for UI status");
     }
-  }
-
-  renderSession(session: FrontendSession) {
-    // The app root component now handles session rendering via bus events
-    // This method is kept for API compatibility but delegates to the component
-    const appRoot = document.querySelector("illthorn-app-lit") as HTMLElement & { renderSession?: (session: FrontendSession) => void };
-    appRoot?.renderSession?.(session);
   }
 
   async handleCommand(command: string) {

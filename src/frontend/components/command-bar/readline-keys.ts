@@ -18,6 +18,7 @@ export interface ReadlineKeyBindings {
   submitCommand(): void;
   replayLastCommand(): void;
   clearInput(): void;
+  performTabCompletion(): void;
 
   // Getters for state
   getCursorPosition(): number;
@@ -112,6 +113,11 @@ export class ReadlineKeyHandler {
     switch (e.key) {
       case "Enter":
         this.bindings.submitCommand();
+        return true;
+
+      case "Tab":
+        e.preventDefault();
+        this.bindings.performTabCompletion();
         return true;
 
       case "ArrowUp":
