@@ -1,5 +1,5 @@
 // ABOUTME: Test suite for InjuriesContainer component verifying session event handling and injury data processing
-// ABOUTME: Tests the smart container component's integration with session bus and injury metadata processing
+// ABOUTME: Tests the smart container component's integration with session bus and injury metadata processing via image tags
 /// <reference types="vitest/globals" />
 import type { MockedFunction } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -96,25 +96,12 @@ describe("InjuriesContainer", () => {
       eventCallbacks = {};
     });
 
-    it("should process single injury event correctly", async () => {
-      const mockInjuryTag: GameTag = {
-        kind: TagKind.METADATA,
-        name: "injury",
-        gameName: "",
-        attrs: { part: "head", severity: "2", description: "moderate cuts and bruises" },
-        children: [],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/injury"]({ detail: mockInjuryTag } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
-      expect(injuriesUI).toBeTruthy();
+    it("should subscribe only to dialogData/injuries events", () => {
+      expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/dialogData/injuries", expect.any(Function));
+      expect(mockBus.subscribeEvent).toHaveBeenCalledTimes(1);
     });
 
-    it("should handle dialogData injury events", async () => {
+    it("should process image tag with Injury1 pattern", async () => {
       const mockDialogTag: GameTag = {
         kind: TagKind.METADATA,
         name: "dialogData",
@@ -123,9 +110,9 @@ describe("InjuriesContainer", () => {
         children: [
           {
             kind: TagKind.METADATA,
-            name: "injury",
+            name: "image",
             gameName: "",
-            attrs: { part: "head", severity: "2", description: "moderate wound" },
+            attrs: { id: "head", name: "Injury1" },
             children: [],
             state: TagState.OPEN,
             text: "",
@@ -142,33 +129,163 @@ describe("InjuriesContainer", () => {
       expect(injuriesUI).toBeTruthy();
     });
 
-    it("should clear injuries when receiving empty injury data", async () => {
-      // First add an injury
-      const mockInjuryTag: GameTag = {
-        kind: TagKind.METADATA,
-        name: "injury",
-        gameName: "",
-        attrs: { part: "head", severity: "1", description: "minor cut" },
-        children: [],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/injury"]({ detail: mockInjuryTag } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      // Then send empty injury data
-      const emptyDialogTag: GameTag = {
+    it("should process image tag with Scar2 pattern", async () => {
+      const mockDialogTag: GameTag = {
         kind: TagKind.METADATA,
         name: "dialogData",
         gameName: "",
         attrs: { id: "injuries" },
-        children: [],
+        children: [
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "leftEye", name: "Scar2" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+        ],
         state: TagState.OPEN,
         text: "",
       };
 
-      eventCallbacks["metadata/dialogData/injuries"]({ detail: emptyDialogTag } as CustomEvent<GameTag>);
+      eventCallbacks["metadata/dialogData/injuries"]({ detail: mockDialogTag } as CustomEvent<GameTag>);
+      await container.updateComplete;
+
+      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
+      expect(injuriesUI).toBeTruthy();
+    });
+
+    it("should clear injuries when receiving healthy parts only", async () => {
+      // First add an injury
+      const injuryDialogTag: GameTag = {
+        kind: TagKind.METADATA,
+        name: "dialogData",
+        gameName: "",
+        attrs: { id: "injuries" },
+        children: [
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "head", name: "Injury1" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+        ],
+        state: TagState.OPEN,
+        text: "",
+      };
+
+      eventCallbacks["metadata/dialogData/injuries"]({ detail: injuryDialogTag } as CustomEvent<GameTag>);
+      await container.updateComplete;
+
+      // Then send healthy parts only (name matches id)
+      const healthyDialogTag: GameTag = {
+        kind: TagKind.METADATA,
+        name: "dialogData",
+        gameName: "",
+        attrs: { id: "injuries" },
+        children: [
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "head", name: "head" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "chest", name: "chest" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "leftArm", name: "leftArm" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "rightArm", name: "rightArm" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "leftLeg", name: "leftLeg" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "rightLeg", name: "rightLeg" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+        ],
+        state: TagState.OPEN,
+        text: "",
+      };
+
+      eventCallbacks["metadata/dialogData/injuries"]({ detail: healthyDialogTag } as CustomEvent<GameTag>);
+      await container.updateComplete;
+
+      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
+      expect(injuriesUI).toBeTruthy();
+    });
+
+    it("should ignore healthSkin image elements", async () => {
+      const mockDialogTag: GameTag = {
+        kind: TagKind.METADATA,
+        name: "dialogData",
+        gameName: "",
+        attrs: { id: "injuries" },
+        children: [
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "healthSkin", name: "healthBar2" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+          {
+            kind: TagKind.METADATA,
+            name: "progressBar",
+            gameName: "",
+            attrs: { id: "health2", value: "52", text: "health 39/74" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+        ],
+        state: TagState.OPEN,
+        text: "",
+      };
+
+      eventCallbacks["metadata/dialogData/injuries"]({ detail: mockDialogTag } as CustomEvent<GameTag>);
       await container.updateComplete;
 
       const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
@@ -202,18 +319,18 @@ describe("InjuriesContainer", () => {
         children: [
           {
             kind: TagKind.METADATA,
-            name: "injury",
+            name: "image",
             gameName: "",
-            attrs: { part: "leftarm", severity: "1", description: "minor cuts" },
+            attrs: { id: "leftArm", name: "Injury1" },
             children: [],
             state: TagState.OPEN,
             text: "",
           },
           {
             kind: TagKind.METADATA,
-            name: "injury",
+            name: "image",
             gameName: "",
-            attrs: { part: "rightarm", severity: "2", description: "deep gashes" },
+            attrs: { id: "rightArm", name: "Injury2" },
             children: [],
             state: TagState.OPEN,
             text: "",
@@ -239,9 +356,9 @@ describe("InjuriesContainer", () => {
         children: [
           {
             kind: TagKind.METADATA,
-            name: "injury",
+            name: "image",
             gameName: "",
-            attrs: { part: "leftarm", severity: "3", description: "severe wounds" },
+            attrs: { id: "leftArm", name: "Injury3" },
             children: [],
             state: TagState.OPEN,
             text: "",
@@ -267,27 +384,27 @@ describe("InjuriesContainer", () => {
         children: [
           {
             kind: TagKind.METADATA,
-            name: "injury",
+            name: "image",
             gameName: "",
-            attrs: { part: "rightleg", severity: "1", description: "minor cut" },
+            attrs: { id: "rightLeg", name: "Injury1" },
             children: [],
             state: TagState.OPEN,
             text: "",
           },
           {
             kind: TagKind.METADATA,
-            name: "injury",
+            name: "image",
             gameName: "",
-            attrs: { part: "head", severity: "2", description: "moderate wound" },
+            attrs: { id: "head", name: "Injury2" },
             children: [],
             state: TagState.OPEN,
             text: "",
           },
           {
             kind: TagKind.METADATA,
-            name: "injury",
+            name: "image",
             gameName: "",
-            attrs: { part: "chest", severity: "3", description: "severe gash" },
+            attrs: { id: "chest", name: "Injury3" },
             children: [],
             state: TagState.OPEN,
             text: "",
@@ -310,20 +427,20 @@ describe("InjuriesContainer", () => {
     let eventCallbacks: { [key: string]: (event: CustomEvent<GameTag>) => void } = {};
 
     const mappingTests = [
-      { part: "righteye", expected: "r.eye" },
-      { part: "lefteye", expected: "l.eye" },
-      { part: "rightarm", expected: "r.arm" },
-      { part: "leftarm", expected: "l.arm" },
-      { part: "righthand", expected: "r.hand" },
-      { part: "lefthand", expected: "l.hand" },
-      { part: "rightleg", expected: "r.leg" },
-      { part: "leftleg", expected: "l.leg" },
-      { part: "head", expected: "head" },
-      { part: "neck", expected: "neck" },
-      { part: "chest", expected: "chest" },
-      { part: "abdomen", expected: "abdomen" },
-      { part: "back", expected: "back" },
-      { part: "nerves", expected: "nerves" },
+      { imageId: "rightEye", imageName: "Injury1", expected: "r.eye" },
+      { imageId: "leftEye", imageName: "Injury1", expected: "l.eye" },
+      { imageId: "rightArm", imageName: "Injury1", expected: "r.arm" },
+      { imageId: "leftArm", imageName: "Injury1", expected: "l.arm" },
+      { imageId: "rightHand", imageName: "Injury1", expected: "r.hand" },
+      { imageId: "leftHand", imageName: "Injury1", expected: "l.hand" },
+      { imageId: "rightLeg", imageName: "Injury1", expected: "r.leg" },
+      { imageId: "leftLeg", imageName: "Injury1", expected: "l.leg" },
+      { imageId: "head", imageName: "Injury1", expected: "head" },
+      { imageId: "neck", imageName: "Injury1", expected: "neck" },
+      { imageId: "chest", imageName: "Injury1", expected: "chest" },
+      { imageId: "abdomen", imageName: "Injury1", expected: "abdomen" },
+      { imageId: "back", imageName: "Injury1", expected: "back" },
+      { imageId: "nsys", imageName: "Injury1", expected: "nerves" },
     ];
 
     beforeEach(() => {
@@ -339,8 +456,8 @@ describe("InjuriesContainer", () => {
       eventCallbacks = {};
     });
 
-    mappingTests.forEach(({ part }) => {
-      it(`should process ${part} injury correctly`, async () => {
+    mappingTests.forEach(({ imageId, imageName }) => {
+      it(`should process ${imageId} injury correctly`, async () => {
         const mockDialogTag: GameTag = {
           kind: TagKind.METADATA,
           name: "dialogData",
@@ -349,9 +466,9 @@ describe("InjuriesContainer", () => {
           children: [
             {
               kind: TagKind.METADATA,
-              name: "injury",
+              name: "image",
               gameName: "",
-              attrs: { part, severity: "1", description: "test injury" },
+              attrs: { id: imageId, name: imageName },
               children: [],
               state: TagState.OPEN,
               text: "",
@@ -375,10 +492,10 @@ describe("InjuriesContainer", () => {
     let eventCallbacks: { [key: string]: (event: CustomEvent<GameTag>) => void } = {};
 
     const pairTests = [
-      { leftPart: "lefteye", rightPart: "righteye", pairName: "eyes" },
-      { leftPart: "leftarm", rightPart: "rightarm", pairName: "arms" },
-      { leftPart: "lefthand", rightPart: "righthand", pairName: "hands" },
-      { leftPart: "leftleg", rightPart: "rightleg", pairName: "legs" },
+      { leftId: "leftEye", rightId: "rightEye", pairName: "eyes" },
+      { leftId: "leftArm", rightId: "rightArm", pairName: "arms" },
+      { leftId: "leftHand", rightId: "rightHand", pairName: "hands" },
+      { leftId: "leftLeg", rightId: "rightLeg", pairName: "legs" },
     ];
 
     beforeEach(() => {
@@ -394,8 +511,8 @@ describe("InjuriesContainer", () => {
       eventCallbacks = {};
     });
 
-    pairTests.forEach(({ leftPart, rightPart, pairName }) => {
-      it(`should pair ${leftPart}/${rightPart} into ${pairName}`, async () => {
+    pairTests.forEach(({ leftId, rightId, pairName }) => {
+      it(`should pair ${leftId}/${rightId} into ${pairName}`, async () => {
         const mockDialogTag: GameTag = {
           kind: TagKind.METADATA,
           name: "dialogData",
@@ -404,18 +521,18 @@ describe("InjuriesContainer", () => {
           children: [
             {
               kind: TagKind.METADATA,
-              name: "injury",
+              name: "image",
               gameName: "",
-              attrs: { part: leftPart, severity: "1", description: "minor injury" },
+              attrs: { id: leftId, name: "Injury1" },
               children: [],
               state: TagState.OPEN,
               text: "",
             },
             {
               kind: TagKind.METADATA,
-              name: "injury",
+              name: "image",
               gameName: "",
-              attrs: { part: rightPart, severity: "2", description: "moderate injury" },
+              attrs: { id: rightId, name: "Injury2" },
               children: [],
               state: TagState.OPEN,
               text: "",
@@ -431,6 +548,116 @@ describe("InjuriesContainer", () => {
         const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
         expect(injuriesUI).toBeTruthy();
       });
+    });
+  });
+
+  describe("Severity Parsing", () => {
+    let container: InjuriesContainer;
+    let eventCallbacks: { [key: string]: (event: CustomEvent<GameTag>) => void } = {};
+
+    beforeEach(() => {
+      mockBus.subscribeEvent = vi.fn().mockImplementation((eventName: string, callback: (event: CustomEvent<GameTag>) => void) => {
+        eventCallbacks[eventName] = callback;
+      });
+
+      container = setup(mockSession as FrontendSession);
+    });
+
+    afterEach(() => {
+      teardown(container);
+      eventCallbacks = {};
+    });
+
+    it("should parse Injury1, Injury2, Injury3 severity levels", async () => {
+      const mockDialogTag: GameTag = {
+        kind: TagKind.METADATA,
+        name: "dialogData",
+        gameName: "",
+        attrs: { id: "injuries" },
+        children: [
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "head", name: "Injury1" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "chest", name: "Injury2" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "back", name: "Injury3" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+        ],
+        state: TagState.OPEN,
+        text: "",
+      };
+
+      eventCallbacks["metadata/dialogData/injuries"]({ detail: mockDialogTag } as CustomEvent<GameTag>);
+      await container.updateComplete;
+
+      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
+      expect(injuriesUI).toBeTruthy();
+    });
+
+    it("should parse Scar1, Scar2, Scar3 severity levels", async () => {
+      const mockDialogTag: GameTag = {
+        kind: TagKind.METADATA,
+        name: "dialogData",
+        gameName: "",
+        attrs: { id: "injuries" },
+        children: [
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "leftEye", name: "Scar1" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "rightArm", name: "Scar2" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+          {
+            kind: TagKind.METADATA,
+            name: "image",
+            gameName: "",
+            attrs: { id: "leftLeg", name: "Scar3" },
+            children: [],
+            state: TagState.OPEN,
+            text: "",
+          },
+        ],
+        state: TagState.OPEN,
+        text: "",
+      };
+
+      eventCallbacks["metadata/dialogData/injuries"]({ detail: mockDialogTag } as CustomEvent<GameTag>);
+      await container.updateComplete;
+
+      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
+      expect(injuriesUI).toBeTruthy();
     });
   });
 
@@ -473,133 +700,6 @@ describe("InjuriesContainer", () => {
       expect(Array.isArray(injuries)).toBe(true);
 
       teardown(container);
-    });
-  });
-
-  describe("Radio Event Handling", () => {
-    let container: InjuriesContainer;
-    let eventCallbacks: { [key: string]: (event: CustomEvent<GameTag>) => void } = {};
-
-    beforeEach(() => {
-      mockBus.subscribeEvent = vi.fn().mockImplementation((eventName: string, callback: (event: CustomEvent<GameTag>) => void) => {
-        eventCallbacks[eventName] = callback;
-      });
-
-      container = setup(mockSession as FrontendSession);
-    });
-
-    afterEach(() => {
-      teardown(container);
-      eventCallbacks = {};
-    });
-
-    it("should subscribe to metadata/radio events", () => {
-      expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/radio", expect.any(Function));
-    });
-
-    it("should process radio tag with valid wound data", async () => {
-      const mockRadioTag: GameTag = {
-        kind: TagKind.METADATA,
-        name: "radio",
-        gameName: "",
-        attrs: { part: "head", severity: "2" },
-        children: [],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/radio"]({ detail: mockRadioTag } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
-      expect(injuriesUI).toBeTruthy();
-    });
-
-    it("should ignore radio tag with no wound data (severity 0)", async () => {
-      const mockRadioTag: GameTag = {
-        kind: TagKind.METADATA,
-        name: "radio",
-        gameName: "",
-        attrs: { part: "head", severity: "0" },
-        children: [],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/radio"]({ detail: mockRadioTag } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
-      expect(injuriesUI).toBeTruthy();
-    });
-
-    it("should ignore radio tag without part or severity attributes", async () => {
-      const mockRadioTag: GameTag = {
-        kind: TagKind.METADATA,
-        name: "radio",
-        gameName: "",
-        attrs: { id: "some-radio" },
-        children: [],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/radio"]({ detail: mockRadioTag } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
-      expect(injuriesUI).toBeTruthy();
-    });
-
-    it("should map radio part names to internal naming convention", async () => {
-      const mockRadioTag: GameTag = {
-        kind: TagKind.METADATA,
-        name: "radio",
-        gameName: "",
-        attrs: { part: "rightArm", severity: "3" },
-        children: [],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/radio"]({ detail: mockRadioTag } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
-      expect(injuriesUI).toBeTruthy();
-    });
-
-    it("should handle multiple radio events and update injury list", async () => {
-      // First radio event - head injury
-      const headRadioTag: GameTag = {
-        kind: TagKind.METADATA,
-        name: "radio",
-        gameName: "",
-        attrs: { part: "head", severity: "1" },
-        children: [],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/radio"]({ detail: headRadioTag } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      // Second radio event - arm injury
-      const armRadioTag: GameTag = {
-        kind: TagKind.METADATA,
-        name: "radio",
-        gameName: "",
-        attrs: { part: "rightArm", severity: "2" },
-        children: [],
-        state: TagState.OPEN,
-        text: "",
-      };
-
-      eventCallbacks["metadata/radio"]({ detail: armRadioTag } as CustomEvent<GameTag>);
-      await container.updateComplete;
-
-      const injuriesUI = container.shadowRoot?.querySelector("illthorn-injuries-ui");
-      expect(injuriesUI).toBeTruthy();
     });
   });
 });
