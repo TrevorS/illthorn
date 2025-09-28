@@ -62,8 +62,9 @@ describe("CompassContainer", () => {
   });
 
   describe("Event Listener Setup", () => {
-    it("should subscribe to compass metadata event when session is available", () => {
+    it("should subscribe to compass metadata event when session is available", async () => {
       const container = setup(mockSession as FrontendSession);
+      await container.updateComplete;
 
       expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/compass", expect.any(Function));
 
@@ -105,6 +106,7 @@ describe("CompassContainer", () => {
 
     it("should not set up duplicate event listeners", async () => {
       const container = setup(mockSession as FrontendSession);
+      await container.updateComplete;
 
       // Initial subscription
       expect(mockBus.subscribeEvent).toHaveBeenCalledTimes(1);
@@ -113,7 +115,7 @@ describe("CompassContainer", () => {
       container.session = mockSession as FrontendSession;
       await container.updateComplete;
 
-      // Should still only be called once
+      // Should still only be called once (BaseContainerComponent handles duplicate prevention)
       expect(mockBus.subscribeEvent).toHaveBeenCalledTimes(1);
 
       teardown(container);

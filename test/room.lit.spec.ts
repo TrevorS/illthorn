@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import type { RoomUI } from "../src/frontend/components/session/room/room-ui.lit";
 import { Room } from "../src/frontend/components/session/room.lit";
 import { makeTag } from "../src/frontend/parser/tag";
 import { createMockSession } from "./mocks";
@@ -21,7 +22,7 @@ describe("Room", () => {
     const { element } = setup();
 
     expect(element).toBeInstanceOf(HTMLElement);
-    expect(element.tagName.toLowerCase()).toBe("illthorn-room-lit");
+    expect(element.tagName.toLowerCase()).toBe("illthorn-room-container");
 
     teardown(element);
   });
@@ -32,8 +33,15 @@ describe("Room", () => {
     // First wait for the element to be ready
     await element.updateComplete;
 
-    const roomIdSpan = element.shadowRoot?.querySelector(".room-id");
-    const roomTitleSpan = element.shadowRoot?.querySelector(".room-title");
+    // Room is now a container that renders a room-ui component
+    const roomUI = element.shadowRoot?.querySelector("illthorn-room-ui");
+    expect(roomUI).toBeTruthy();
+
+    // Wait for the UI component to be ready
+    await (roomUI as RoomUI)?.updateComplete;
+
+    const roomIdSpan = roomUI?.shadowRoot?.querySelector(".room-id");
+    const roomTitleSpan = roomUI?.shadowRoot?.querySelector(".room-title");
 
     expect(roomIdSpan).toBeTruthy();
     expect(roomTitleSpan).toBeTruthy();
@@ -57,7 +65,10 @@ describe("Room", () => {
     mockSession.bus.dispatchEvent("metadata/nav", navTag);
     await element.updateComplete;
 
-    const roomIdSpan = element.shadowRoot?.querySelector(".room-id");
+    // Query through the UI component
+    const roomUI = element.shadowRoot?.querySelector("illthorn-room-ui");
+    await (roomUI as RoomUI)?.updateComplete;
+    const roomIdSpan = roomUI?.shadowRoot?.querySelector(".room-id");
     expect(roomIdSpan?.textContent || "").toBe(testRoomId);
 
     teardown(element);
@@ -77,7 +88,10 @@ describe("Room", () => {
     mockSession.bus.dispatchEvent("metadata/streamWindow/room", streamWindowTag);
     await element.updateComplete;
 
-    const roomTitleSpan = element.shadowRoot?.querySelector(".room-title");
+    // Query through the UI component
+    const roomUI = element.shadowRoot?.querySelector("illthorn-room-ui");
+    await (roomUI as RoomUI)?.updateComplete;
+    const roomTitleSpan = roomUI?.shadowRoot?.querySelector(".room-title");
     expect(roomTitleSpan?.textContent || "").toBe(testTitle);
 
     teardown(element);
@@ -98,7 +112,10 @@ describe("Room", () => {
     mockSession.bus.dispatchEvent("metadata/streamWindow/room", streamWindowTag);
     await element.updateComplete;
 
-    const roomTitleSpan = element.shadowRoot?.querySelector(".room-title");
+    // Query through the UI component
+    const roomUI = element.shadowRoot?.querySelector("illthorn-room-ui");
+    await (roomUI as RoomUI)?.updateComplete;
+    const roomTitleSpan = roomUI?.shadowRoot?.querySelector(".room-title");
     expect(roomTitleSpan?.textContent || "").toBe(expectedTitle);
 
     teardown(element);
@@ -117,7 +134,10 @@ describe("Room", () => {
     mockSession.bus.dispatchEvent("metadata/streamWindow/room", streamWindowTag);
     await element.updateComplete;
 
-    const roomTitleSpan = element.shadowRoot?.querySelector(".room-title");
+    // Query through the UI component
+    const roomUI = element.shadowRoot?.querySelector("illthorn-room-ui");
+    await (roomUI as RoomUI)?.updateComplete;
+    const roomTitleSpan = roomUI?.shadowRoot?.querySelector(".room-title");
     expect(roomTitleSpan?.textContent || "").toBe("");
 
     teardown(element);
@@ -136,7 +156,10 @@ describe("Room", () => {
     mockSession.bus.dispatchEvent("metadata/streamWindow/room", streamWindowTag);
     await element.updateComplete;
 
-    const roomTitleSpan = element.shadowRoot?.querySelector(".room-title");
+    // Query through the UI component
+    const roomUI = element.shadowRoot?.querySelector("illthorn-room-ui");
+    await (roomUI as RoomUI)?.updateComplete;
+    const roomTitleSpan = roomUI?.shadowRoot?.querySelector(".room-title");
     expect(roomTitleSpan?.textContent || "").toBe("");
 
     teardown(element);
@@ -148,8 +171,11 @@ describe("Room", () => {
     element.session = mockSession;
     await element.updateComplete;
 
-    const roomIdSpan = element.shadowRoot?.querySelector(".room-id");
-    const roomTitleSpan = element.shadowRoot?.querySelector(".room-title");
+    // Query through the UI component
+    const roomUI = element.shadowRoot?.querySelector("illthorn-room-ui");
+    await (roomUI as RoomUI)?.updateComplete;
+    const roomIdSpan = roomUI?.shadowRoot?.querySelector(".room-id");
+    const roomTitleSpan = roomUI?.shadowRoot?.querySelector(".room-title");
 
     expect(roomIdSpan).toBeTruthy();
     expect(roomTitleSpan).toBeTruthy();
@@ -164,10 +190,13 @@ describe("Room", () => {
 
     await element.updateComplete;
 
-    const roomIdSpan = element.shadowRoot?.querySelector(".room-id");
-    const roomTitleSpan = element.shadowRoot?.querySelector(".room-title");
+    // Query through the UI component
+    const roomUI = element.shadowRoot?.querySelector("illthorn-room-ui");
+    await (roomUI as RoomUI)?.updateComplete;
+    const roomIdSpan = roomUI?.shadowRoot?.querySelector(".room-id");
+    const roomTitleSpan = roomUI?.shadowRoot?.querySelector(".room-title");
 
-    expect(roomIdSpan?.textContent).toBe("");
+    expect(roomIdSpan?.textContent || "").toBe("");
     expect(roomTitleSpan?.textContent || "").toBe("");
 
     teardown(element);
@@ -190,7 +219,10 @@ describe("Room", () => {
     newMockSession.bus.dispatchEvent("metadata/nav", navTag);
     await element.updateComplete;
 
-    const roomIdSpan = element.shadowRoot?.querySelector(".room-id");
+    // Query through the UI component
+    const roomUI = element.shadowRoot?.querySelector("illthorn-room-ui");
+    await (roomUI as RoomUI)?.updateComplete;
+    const roomIdSpan = roomUI?.shadowRoot?.querySelector(".room-id");
     expect(roomIdSpan?.textContent || "").toBe(testRoomId);
 
     teardown(element);

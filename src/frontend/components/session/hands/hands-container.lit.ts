@@ -1,23 +1,18 @@
 // ABOUTME: Smart container component managing hand metadata events for hands display
-// ABOUTME: Subscribes to session events and passes hand content to hands UI component
-import { css, html, LitElement } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+// ABOUTME: Subscribes to session events and passes hand content to hands UI component - now using BaseContainerComponent
+import { css, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
 import type { GameTag } from "../../../parser/tag";
-import type { FrontendSession } from "../../../session/index";
-import type { Bus } from "../../../util/bus";
-import { SessionStateMixin } from "../../mixins/session-state-mixin";
+import { BaseContainerComponent } from "../../mixins/base-container.lit";
 import "./hands-ui.lit";
 
 @customElement("illthorn-hands-container")
-export class HandsContainer extends SessionStateMixin(LitElement) {
+export class HandsContainer extends BaseContainerComponent {
   static styles = css`
     :host {
       display: block;
     }
   `;
-
-  @property({ type: Object })
-  session?: FrontendSession;
 
   @state()
   private _leftContent = "Empty";
@@ -27,8 +22,6 @@ export class HandsContainer extends SessionStateMixin(LitElement) {
 
   @state()
   private _spellContent = "None";
-
-  private _eventHandlers: Array<{ event: string; handler: (event: CustomEvent<GameTag>) => void; bus: Bus }> = [];
 
   protected getStateToStore(): Record<string, unknown> {
     return {
@@ -48,68 +41,27 @@ export class HandsContainer extends SessionStateMixin(LitElement) {
     return "hands";
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    this._setupEventListeners();
-  }
-
-  willUpdate(changedProperties: Map<string | number | symbol, unknown>) {
-    super.willUpdate(changedProperties);
-
-    if (changedProperties.has("session")) {
-      this._setupEventListeners();
-    }
-  }
-
-  private _setupEventListeners() {
-    // Clean up existing event listeners
-    this._cleanupEventListeners();
-
-    if (!this.session?.bus) {
-      return;
-    }
-
-    // Create handlers
-    const leftHandler = ({ detail: hand }: CustomEvent<GameTag>) => {
-      this._leftContent = hand.children?.[0]?.text || "Empty";
-      this.persistState();
-    };
-
-    const rightHandler = ({ detail: hand }: CustomEvent<GameTag>) => {
-      this._rightContent = hand.children?.[0]?.text || "Empty";
-      this.persistState();
-    };
-
-    const spellHandler = ({ detail: hand }: CustomEvent<GameTag>) => {
-      this._spellContent = hand.children?.[0]?.text || "None";
-      this.persistState();
-    };
-
-    // Subscribe to events
-    this.session.bus.subscribeEvent<GameTag>("metadata/left", leftHandler);
-    this.session.bus.subscribeEvent<GameTag>("metadata/right", rightHandler);
-    this.session.bus.subscribeEvent<GameTag>("metadata/spell", spellHandler);
-
-    // Store handlers for cleanup
-    this._eventHandlers.push(
-      { event: "metadata/left", handler: leftHandler, bus: this.session.bus },
-      { event: "metadata/right", handler: rightHandler, bus: this.session.bus },
-      { event: "metadata/spell", handler: spellHandler, bus: this.session.bus },
-    );
-  }
-
-  private _cleanupEventListeners() {
-    this._eventHandlers.forEach(({ event, handler, bus }) => {
-      if (bus?._ele) {
-        bus._ele.removeEventListener(event, handler as EventListener);
-      }
-    });
-    this._eventHandlers = [];
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this._cleanupEventListeners();
+  protected getSessionEventSubscriptions() {
+    return [
+      {
+        eventName: "metadata/left",
+        handler: this.createStatePersistingHandler((tag: GameTag) => {
+          this._leftContent = tag.children?.[0]?.text || "Empty";
+        }),
+      },
+      {
+        eventName: "metadata/right",
+        handler: this.createStatePersistingHandler((tag: GameTag) => {
+          this._rightContent = tag.children?.[0]?.text || "Empty";
+        }),
+      },
+      {
+        eventName: "metadata/spell",
+        handler: this.createStatePersistingHandler((tag: GameTag) => {
+          this._spellContent = tag.children?.[0]?.text || "None";
+        }),
+      },
+    ];
   }
 
   render() {

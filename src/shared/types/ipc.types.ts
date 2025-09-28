@@ -52,11 +52,22 @@ export interface ConfigIPCReturns {
  * Session IPC channel argument types
  */
 export interface SessionIPCChannels {
-  "session/connect": [any, IPCEventCallback]; // TODO: Replace any with proper session config type
+  "session/connect": [Illthorn.Session.Config];
   "session/registerSingletonListener": [string, IPCEventCallback];
   "session/listAvailable": [];
   "session/listConnected": [];
-  "session/sendCommand": [any, string]; // TODO: Replace any with proper session type
+  "session/sendCommand": [{ to: string; command: string }];
+}
+
+/**
+ * Session IPC channel return types
+ */
+export interface SessionIPCReturns {
+  "session/connect": Illthorn.Session.Pojo;
+  "session/registerSingletonListener": undefined;
+  "session/listAvailable": Array<Illthorn.LichSessionDescriptor>;
+  "session/listConnected": Array<Illthorn.Session.Pojo>;
+  "session/sendCommand": undefined;
 }
 
 /**
@@ -65,10 +76,10 @@ export interface SessionIPCChannels {
 export interface TypedIPCRenderer {
   invoke<K extends keyof ConfigIPCChannels>(channel: K, ...args: ConfigIPCChannels[K]): Promise<ConfigIPCReturns[K]>;
 
-  invoke<K extends keyof SessionIPCChannels>(channel: K, ...args: SessionIPCChannels[K]): Promise<any>; // TODO: Add session return types
+  invoke<K extends keyof SessionIPCChannels>(channel: K, ...args: SessionIPCChannels[K]): Promise<SessionIPCReturns[K]>;
 
   // Fallback for other channels not yet typed
-  invoke(channel: string, ...args: any[]): Promise<any>;
+  invoke(channel: string, ...args: unknown[]): Promise<unknown>;
 
   on(channel: string, listener: IPCEventCallback): void;
   removeListener(channel: string, listener: IPCEventCallback): void;

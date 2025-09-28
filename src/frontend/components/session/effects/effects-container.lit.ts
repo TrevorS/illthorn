@@ -1,26 +1,21 @@
 // ABOUTME: Smart container component that manages effects state via session events
-// ABOUTME: Subscribes to metadata/dialogData events and passes processed spell effects to UI component
-import { html, LitElement } from "lit";
+// ABOUTME: Subscribes to metadata/dialogData events and passes processed spell effects to UI component - now using BaseContainerComponent
+import { html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
 import { logEffectsEvent } from "../../../util/logger";
-import { SessionStateMixin } from "../../mixins/session-state-mixin";
+import { BaseContainerComponent } from "../../mixins/base-container.lit";
 import "./effects-ui.lit";
 import type { SpellEffectData } from "./effects-ui.lit";
 
 @customElement("illthorn-effects-container")
-export class EffectsContainer extends SessionStateMixin(LitElement) {
-  @property({ type: Object })
-  session: Session | null = null;
-
+export class EffectsContainer extends BaseContainerComponent {
   @property({ type: String })
   name = "";
 
   @state()
   private _spellEffects: Array<SpellEffectData> = [];
-
-  private _eventListenerSetup = false;
 
   protected getStateToStore(): Record<string, unknown> {
     return {
@@ -46,42 +41,43 @@ export class EffectsContainer extends SessionStateMixin(LitElement) {
     }
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    if (this.session && this.name && !this._eventListenerSetup) {
-      this.setupEventListeners();
-      this._eventListenerSetup = true;
-    }
-  }
-
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
 
-    if (changedProperties.has("session") || changedProperties.has("name")) {
-      if (this.session && this.name && !this._eventListenerSetup) {
-        this.setupEventListeners();
-        this._eventListenerSetup = true;
-      }
+    // Re-setup event listeners if name changes (since event name depends on name)
+    if (changedProperties.has("name") && this.isSessionReady) {
+      // Use a more specific approach to re-setup event listeners
+      // This is a bit of a hack but necessary since name changes require event re-subscription
+      const previousSession = this.session;
+      this.session = undefined;
+      this.requestUpdate();
+      this.session = previousSession;
+      this.requestUpdate();
     }
   }
 
-  private setupEventListeners() {
-    if (!this.session || !this.session.bus || !this.name) {
-      logEffectsEvent(this.constructor.name, "Cannot attach listeners - missing session, bus, or name", {
+  protected getSessionEventSubscriptions() {
+    if (!this.name) {
+      logEffectsEvent(this.constructor.name, "Cannot setup listeners - missing name", {
         hasSession: !!this.session,
         hasBus: !!this.session?.bus,
         name: this.name,
       });
-      return;
+      return [];
     }
 
     const eventName = `metadata/dialogData/${this.name}`;
-    logEffectsEvent(this.constructor.name, `Subscribing to event: ${eventName}`);
+    logEffectsEvent(this.constructor.name, `Setting up subscription for event: ${eventName}`);
 
-    this.session.bus.subscribeEvent<GameTag>(eventName, ({ detail: dialog }) => {
-      logEffectsEvent(this.constructor.name, `Received dialog event for ${this.name}`, dialog);
-      this.processDialogData(dialog);
-    });
+    return [
+      {
+        eventName,
+        handler: this.createStatePersistingHandler((tag: GameTag) => {
+          logEffectsEvent(this.constructor.name, `Received dialog event for ${this.name}`, tag);
+          this.processDialogData(tag);
+        }),
+      },
+    ];
   }
 
   private processDialogData(dialog: GameTag) {
@@ -93,7 +89,6 @@ export class EffectsContainer extends SessionStateMixin(LitElement) {
     if (dialog.children.length === 0) {
       logEffectsEvent(this.constructor.name, `No children found in dialog for ${this.name} - clearing effects`);
       this._spellEffects = [];
-      this.persistState();
       return;
     }
 
@@ -115,7 +110,6 @@ export class EffectsContainer extends SessionStateMixin(LitElement) {
       logEffectsEvent(this.constructor.name, `Mapped progress bar to spell effect`, effectData);
       return effectData;
     });
-    this.persistState();
 
     logEffectsEvent(this.constructor.name, `Final spell effects count: ${this._spellEffects.length}`);
   }

@@ -53,7 +53,7 @@ describe("EffectsContainer", () => {
     it("should handle undefined parameters", () => {
       const container = setup();
 
-      expect(container.session).toBeNull();
+      expect(container.session).toBeUndefined();
       expect(container.name).toBe("");
 
       teardown(container);
@@ -61,8 +61,9 @@ describe("EffectsContainer", () => {
   });
 
   describe("Event Listener Setup", () => {
-    it("should subscribe to correct metadata event", () => {
+    it("should subscribe to correct metadata event", async () => {
       const container = setup(mockSession as FrontendSession, "TestEffect");
+      await container.updateComplete;
 
       expect(mockBus.subscribeEvent).toHaveBeenCalledWith("metadata/dialogData/TestEffect", expect.any(Function));
 

@@ -1,10 +1,10 @@
 // ABOUTME: Smart container component for streams that handles session integration and business logic
-// ABOUTME: Manages stream data state and coordinates with StreamsUI for presentation
-import { css, html, LitElement } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+// ABOUTME: Manages stream data state and coordinates with StreamsUI for presentation - now using BaseContainerComponent
+import { css, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
 import type { GameTag } from "../../parser/tag";
 import type { FrontendSession as Session } from "../../session/index";
-import type { Bus } from "../../util/bus";
+import { BaseContainerComponent } from "../mixins/base-container.lit";
 import "./streams-ui.lit";
 
 export interface StreamEntry {
@@ -15,7 +15,7 @@ export interface StreamEntry {
 }
 
 @customElement("illthorn-streams-container")
-export class StreamsContainer extends LitElement {
+export class StreamsContainer extends BaseContainerComponent {
   static styles = css`
     :host {
       display: block;
@@ -24,17 +24,11 @@ export class StreamsContainer extends LitElement {
     }
   `;
 
-  @property({ type: Object })
-  session?: Session;
-
   @state()
   private _entries: Array<StreamEntry> = [];
 
   @state()
   private _streamFilters: Set<string> = new Set(["thoughts", "speech", "logon", "logoff", "death"]);
-
-  private _eventHandlers: Array<{ event: string; handler: (event: CustomEvent<GameTag>) => void; bus: Bus }> = [];
-  private _eventListenerSetup = false;
 
   // Deduplication state: track recent messages by stream type to prevent duplicates
   private _recentMessages: Map<string, Array<{ text: string; timestamp: number }>> = new Map();
@@ -43,52 +37,38 @@ export class StreamsContainer extends LitElement {
   // Available stream types
   private static readonly STREAM_TYPES = ["thoughts", "speech", "logon", "logoff", "death"] as const;
 
-  updated(changedProperties: Map<string | number | symbol, unknown>) {
-    super.updated(changedProperties);
-
-    if (changedProperties.has("session")) {
-      if (this.session && !this._eventListenerSetup) {
-        this._loadStreamFilters(); // Load saved filter settings
-        this._setupEventListeners();
-        this._eventListenerSetup = true;
-      }
-    }
+  protected onSessionReady(_session: Session): void {
+    this._loadStreamFilters(); // Load saved filter settings when session becomes available
   }
 
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this._cleanupEventListeners();
-    this._eventListenerSetup = false;
+  protected getStateToStore(): Record<string, unknown> {
+    // StreamsContainer doesn't persist state - entries are ephemeral
+    return {};
   }
 
-  private _setupEventListeners() {
-    if (!this.session?.bus) {
-      return;
-    }
+  protected restoreState(_state: Record<string, unknown>): void {
+    // StreamsContainer doesn't restore state - entries are ephemeral
+    // Filters are loaded from Settings API in onSessionReady
+  }
 
-    // Clean up any existing listeners first to prevent duplicates
-    this._cleanupEventListeners();
+  protected getStorageKeyPrefix(): string {
+    return "streams";
+  }
 
-    const bus = this.session.bus;
+  protected getSessionEventSubscriptions() {
+    const subscriptions = [];
 
     // Subscribe to stream events for each stream type
     for (const streamType of StreamsContainer.STREAM_TYPES) {
-      const handler = ({ detail: streamTag }: CustomEvent<GameTag>) => {
-        this._handleStreamEntry(streamTag, streamType);
-      };
-      const eventName = `metadata/stream/${streamType}`;
-      bus.subscribeEvent<GameTag>(eventName, handler);
-      this._eventHandlers.push({ event: eventName, handler, bus });
+      subscriptions.push({
+        eventName: `metadata/stream/${streamType}`,
+        handler: ({ detail: streamTag }: CustomEvent<GameTag>) => {
+          this._handleStreamEntry(streamTag, streamType);
+        },
+      });
     }
-  }
 
-  private _cleanupEventListeners() {
-    this._eventHandlers.forEach(({ event, handler, bus }) => {
-      if (bus?._ele) {
-        bus._ele.removeEventListener(event, handler as EventListener);
-      }
-    });
-    this._eventHandlers = [];
+    return subscriptions;
   }
 
   /**

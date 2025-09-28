@@ -85,10 +85,12 @@ export abstract class BaseContainerComponent extends SessionStateMixin(LitElemen
    * Handles session property changes and manages event listener lifecycle
    */
   private _handleSessionChange() {
-    if (this.session && !this._eventListenerSetup) {
+    if (this.session) {
+      // Always cleanup and re-setup when session changes (handles session switching)
+      this._cleanupEventListeners();
       this._setupEventListeners();
       this._eventListenerSetup = true;
-    } else if (!this.session && this._eventListenerSetup) {
+    } else if (this._eventListenerSetup) {
       this._cleanupEventListeners();
       this._eventListenerSetup = false;
     }
