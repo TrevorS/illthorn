@@ -252,6 +252,7 @@ export class SessionLayout extends LitElement {
    */
   toggleStreams(visible: boolean) {
     this.classList.toggle("no-streams", !visible);
+    this.classList.toggle("streams-on", visible);
 
     // Save to settings
     if (window.Settings) {
@@ -289,7 +290,9 @@ export class SessionLayout extends LitElement {
     if (window.Settings) {
       const savedStreamsVisible = await window.Settings.get("ui.streams.visible");
       if (savedStreamsVisible !== undefined) {
-        this.classList.toggle("no-streams", !savedStreamsVisible);
+        const isVisible = Boolean(savedStreamsVisible);
+        this.classList.toggle("no-streams", !isVisible);
+        this.classList.toggle("streams-on", isVisible);
       }
     }
 
