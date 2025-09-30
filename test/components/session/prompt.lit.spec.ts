@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { Prompt } from "../../../src/frontend/components/session/prompt.lit";
-import { createMockSession, createPromptTag } from "../../mocks";
 
 describe("Prompt", () => {
   const setup = () => {
     const prompt = document.createElement("illthorn-prompt") as Prompt;
-    const mockSession = createMockSession();
     document.body.appendChild(prompt);
-    return { prompt, mockSession };
+    return { prompt };
   };
 
   const teardown = (prompt: Prompt) => {
@@ -58,59 +56,47 @@ describe("Prompt", () => {
     });
   });
 
-  describe("Session property", () => {
-    it("should accept session property", async () => {
-      const { prompt, mockSession } = setup();
-
-      prompt.session = mockSession;
-      await prompt.updateComplete;
-
-      expect(prompt.session).toBe(mockSession);
-
-      teardown(prompt);
-    });
-
-    it("should not setup event listeners without session", async () => {
+  describe("promptText property", () => {
+    it("should accept promptText property", async () => {
       const { prompt } = setup();
+
+      prompt.promptText = "HP:100 MP:50>";
       await prompt.updateComplete;
 
-      // Internal state should remain default
-      const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
-        .filter((node) => node.nodeType === Node.TEXT_NODE || (node.nodeType === Node.ELEMENT_NODE && node.nodeName !== "STYLE"))
-        .map((node) => node.textContent)
-        .join("")
-        .trim();
-      expect(textContent).toBe("");
+      expect(prompt.promptText).toBe("HP:100 MP:50>");
 
       teardown(prompt);
     });
 
-    it("should setup event listeners when session is provided", async () => {
-      const { prompt, mockSession } = setup();
+    it("should initialize with empty string by default", () => {
+      const { prompt } = setup();
 
-      prompt.session = mockSession;
+      expect(prompt.promptText).toBe("");
+
+      teardown(prompt);
+    });
+
+    it("should be reactive to property changes", async () => {
+      const { prompt } = setup();
+
+      // Initial empty state
+      expect(prompt.promptText).toBe("");
+
+      // Set prompt text
+      prompt.promptText = "Test>";
       await prompt.updateComplete;
 
-      // Should have setup event listeners (private method called)
-      expect(prompt.session).toBe(mockSession);
+      expect(prompt.promptText).toBe("Test>");
 
       teardown(prompt);
     });
   });
 
-  describe("Prompt event handling", () => {
-    it("should update text content when prompt event is received", async () => {
-      const { prompt, mockSession } = setup();
+  describe("Text rendering", () => {
+    it("should render provided prompt text", async () => {
+      const { prompt } = setup();
 
-      prompt.session = mockSession;
-      await prompt.updateComplete;
-
-      // Create mock prompt GameTag
-      const mockPromptTag = createPromptTag("1234567890");
-      mockPromptTag.text = "HP:100 MP:50>";
-
-      // Dispatch prompt event
-      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
+      prompt.promptText = "HP:100 MP:50>";
       await prompt.updateComplete;
 
       const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
@@ -124,17 +110,9 @@ describe("Prompt", () => {
     });
 
     it("should handle empty prompt text gracefully", async () => {
-      const { prompt, mockSession } = setup();
+      const { prompt } = setup();
 
-      prompt.session = mockSession;
-      await prompt.updateComplete;
-
-      // Create mock prompt GameTag with no content
-      const mockPromptTag = createPromptTag();
-      mockPromptTag.text = "";
-
-      // Dispatch prompt event
-      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
+      prompt.promptText = "";
       await prompt.updateComplete;
 
       const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
@@ -147,64 +125,11 @@ describe("Prompt", () => {
       teardown(prompt);
     });
 
-    it("should handle null textContent gracefully", async () => {
-      const { prompt, mockSession } = setup();
-
-      prompt.session = mockSession;
-      await prompt.updateComplete;
-
-      // Create mock prompt GameTag with null text
-      const mockPromptTag = createPromptTag();
-      mockPromptTag.text = "";
-
-      // Dispatch prompt event
-      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
-      await prompt.updateComplete;
-
-      const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
-        .filter((node) => node.nodeType === Node.TEXT_NODE || (node.nodeType === Node.ELEMENT_NODE && node.nodeName !== "STYLE"))
-        .map((node) => node.textContent)
-        .join("")
-        .trim();
-      expect(textContent).toBe("");
-
-      teardown(prompt);
-    });
-
-    it("should extract time attribute from prompt element", async () => {
-      const { prompt, mockSession } = setup();
-
-      prompt.session = mockSession;
-      await prompt.updateComplete;
-
-      // Create mock prompt GameTag with time attribute
-      const mockPromptTag = createPromptTag("1640995200");
-      mockPromptTag.text = "Health: 100>";
-
-      // Dispatch prompt event
-      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
-      await prompt.updateComplete;
-
-      const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
-        .filter((node) => node.nodeType === Node.TEXT_NODE || (node.nodeType === Node.ELEMENT_NODE && node.nodeName !== "STYLE"))
-        .map((node) => node.textContent)
-        .join("")
-        .trim();
-      expect(textContent).toBe("Health: 100>");
-
-      teardown(prompt);
-    });
-
-    it("should update prompt text multiple times", async () => {
-      const { prompt, mockSession } = setup();
-
-      prompt.session = mockSession;
-      await prompt.updateComplete;
+    it("should update text content when property changes", async () => {
+      const { prompt } = setup();
 
       // First prompt
-      const mockPrompt1 = createPromptTag();
-      mockPrompt1.text = "HP:100>";
-      mockSession.bus.dispatchEvent("prompt", mockPrompt1);
+      prompt.promptText = "HP:100>";
       await prompt.updateComplete;
       const textContent1 = Array.from(prompt.shadowRoot?.childNodes || [])
         .filter((node) => node.nodeType === Node.TEXT_NODE || (node.nodeType === Node.ELEMENT_NODE && node.nodeName !== "STYLE"))
@@ -214,9 +139,7 @@ describe("Prompt", () => {
       expect(textContent1).toBe("HP:100>");
 
       // Second prompt
-      const mockPrompt2 = createPromptTag();
-      mockPrompt2.text = "HP:90 MP:75>";
-      mockSession.bus.dispatchEvent("prompt", mockPrompt2);
+      prompt.promptText = "HP:90 MP:75>";
       await prompt.updateComplete;
       const textContent2 = Array.from(prompt.shadowRoot?.childNodes || [])
         .filter((node) => node.nodeType === Node.TEXT_NODE || (node.nodeType === Node.ELEMENT_NODE && node.nodeName !== "STYLE"))
@@ -228,18 +151,10 @@ describe("Prompt", () => {
       teardown(prompt);
     });
 
-    it("should decode HTML entities in prompt text", async () => {
-      const { prompt, mockSession } = setup();
+    it("should handle special characters in prompt text", async () => {
+      const { prompt } = setup();
 
-      prompt.session = mockSession;
-      await prompt.updateComplete;
-
-      // Create mock prompt GameTag with HTML entities
-      const mockPromptTag = createPromptTag("1234567890");
-      mockPromptTag.text = "HP:100 MP:50&gt;";
-
-      // Dispatch prompt event
-      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
+      prompt.promptText = "Health: 100> <Ready>";
       await prompt.updateComplete;
 
       const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
@@ -247,39 +162,38 @@ describe("Prompt", () => {
         .map((node) => node.textContent)
         .join("")
         .trim();
-      expect(textContent).toBe("HP:100 MP:50>");
+      expect(textContent).toBe("Health: 100> <Ready>");
 
       teardown(prompt);
     });
   });
 
   describe("Component lifecycle", () => {
-    it("should handle session property changes", async () => {
-      const { prompt, mockSession } = setup();
+    it("should handle property changes correctly", async () => {
+      const { prompt } = setup();
 
-      // Initially no session
-      expect(prompt.session).toBeUndefined();
+      // Initially empty
+      expect(prompt.promptText).toBe("");
 
-      // Set session
-      prompt.session = mockSession;
+      // Set text
+      prompt.promptText = "Test>";
       await prompt.updateComplete;
 
-      expect(prompt.session).toBe(mockSession);
+      expect(prompt.promptText).toBe("Test>");
 
-      // Create new session
-      const newMockSession = createMockSession("new-session");
-      prompt.session = newMockSession;
+      // Change text
+      prompt.promptText = "New text>";
       await prompt.updateComplete;
 
-      expect(prompt.session).toBe(newMockSession);
+      expect(prompt.promptText).toBe("New text>");
 
       teardown(prompt);
     });
 
     it("should cleanup properly on disconnect", async () => {
-      const { prompt, mockSession } = setup();
+      const { prompt } = setup();
 
-      prompt.session = mockSession;
+      prompt.promptText = "Test>";
       await prompt.updateComplete;
 
       // Disconnect the component
@@ -308,34 +222,6 @@ describe("Prompt", () => {
       const styleElement = prompt.shadowRoot?.querySelector("style");
       expect(styleElement?.textContent).toContain("text-align: right");
       expect(styleElement?.textContent).toContain("font-size: 1.6em");
-
-      teardown(prompt);
-    });
-  });
-
-  describe("Event listener management", () => {
-    it("should not setup duplicate event listeners", async () => {
-      const { prompt, mockSession } = setup();
-
-      prompt.session = mockSession;
-      await prompt.updateComplete;
-
-      // Trigger updated again with same session
-      prompt.session = mockSession;
-      await prompt.updateComplete;
-
-      // Should still work correctly without duplicate listeners
-      const mockPromptTag = createPromptTag();
-      mockPromptTag.text = "Test>";
-      mockSession.bus.dispatchEvent("prompt", mockPromptTag);
-      await prompt.updateComplete;
-
-      const textContent = Array.from(prompt.shadowRoot?.childNodes || [])
-        .filter((node) => node.nodeType === Node.TEXT_NODE || (node.nodeType === Node.ELEMENT_NODE && node.nodeName !== "STYLE"))
-        .map((node) => node.textContent)
-        .join("")
-        .trim();
-      expect(textContent).toBe("Test>");
 
       teardown(prompt);
     });

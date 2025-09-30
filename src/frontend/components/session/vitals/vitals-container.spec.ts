@@ -3,6 +3,7 @@
 /// <reference types="vitest/globals" />
 import type { MockedFunction } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { queryVitalsUI } from "../../../../../test/helpers/test-dom-queries";
 import type { GameTag } from "../../../parser/tag";
 import { TagKind, TagState } from "../../../parser/tag/index";
 import type { FrontendSession } from "../../../session/index";
@@ -161,8 +162,7 @@ describe("VitalsContainer", () => {
       await container.updateComplete;
 
       // Check that UI component receives updated health data
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-vitals-ui") as any;
+      const uiComponent = queryVitalsUI(container.shadowRoot);
       expect(uiComponent?.healthData?.label).toBe("health");
       expect(uiComponent?.healthData?.value).toBe("45/60");
       expect(uiComponent?.healthData?.percent).toBe(75);
@@ -182,8 +182,7 @@ describe("VitalsContainer", () => {
       eventCallbacks["metadata/progressBar/mana"]({ detail: mockManaVital } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-vitals-ui") as any;
+      const uiComponent = queryVitalsUI(container.shadowRoot);
       expect(uiComponent?.manaData?.label).toBe("mana");
       expect(uiComponent?.manaData?.value).toBe("45/80");
       expect(uiComponent?.manaData?.percent).toBe(56);
@@ -203,8 +202,7 @@ describe("VitalsContainer", () => {
       eventCallbacks["metadata/progressBar/stamina"]({ detail: mockStaminaVital } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-vitals-ui") as any;
+      const uiComponent = queryVitalsUI(container.shadowRoot);
       expect(uiComponent?.staminaData?.label).toBe("stamina");
       expect(uiComponent?.staminaData?.value).toBe("20/90");
       expect(uiComponent?.staminaData?.percent).toBe(22);
@@ -224,8 +222,7 @@ describe("VitalsContainer", () => {
       eventCallbacks["metadata/progressBar/spirit"]({ detail: mockSpiritVital } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-vitals-ui") as any;
+      const uiComponent = queryVitalsUI(container.shadowRoot);
       expect(uiComponent?.spiritData?.label).toBe("spirit");
       expect(uiComponent?.spiritData?.value).toBe("100/100");
       expect(uiComponent?.spiritData?.percent).toBe(100);
@@ -245,8 +242,7 @@ describe("VitalsContainer", () => {
       eventCallbacks["metadata/progressBar/health"]({ detail: mockZeroVital } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-vitals-ui") as any;
+      const uiComponent = queryVitalsUI(container.shadowRoot);
       expect(uiComponent?.healthData?.percent).toBe(0);
     });
 
@@ -265,8 +261,7 @@ describe("VitalsContainer", () => {
       eventCallbacks["metadata/progressBar/health"]({ detail: mockBuggedVital } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-vitals-ui") as any;
+      const uiComponent = queryVitalsUI(container.shadowRoot);
       expect(uiComponent?.healthData?.percent).toBe(100); // Calculated from 74/74
     });
   });
@@ -302,8 +297,7 @@ describe("VitalsContainer", () => {
       eventCallbacks["metadata/progressBar/mindState"]({ detail: mockMindVital } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-vitals-ui") as any;
+      const uiComponent = queryVitalsUI(container.shadowRoot);
       expect(uiComponent?.mindData?.label).toBe("mind");
       expect(uiComponent?.mindData?.value).toBe("clear as a bell");
       expect(uiComponent?.mindData?.percent).toBe(100);
@@ -323,8 +317,7 @@ describe("VitalsContainer", () => {
       eventCallbacks["metadata/progressBar/pbarStance"]({ detail: mockStanceVital } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-vitals-ui") as any;
+      const uiComponent = queryVitalsUI(container.shadowRoot);
       expect(uiComponent?.stanceData?.label).toBe("stance");
       expect(uiComponent?.stanceData?.value).toBe("defensive"); // First word only
       expect(uiComponent?.stanceData?.percent).toBe(0);
@@ -344,8 +337,7 @@ describe("VitalsContainer", () => {
       eventCallbacks["metadata/progressBar/encumlevel"]({ detail: mockEncumbranceVital } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-vitals-ui") as any;
+      const uiComponent = queryVitalsUI(container.shadowRoot);
       expect(uiComponent?.encumbranceData?.label).toBe("encumbrance");
       expect(uiComponent?.encumbranceData?.value).toBe("light"); // Lowercased
       expect(uiComponent?.encumbranceData?.percent).toBe(0);
@@ -403,8 +395,7 @@ describe("VitalsContainer", () => {
       const container = setup(mockSession as FrontendSession);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-vitals-ui") as any;
+      const uiComponent = queryVitalsUI(container.shadowRoot);
       expect(uiComponent?.healthData?.label).toBe("health");
       expect(uiComponent?.manaData?.label).toBe("mana");
       expect(uiComponent?.staminaData?.label).toBe("stamina");

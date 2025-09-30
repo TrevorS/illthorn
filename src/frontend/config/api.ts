@@ -1,10 +1,8 @@
-// ABOUTME: Frontend TypeScript interfaces for config API and global window extensions
-// ABOUTME: Now uses centralized type definitions from shared directory
+// ABOUTME: Global Window interface declarations for Config API
+import type { ConfigFileChangeEvent, HighlightConfig, MacroConfig } from "../../shared/types/config.types";
 
-import type { ConfigFileChangeEvent, HighlightConfig, HighlightPattern, MacroConfig } from "../../shared/types/config.types";
-
-// Re-export for backward compatibility
-export type { HighlightPattern, HighlightConfig, MacroConfig, ConfigFileChangeEvent };
+// Re-export types for convenience
+export type { ConfigFileChangeEvent, HighlightConfig, MacroConfig };
 
 // Extend global window interface to include Config API
 declare global {

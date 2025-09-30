@@ -15,7 +15,6 @@ export function endSession(session: Session) {
   frag.appendChild(pre);
   session.ui.feed.appendChild(frag);
   SessionMap.delete(session.name);
-  renderSessionsMenu();
 }
 
 export function currentSession(): FrontendSession | undefined {
@@ -80,11 +79,4 @@ export function handleLaunchUrl(tag: GameTag) {
 export function handleNotification(session: Session, tag: GameTag) {
   const { attrs } = tag;
   new Notification(`${session.name} / ${attrs.title}`, attrs);
-}
-
-export function renderSessionsMenu() {
-  // The app root component now handles session menu rendering
-  // This function is kept for API compatibility and triggers component updates
-  const appRoot = document.querySelector("illthorn-app-lit") as HTMLElement & { updateSessionsList?: () => void };
-  appRoot?.updateSessionsList?.();
 }

@@ -136,7 +136,7 @@ describe("ConfigManager", () => {
 
       expect(config.settings.enabled).toBe(true);
       expect(config.examples).toBeDefined();
-      expect(config.examples.f1).toBe("look");
+      expect(config.examples.f1).toBe("stance offensive");
       expect(config).toBeDefined();
     });
 

@@ -403,21 +403,6 @@ export class FeedModernized extends LitElement {
   }
 
   /**
-   * Handle click events on interactive elements
-   */
-  private _handleClick(e: Event) {
-    const target = e.target as HTMLElement;
-    if (!target) return;
-
-    // Do not break text selection by re-rendering
-    const selection = window.getSelection()?.toString();
-    if (selection) return;
-
-    // Modern component events are handled by the components themselves
-    // This is mainly for legacy compatibility during transition
-  }
-
-  /**
    * Clear all feed content
    */
   clear() {
@@ -521,7 +506,7 @@ export class FeedModernized extends LitElement {
 
   render() {
     return html`
-      <div class="feed-container" @scroll=${this._handleVirtualScroll} @click=${this._handleClick}>
+      <div class="feed-container" @scroll=${this._handleVirtualScroll}>
         ${this._allContent.map(
           (item, index) => html`
           <illthorn-message-block-lit

@@ -2,6 +2,7 @@
 // ABOUTME: Tests the presentational component independently of session/event logic
 /// <reference types="vitest/globals" />
 import { describe, expect, it } from "vitest";
+import { querySpellEffect } from "../../../../../test/helpers/test-dom-queries";
 import type { SpellEffectData } from "./effects-ui.lit";
 import { EffectsUI } from "./effects-ui.lit";
 
@@ -188,8 +189,7 @@ describe("EffectsUI", () => {
       component.spellEffects = [testEffect];
       await component.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing DOM element properties requires any type
-      const spellEffectElement = component.shadowRoot?.querySelector("illthorn-spell-effect") as any;
+      const spellEffectElement = querySpellEffect(component.shadowRoot);
       expect(spellEffectElement?.percent).toBe(42);
 
       teardown(component);
@@ -207,8 +207,7 @@ describe("EffectsUI", () => {
       component.spellEffects = [testEffect];
       await component.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing DOM element properties requires any type
-      const spellEffectElement = component.shadowRoot?.querySelector("illthorn-spell-effect") as any;
+      const spellEffectElement = querySpellEffect(component.shadowRoot);
       expect(spellEffectElement?.percent).toBe(0);
 
       teardown(component);

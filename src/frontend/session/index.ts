@@ -3,6 +3,7 @@ import type { SessionButton } from "../components/session/session-button.lit";
 import "../components/session-layout.lit";
 import { CommandHistory } from "../components/command-bar/command-history";
 import type { SessionUI } from "../components/session-layout.lit";
+import { createParserError, createSessionError, displayError, logError, withFallback } from "../errors";
 import { ComponentRenderer } from "../parser/component-renderer";
 import { SaxophoneParser } from "../parser/saxophone-parser";
 import { makeTag } from "../parser/tag";
@@ -72,7 +73,25 @@ export class FrontendSession {
   }
 
   async sendCommand(command: string) {
-    await window.Session.sendCommand(this.config, command);
+    try {
+      await window.Session.sendCommand(this.config, command);
+    } catch (error) {
+      const sessionError = createSessionError("Failed to send command to game session", this.name, this.config.port, error instanceof Error ? error : new Error(String(error)));
+
+      logError(sessionError, {
+        command,
+        sessionName: this.name,
+        sessionPort: this.config.port,
+      });
+
+      // Display error to user
+      if (this._ui?.feed) {
+        displayError(sessionError, this._ui.feed as HTMLElement);
+      }
+
+      // Re-throw so caller can handle appropriately
+      throw sessionError;
+    }
   }
 
   async onMessage(incoming: string) {
@@ -99,11 +118,34 @@ export class FrontendSession {
       return;
     }
 
-    const parsed = this.parser.parse(incoming);
+    // Parse incoming data with error recovery
+    const parsed = withFallback(
+      () => this.parser.parse(incoming),
+      [], // Fallback to empty array if parsing fails
+      (error) => {
+        const parserError = createParserError("Failed to parse incoming game data", incoming, undefined, error);
+        logError(parserError, { sessionName: this.name });
+
+        // Display error to user if UI is available
+        if (this._ui?.feed) {
+          displayError(parserError, this._ui.feed as HTMLElement);
+        }
+      },
+    );
     debugSession(`[${this.name}] Parsed ${parsed.length} tags from input`);
 
-    // Extract metadata using ComponentRenderer instead of DOM conversion
-    const metadata = this.renderer.extractMetadata(parsed);
+    // Extract metadata with error recovery
+    const metadata = withFallback(
+      () => this.renderer.extractMetadata(parsed),
+      [], // Fallback to empty array if metadata extraction fails
+      (error) => {
+        const metadataError = createParserError("Failed to extract metadata from parsed content", undefined, undefined, error);
+        logError(metadataError, {
+          sessionName: this.name,
+          tagCount: parsed.length,
+        });
+      },
+    );
     debugSession(`[${this.name}] Extracted ${metadata.length} metadata tags directly from GameTags`);
 
     // Handle prompt metadata and dispatch

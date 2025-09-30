@@ -1,6 +1,6 @@
 import { debugSessionConnect } from "../util/logger";
 import { FrontendSession } from ".";
-import { focusSession, renderSessionsMenu } from "./helpers";
+import { focusSession } from "./helpers";
 
 // Expose session detection function for debugging
 declare global {
@@ -11,7 +11,6 @@ declare global {
 
 window.debugSessionDetection = async () => {
   const sessions = await connectAll();
-  renderSessionsMenu();
 
   // Add a test function to simulate game input
   if (sessions.length > 0) {
@@ -69,9 +68,6 @@ export async function renderAllSessions() {
   const sessions = await connectAll();
   debugSessionConnect("connectAll() returned sessions: %o", sessions);
 
-  // Ensure the sessions menu gets updated immediately after sessions are connected
-  renderSessionsMenu();
-
   const firstSession = sessions[0];
   debugSessionConnect("firstSession: %o", firstSession);
   if (firstSession) {
@@ -80,7 +76,4 @@ export async function renderAllSessions() {
   } else {
     debugSessionConnect("No sessions available");
   }
-
-  // Update the menu again after focusing a session
-  renderSessionsMenu();
 }

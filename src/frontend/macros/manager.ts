@@ -448,26 +448,6 @@ export class MacroManager {
       });
     }
   }
-
-  /**
-   * Import legacy macro format
-   */
-  async importLegacyMacros(legacyMacros: Record<string, string>): Promise<void> {
-    if (!this.config) {
-      await this.initialize();
-    }
-
-    if (this.config) {
-      // Add to 'imported' category
-      if (!this.config.imported) {
-        this.config.imported = {};
-      }
-
-      Object.assign(this.config.imported as Record<string, string>, legacyMacros);
-      await window.Config.saveMacros(this.config);
-    }
-    await this.reload();
-  }
 }
 
 // Export singleton instance

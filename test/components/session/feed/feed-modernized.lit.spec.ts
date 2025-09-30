@@ -693,25 +693,6 @@ describe("FeedModernized Component", () => {
   });
 
   describe("Component Event Handling", () => {
-    test("should handle component clicks without interfering with text selection", async () => {
-      const linkTag = createGameLinkTag("item123", "item", "test item");
-      feed.appendGameTags([linkTag], true);
-      await feed.updateComplete;
-
-      // Simulate text selection
-      window.getSelection = vi.fn().mockReturnValue({ toString: () => "selected text" });
-
-      const feedContainer = feed.shadowRoot?.querySelector(".feed-container");
-      expect(feedContainer).toBeTruthy();
-
-      // Simulate click event
-      const clickEvent = new MouseEvent("click", { bubbles: true });
-      feedContainer?.dispatchEvent(clickEvent);
-
-      // Should not interfere with selection
-      expect(window.getSelection).toHaveBeenCalled();
-    });
-
     test("should maintain component functionality during memory flush", async () => {
       // Add content beyond scrollback limit to trigger flush
       const itemsToAdd = 100; // Small number for test performance

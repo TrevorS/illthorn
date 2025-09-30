@@ -1,5 +1,5 @@
 // ABOUTME: Lit-based Context component serving as a container that holds a session reference
-// ABOUTME: Simple wrapper element that maintains API compatibility with vanilla Context component
+// ABOUTME: Simple wrapper element providing a slot for child components
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import type { FrontendSession } from "../session";

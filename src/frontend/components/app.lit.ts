@@ -115,13 +115,6 @@ export class AppRoot extends LitElement {
     this._eventListenerSetup = true;
   }
 
-  updateSessionsList() {
-    // Compatibility method for existing renderSessionsMenu() calls
-    // The SessionsMenu component handles its own updates now
-    const sessionsMenu = this.shadowRoot?.querySelector("illthorn-sessions-menu-lit") as HTMLElement & { refreshSessions?: () => void };
-    sessionsMenu?.refreshSessions?.();
-  }
-
   handleSessionFocus(session: FrontendSession) {
     this.currentSession = session;
     document.title = session.name;

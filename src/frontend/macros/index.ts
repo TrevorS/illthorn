@@ -10,20 +10,6 @@ export type { MacroBinding } from "./manager";
 // Export manager and types
 export { MacroManager, macroManager } from "./manager";
 
-// Legacy type for compatibility
-type MacroProfile = Record<string, string>;
-
-// Updated function using new manager
-export async function loadMacros(): Promise<MacroProfile> {
-  debugMacros("loadMacros: using new MacroManager");
-  const bindings = macroManager.getBindings();
-  const profile: MacroProfile = {};
-  bindings.forEach((binding) => {
-    profile[binding.key] = binding.command;
-  });
-  return profile;
-}
-
 // Updated function using new manager
 export async function bindUserMacros() {
   debugMacros("bindUserMacros: delegating to MacroManager");

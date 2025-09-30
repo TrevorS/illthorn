@@ -3,6 +3,7 @@
 /// <reference types="vitest/globals" />
 import type { MockedFunction } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { queryEffectsUI } from "../../../../../test/helpers/test-dom-queries";
 import type { GameTag } from "../../../parser/tag";
 import { TagKind, TagState } from "../../../parser/tag/index";
 import type { FrontendSession } from "../../../session/index";
@@ -127,8 +128,7 @@ describe("EffectsContainer", () => {
       await container.updateComplete;
 
       // Check that UI component receives empty array
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-effects-ui") as any;
+      const uiComponent = queryEffectsUI(container.shadowRoot);
       expect(uiComponent?.spellEffects).toEqual([]);
     });
 
@@ -175,8 +175,7 @@ describe("EffectsContainer", () => {
       eventCallback({ detail: mockDialog } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-effects-ui") as any;
+      const uiComponent = queryEffectsUI(container.shadowRoot);
       const spellEffects = uiComponent?.spellEffects;
 
       expect(spellEffects).toHaveLength(2);
@@ -234,8 +233,7 @@ describe("EffectsContainer", () => {
       eventCallback({ detail: mockDialog } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-effects-ui") as any;
+      const uiComponent = queryEffectsUI(container.shadowRoot);
       const spellEffects = uiComponent?.spellEffects;
 
       expect(spellEffects).toHaveLength(1);
@@ -269,8 +267,7 @@ describe("EffectsContainer", () => {
       eventCallback({ detail: mockDialog } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-effects-ui") as any;
+      const uiComponent = queryEffectsUI(container.shadowRoot);
       const spellEffects = uiComponent?.spellEffects;
 
       expect(spellEffects).toHaveLength(1);
@@ -311,8 +308,7 @@ describe("EffectsContainer", () => {
       eventCallback({ detail: mockDialog } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-effects-ui") as any;
+      const uiComponent = queryEffectsUI(container.shadowRoot);
       const spellEffects = uiComponent?.spellEffects;
 
       expect(spellEffects[0].time).toBe("5:30");
@@ -337,8 +333,7 @@ describe("EffectsContainer", () => {
       const container = setup(mockSession as FrontendSession, "Test Effects Panel");
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-effects-ui") as any;
+      const uiComponent = queryEffectsUI(container.shadowRoot);
       expect(uiComponent?.name).toBe("Test Effects Panel");
 
       teardown(container);

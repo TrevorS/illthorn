@@ -121,20 +121,12 @@ describe("AppRoot", () => {
     // Wait for the component to update
     await element.updateComplete;
 
-    // The sessions list should be updated (component calls updateSessionsList)
+    // The sessions list is updated automatically via SessionsMenu event subscriptions
     // This is a basic check that the event handler is working
-    expect(element.updateSessionsList).toBeTypeOf("function");
-  });
-
-  it("should expose updateSessionsList method for external integration", () => {
-    expect(element.updateSessionsList).toBeTypeOf("function");
-
-    // Should not throw when called
-    expect(() => element.updateSessionsList()).not.toThrow();
+    expect(element).toBeTruthy();
   });
 
   it("should maintain proper DOM structure after session updates", async () => {
-    element.updateSessionsList();
     await element.updateComplete;
 
     // Component uses Light DOM for theme integration

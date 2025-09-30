@@ -3,6 +3,7 @@
 /// <reference types="vitest/globals" />
 import type { MockedFunction } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { queryCompassUI } from "../../../../../test/helpers/test-dom-queries";
 import type { GameTag } from "../../../parser/tag";
 import { TagKind, TagState } from "../../../parser/tag/index";
 import type { FrontendSession } from "../../../session/index";
@@ -153,8 +154,7 @@ describe("CompassContainer", () => {
       await container.updateComplete;
 
       // Check that UI component receives empty array
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-compass-ui") as any;
+      const uiComponent = queryCompassUI(container.shadowRoot);
       expect(uiComponent?.activeDirs).toEqual([]);
     });
 
@@ -206,8 +206,7 @@ describe("CompassContainer", () => {
       eventCallback({ detail: mockCompass } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-compass-ui") as any;
+      const uiComponent = queryCompassUI(container.shadowRoot);
       const activeDirs = uiComponent?.activeDirs;
 
       expect(activeDirs).toHaveLength(3);
@@ -263,8 +262,7 @@ describe("CompassContainer", () => {
       eventCallback({ detail: mockCompass } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-compass-ui") as any;
+      const uiComponent = queryCompassUI(container.shadowRoot);
       const activeDirs = uiComponent?.activeDirs;
 
       expect(activeDirs).toHaveLength(2);
@@ -306,8 +304,7 @@ describe("CompassContainer", () => {
       eventCallback({ detail: mockCompass } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-compass-ui") as any;
+      const uiComponent = queryCompassUI(container.shadowRoot);
       const activeDirs = uiComponent?.activeDirs;
 
       expect(activeDirs).toHaveLength(1);
@@ -328,8 +325,7 @@ describe("CompassContainer", () => {
       eventCallback({ detail: mockCompass } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-compass-ui") as any;
+      const uiComponent = queryCompassUI(container.shadowRoot);
       expect(uiComponent?.activeDirs).toEqual([]);
     });
   });
@@ -396,8 +392,7 @@ describe("CompassContainer", () => {
       eventCallback?.({ detail: mockCompass } as CustomEvent<GameTag>);
       await container.updateComplete;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Testing UI component properties requires any type
-      const uiComponent = container.shadowRoot?.querySelector("illthorn-compass-ui") as any;
+      const uiComponent = queryCompassUI(container.shadowRoot);
       expect(uiComponent?.activeDirs).toEqual(["north"]);
 
       teardown(container);

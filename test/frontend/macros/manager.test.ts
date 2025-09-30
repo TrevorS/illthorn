@@ -313,23 +313,4 @@ describe("MacroManager", () => {
       expect(settings.enabled).toBe(true);
     });
   });
-
-  describe("legacy import", () => {
-    beforeEach(async () => {
-      await manager.initialize();
-    });
-
-    it("should import legacy macro format", async () => {
-      const legacyMacros = {
-        f7: "get all",
-        f8: "drop all",
-      };
-
-      await manager.importLegacyMacros(legacyMacros);
-
-      expect(mockConfig.saveMacros).toHaveBeenCalled();
-      const savedConfig = mockConfig.saveMacros.mock.calls[0][0];
-      expect(savedConfig.imported).toEqual(legacyMacros);
-    });
-  });
 });

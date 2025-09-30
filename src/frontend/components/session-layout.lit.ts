@@ -4,7 +4,7 @@ import { css, html, LitElement } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
 import type { FrontendSession as Session } from "../session/index";
 import "./session/compass";
-import "./session/room.lit";
+import "./session/room/room-container.lit";
 import "./session/vitals/vitals-container.lit";
 import type { VitalsContainer } from "./session/vitals/vitals-container.lit";
 import "./session/injuries/injuries-container.lit";
@@ -16,8 +16,8 @@ import "./session/streams-container.lit";
 import type { StreamsContainer } from "./session/streams-container.lit";
 import "./session/feed/feed-modernized.lit";
 import type { FeedModernized } from "./session/feed/feed-modernized.lit";
-import "./session/prompt.lit";
-import type { Prompt } from "./session/prompt.lit";
+import "./session/prompt-container.lit";
+import type { PromptContainer } from "./session/prompt-container.lit";
 import "./command-bar/cli.lit";
 import type { CLI } from "./command-bar/cli.lit";
 
@@ -25,7 +25,7 @@ export type SessionUI = {
   context: HTMLElement;
   cli: CLI;
   feed: FeedModernized;
-  prompt: Prompt;
+  prompt: PromptContainer;
   vitals: VitalsContainer;
   injuries: InjuriesContainer;
   streams: StreamsContainer;
@@ -273,8 +273,8 @@ export class SessionLayout extends LitElement {
   @query("illthorn-feed-modernized-lit")
   private _feed?: FeedModernized;
 
-  @query("illthorn-prompt")
-  private _prompt?: Prompt;
+  @query("illthorn-prompt-container")
+  private _prompt?: PromptContainer;
 
   @query("illthorn-cli-lit")
   private _cli?: CLI;
@@ -374,7 +374,7 @@ export class SessionLayout extends LitElement {
         </illthorn-panel>
 
         <illthorn-panel title="room" .open=${true}>
-          <illthorn-room-lit .session=${this.session}></illthorn-room-lit>
+          <illthorn-room-container .session=${this.session}></illthorn-room-container>
           <illthorn-compass-container .session=${this.session}></illthorn-compass-container>
         </illthorn-panel>
 
@@ -405,7 +405,7 @@ export class SessionLayout extends LitElement {
           <div class="timers">
             <!-- Timer bars will be managed by the CLI component -->
           </div>
-          <illthorn-prompt .session=${this.session}></illthorn-prompt>
+          <illthorn-prompt-container .session=${this.session}></illthorn-prompt-container>
           <illthorn-cli-lit .session=${this.session}></illthorn-cli-lit>
           <button class="ui-help-button" title="Help">?</button>
         </div>
