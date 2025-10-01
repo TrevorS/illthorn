@@ -3,6 +3,7 @@
 
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { guard } from "lit/directives/guard.js";
 import { IllthornEvent } from "../../../events";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
@@ -14,7 +15,7 @@ import type { ContentItem } from "./message-block.lit";
 export class FeedModernized extends LitElement {
   static MIN_SCROLL_BUFFER = 300;
   static DEFAULT_SCROLLBACK_SIZE = 20000;
-  static BATCH_UPDATE_DELAY = 16; // One frame (60fps)
+  static BATCH_UPDATE_DELAY = 50; // Accumulate batches for 50ms before rendering
   static IDLE_FLUSH_DELAY = 100; // Auto-flush when idle for 100ms
   static LARGE_FLUSH_THRESHOLD = 0.25; // Remove 25% when flushing
 
@@ -515,13 +516,16 @@ export class FeedModernized extends LitElement {
   render() {
     return html`
       <div class="feed-container" @scroll=${this._handleVirtualScroll}>
-        ${this._allContent.map(
-          (item, index) => html`
-          <illthorn-message-block-lit
-            .item=${item}
-            .index=${index}
-          ></illthorn-message-block-lit>
-        `,
+        ${this._allContent.map((item, index) =>
+          guard(
+            [item.timestamp, index],
+            () => html`
+            <illthorn-message-block-lit
+              .item=${item}
+              .index=${index}
+            ></illthorn-message-block-lit>
+          `,
+          ),
         )}
         <div class="feed-scroll-sentinel"></div>
       </div>
