@@ -38,7 +38,6 @@ export class FeedModernized extends LitElement {
       overflow-y: auto;
       overflow-x: hidden;
       padding: 0.5em;
-      padding-bottom: 1em;
       box-sizing: border-box;
       scrollbar-width: thin;
       scrollbar-color: var(--color-border) transparent;
