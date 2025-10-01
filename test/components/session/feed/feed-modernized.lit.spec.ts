@@ -40,6 +40,9 @@ import "../../../../src/frontend/components/game-elements/game-link.lit";
 import "../../../../src/frontend/components/game-elements/game-command.lit";
 import "../../../../src/frontend/components/game-elements/game-monster.lit";
 
+// Mock scrollIntoView for JSDOM (not implemented in test environment)
+HTMLElement.prototype.scrollIntoView = vi.fn();
+
 describe("FeedModernized Component", () => {
   let feed: FeedModernized;
   let mockSession: MockSession;

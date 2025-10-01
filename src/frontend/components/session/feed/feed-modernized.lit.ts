@@ -63,6 +63,11 @@ export class FeedModernized extends LitElement {
       background-color: var(--color-success);
     }
 
+    .feed-scroll-sentinel {
+      height: 0;
+      overflow: hidden;
+    }
+
     :host(.feed) {
       background: var(--color-background-primary);
       color: var(--color-text-primary);
@@ -236,16 +241,19 @@ export class FeedModernized extends LitElement {
 
   /**
    * Scroll to the HEAD position (bottom)
+   * Uses scrollIntoView on sentinel element for reliable scrolling with large content batches
    */
   scrollToNow() {
-    // Find the scrollable container
-    const container = this.shadowRoot?.querySelector(".feed-container") as HTMLElement;
-    if (container && this._allContent.length > 0) {
+    // Find the sentinel element at the bottom of the feed
+    const sentinel = this.shadowRoot?.querySelector(".feed-scroll-sentinel") as HTMLElement;
+    if (sentinel) {
       try {
-        container.scrollTop = container.scrollHeight;
+        // scrollIntoView automatically waits for layout to stabilize
+        // behavior: 'auto' = instant scroll, block: 'end' = align to bottom
+        sentinel.scrollIntoView({ behavior: "auto", block: "end" });
         this._shouldAutoScroll = true;
       } catch (error) {
-        console.warn("Failed to scroll container:", error);
+        console.warn("Failed to scroll to sentinel:", error);
       }
     }
     return this;
@@ -515,6 +523,7 @@ export class FeedModernized extends LitElement {
           ></illthorn-message-block-lit>
         `,
         )}
+        <div class="feed-scroll-sentinel"></div>
       </div>
     `;
   }
