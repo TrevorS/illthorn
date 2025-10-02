@@ -4,7 +4,6 @@ import { css, html, LitElement } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
 import type { FrontendSession as Session } from "../session/index";
 import "./session/compass";
-import "./session/room/room-container.lit";
 import "./session/vitals/vitals-container.lit";
 import type { VitalsContainer } from "./session/vitals/vitals-container.lit";
 import "./session/injuries/injuries-container.lit";
@@ -374,8 +373,7 @@ export class SessionLayout extends LitElement {
         </illthorn-panel>
 
         <illthorn-panel title="room" .open=${true}>
-          <illthorn-room-container .session=${this.session}></illthorn-room-container>
-          <illthorn-compass-container .session=${this.session}></illthorn-compass-container>
+          <illthorn-compass-rose-container .session=${this.session}></illthorn-compass-rose-container>
         </illthorn-panel>
 
         <illthorn-panel title="vitals" .open=${true}>
