@@ -1,12 +1,13 @@
 import path from "node:path";
-import { config } from "dotenv";
 import { app, BrowserWindow, screen, shell } from "electron";
 import "./backend";
 import { setMainWindow } from "./backend/config/ipc-handlers";
 import { setWebContents } from "./backend/webcontents";
 
-// Load environment variables from .env file
-config();
+// Only load .env file in development mode (for DEBUG environment variable)
+if (process.env.NODE_ENV === "development") {
+  import("dotenv").then(({ config }) => config());
+}
 
 // Vite handles entry points differently than webpack - no magic constants needed
 
