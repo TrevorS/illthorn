@@ -7,6 +7,7 @@ import { guard } from "lit/directives/guard.js";
 import { IllthornEvent } from "../../../events";
 import type { GameTag } from "../../../parser/tag";
 import type { FrontendSession as Session } from "../../../session/index";
+import { debugFeed } from "../../../util/logger";
 import type { ClientMessageEvent, CommandEchoEvent } from "../../command-bar/command-echo";
 import "./message-block.lit";
 import type { ContentItem } from "./message-block.lit";
@@ -123,6 +124,12 @@ export class FeedModernized extends LitElement {
     super.connectedCallback();
     this.classList.add("feed", "scroll");
 
+    // Set up game element interaction listeners
+    this.addEventListener("game-element-command", this._handleGameElementCommand);
+    this.addEventListener("game-element-menu", this._handleGameElementMenu);
+    this.addEventListener("game-element-execute", this._handleGameElementExecute);
+    this.addEventListener("game-element-monster-click", this._handleMonsterClick);
+
     // Load saved scrollback size from settings
     if (window.Settings) {
       const savedSize = await window.Settings.get("ui.scrollback.size");
@@ -134,6 +141,13 @@ export class FeedModernized extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+
+    // Remove game element interaction listeners
+    this.removeEventListener("game-element-command", this._handleGameElementCommand);
+    this.removeEventListener("game-element-menu", this._handleGameElementMenu);
+    this.removeEventListener("game-element-execute", this._handleGameElementExecute);
+    this.removeEventListener("game-element-monster-click", this._handleMonsterClick);
+
     // Clear flush timeout
     if (this._flushTimeout) {
       clearTimeout(this._flushTimeout);
@@ -511,6 +525,47 @@ export class FeedModernized extends LitElement {
     this._scheduleBatchUpdate(wasScrolling);
     this._scheduleIdleFlush(wasScrolling);
   }
+
+  /**
+   * Handle game command element click events
+   */
+  private _handleGameElementCommand = (e: Event) => {
+    const event = e as CustomEvent;
+    debugFeed("Game element command: %o", event.detail);
+    if (this.session) {
+      this.session.sendCommand(event.detail.command);
+    }
+  };
+
+  /**
+   * Handle game element execute events (click-to-execute)
+   */
+  private _handleGameElementExecute = (e: Event) => {
+    const event = e as CustomEvent;
+    debugFeed("Game element execute: %o", event.detail);
+    if (this.session) {
+      this.session.sendCommand(event.detail.command);
+    }
+  };
+
+  /**
+   * Handle game element context menu events
+   */
+  private _handleGameElementMenu = (e: Event) => {
+    const event = e as CustomEvent;
+    debugFeed("Game element menu: %o", event.detail);
+    // TODO: Show context menu at event.detail.x, event.detail.y
+    // Integration with menu system
+  };
+
+  /**
+   * Handle monster click events
+   */
+  private _handleMonsterClick = (e: Event) => {
+    const event = e as CustomEvent;
+    debugFeed("Monster click: %o", event.detail);
+    // TODO: Implement monster interaction (attack, look, etc.)
+  };
 
   render() {
     return html`
