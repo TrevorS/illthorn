@@ -193,9 +193,7 @@ export class CompassRoseUI extends LitElement {
   }
 
   render() {
-    const fullRoomText = this.roomId && this.roomTitle
-      ? `${this.roomId} - ${this.roomTitle}`
-      : this.roomId || this.roomTitle || "";
+    const fullRoomText = this.roomId && this.roomTitle ? `${this.roomId} - ${this.roomTitle}` : this.roomId || this.roomTitle || "";
 
     return html`
       <div class="special-exits">

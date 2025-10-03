@@ -1,7 +1,6 @@
 // ABOUTME: Type-safe test helpers for querying custom DOM elements in shadow roots
 // ABOUTME: Eliminates the need for 'as any' type assertions in test files
 
-import type { CompassUI } from "../../src/frontend/components/session/compass/compass-ui.lit";
 import type { EffectsUI } from "../../src/frontend/components/session/effects/effects-ui.lit";
 import type { SpellEffect } from "../../src/frontend/components/session/effects/spell-effect.lit";
 import type { HandsUI } from "../../src/frontend/components/session/hands/hands-ui.lit";
@@ -33,8 +32,6 @@ export function queryComponents<T extends HTMLElement>(root: ShadowRoot | null |
 export const queryVitalsUI = (root: ShadowRoot | null | undefined): VitalsUI | null => queryComponent<VitalsUI>(root, "illthorn-vitals-ui");
 
 export const queryEffectsUI = (root: ShadowRoot | null | undefined): EffectsUI | null => queryComponent<EffectsUI>(root, "illthorn-effects-ui");
-
-export const queryCompassUI = (root: ShadowRoot | null | undefined): CompassUI | null => queryComponent<CompassUI>(root, "illthorn-compass-ui");
 
 export const queryHandsUI = (root: ShadowRoot | null | undefined): HandsUI | null => queryComponent<HandsUI>(root, "illthorn-hands-ui");
 

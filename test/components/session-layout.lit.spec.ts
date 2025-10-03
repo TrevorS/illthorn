@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { CommandHistory } from "../../src/frontend/components/command-bar/command-history";
 import type { CLI } from "../../src/frontend/components/session/cli.lit";
-import type { CompassContainer } from "../../src/frontend/components/session/compass";
+import type { CompassRoseContainer } from "../../src/frontend/components/session/compass";
 import type { FeedModernized } from "../../src/frontend/components/session/feed/feed-modernized.lit";
 import type { Panel } from "../../src/frontend/components/session/panel.lit";
 import type { PromptContainer } from "../../src/frontend/components/session/prompt-container.lit";
-import type { RoomContainer } from "../../src/frontend/components/session/room/room-container.lit";
 import type { SessionButton } from "../../src/frontend/components/session/session-button.lit";
 import type { VitalsContainer } from "../../src/frontend/components/session/vitals/vitals-container.lit";
 import { SessionLayout } from "../../src/frontend/components/session-layout.lit";
@@ -130,19 +129,15 @@ describe("SessionLayout", () => {
       expect(hud).toBeTruthy();
     });
 
-    it("should render room panel with room and compass components", async () => {
+    it("should render room panel with compass rose component", async () => {
       await setup();
 
       const roomPanel = sessionUI.shadowRoot?.querySelector('illthorn-panel[title="room"]');
       expect(roomPanel).toBeTruthy();
 
-      const room = roomPanel?.querySelector("illthorn-room-container") as RoomContainer;
-      expect(room).toBeTruthy();
-      expect(room.session).toBe(mockSession);
-
-      const compass = roomPanel?.querySelector("illthorn-compass-container") as CompassContainer;
-      expect(compass).toBeTruthy();
-      expect(compass.session).toBe(mockSession);
+      const compassRose = roomPanel?.querySelector("illthorn-compass-rose-container") as CompassRoseContainer;
+      expect(compassRose).toBeTruthy();
+      expect(compassRose.session).toBe(mockSession);
     });
 
     it("should render vitals panel with vitals component", async () => {
@@ -340,8 +335,7 @@ describe("SessionLayout", () => {
       expect(main).toBeTruthy();
 
       // All required components present
-      expect(sessionUI.shadowRoot?.querySelector("illthorn-compass-container")).toBeTruthy();
-      expect(sessionUI.shadowRoot?.querySelector("illthorn-room-container")).toBeTruthy();
+      expect(sessionUI.shadowRoot?.querySelector("illthorn-compass-rose-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-vitals-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-effects-container")).toBeTruthy();
       expect(sessionUI.shadowRoot?.querySelector("illthorn-streams-container")).toBeTruthy();
