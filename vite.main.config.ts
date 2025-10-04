@@ -10,8 +10,8 @@ export default defineConfig({
     mainFields: ['module', 'jsnext:main', 'jsnext'],
   },
   ssr: {
-    // Force these packages to be bundled even in SSR mode
-    noExternal: ['debug'],
+    // Bundle all dependencies except those in the external list
+    noExternal: true,
   },
   build: {
     ssr: true,
