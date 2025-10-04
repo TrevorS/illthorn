@@ -29,12 +29,12 @@
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "^2.1.2",
-    "@electron-forge/cli": "^7.8.1",
-    "@electron-forge/maker-deb": "^7.8.1",
-    "@electron-forge/maker-rpm": "^7.8.1",
-    "@electron-forge/maker-squirrel": "^7.8.1",
-    "@electron-forge/maker-zip": "^7.8.1",
-    "@electron-forge/plugin-vite": "^7.8.1",
+    "@electron-forge/cli": "^7.9.0",
+    "@electron-forge/maker-deb": "^7.9.0",
+    "@electron-forge/maker-rpm": "^7.9.0",
+    "@electron-forge/maker-squirrel": "^7.9.0",
+    "@electron-forge/maker-zip": "^7.9.0",
+    "@electron-forge/plugin-vite": "^7.9.0",
     "@storybook/web-components-vite": "^9.1.2",
     "@types/debug": "^4.1.7",
     "@types/events": "^3",
@@ -72,7 +72,7 @@
     "ws": "^8.12.1"
   },
   "volta": {
-    "node": "22.11.0",
+    "node": "22.20.0",
     "yarn": "4.9.2"
   },
   "packageManager": "yarn@4.10.3"

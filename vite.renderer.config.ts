@@ -6,6 +6,7 @@ export default defineConfig({
   root: path.resolve(__dirname, 'src/frontend'),
   build: {
     outDir: path.resolve(__dirname, '.vite/renderer/main_window'),
+    emptyOutDir: true,
     sourcemap: true,
   },
   resolve: {
