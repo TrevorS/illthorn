@@ -20,14 +20,12 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
+        // Electron runtime and electron-specific packages that can't be bundled
         'electron',
         'electron-squirrel-startup',
         'electron-store',
-        'debug',
-        'keyboardjs',
+        // WebSocket library - has optional native bindings, keep external
         'ws',
-        // Add other Node.js built-ins and electron-specific modules
-        ...Object.keys(require('./package.json').dependencies || {}),
       ],
     },
   },
