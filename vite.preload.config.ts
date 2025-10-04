@@ -4,7 +4,6 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   build: {
     ssr: true,
-    emptyOutDir: true,
     sourcemap: true,
     outDir: '.vite/build',
     lib: {

@@ -9,9 +9,12 @@ export default defineConfig({
     conditions: ['node'],
     mainFields: ['module', 'jsnext:main', 'jsnext'],
   },
+  ssr: {
+    // Force these packages to be bundled even in SSR mode
+    noExternal: ['debug'],
+  },
   build: {
     ssr: true,
-    emptyOutDir: true,
     sourcemap: true,
     outDir: '.vite/build',
     lib: {
