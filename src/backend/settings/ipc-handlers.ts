@@ -1,11 +1,11 @@
 import { ipcMain as Backend } from "electron";
-import Store from "electron-store";
 import { log } from "../logger";
+import { JsonStore } from "./json-store";
 import { SettingsMethods } from "./methods";
 
 log("attaching settings ipc handlers");
 
-const store = new Store();
+const store = new JsonStore();
 
 log("binding settings at: %s", store.path);
 
