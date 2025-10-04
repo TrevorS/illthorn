@@ -1,5 +1,6 @@
 import path from "node:path";
 import { app, BrowserWindow, screen, shell } from "electron";
+import squirrelStartup from "electron-squirrel-startup";
 import "./backend";
 import { setMainWindow } from "./backend/config/ipc-handlers";
 import { setWebContents } from "./backend/webcontents";
@@ -12,7 +13,7 @@ if (process.env.NODE_ENV === "development") {
 // Vite handles entry points differently than webpack - no magic constants needed
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require("electron-squirrel-startup")) {
+if (squirrelStartup) {
   app.quit();
 }
 

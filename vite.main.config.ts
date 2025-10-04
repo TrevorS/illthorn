@@ -24,12 +24,8 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
-        // Electron runtime and electron-specific packages that can't be bundled
+        // Only externalize electron itself - it's provided by the runtime
         'electron',
-        'electron-squirrel-startup',
-        'electron-store',
-        // WebSocket library - has optional native bindings, keep external
-        'ws',
       ],
     },
   },
