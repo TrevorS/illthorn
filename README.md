@@ -10,7 +10,7 @@ A modern cross-platform front-end for [Gemstone IV](https://www.play.net/gs4/).
 
 - Have Node 22.20+ and [pnpm](https://pnpm.io/) 11+ (`brew install pnpm` on macOS, or `corepack enable && corepack prepare pnpm@latest --activate`)
 - Clone the repository or download the [.zip](https://github.com/elanthia-online/illthorn/archive/master.zip).
-- Navigate to the directory and install dependencies with `pnpm install`.
+- `cd` into the directory and run `pnpm install`.
 - Launch Illthorn in dev mode with `pnpm start`.
 - Build a distributable app with `pnpm make` — outputs land in `/out/`.
 

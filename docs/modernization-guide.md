@@ -304,7 +304,7 @@ yarn audit       # Check for vulnerabilities
 - [x] Switch moduleResolution to bundler
 - [x] Performance optimizations (feed scroll sentinel, guard directives)
 - [x] Modern language features (optional chaining, nullish coalescing, async/await)
-- [x] Comprehensive testing (757 tests, coverage reporting via @vitest/coverage-v8)
+- [x] 757 tests + coverage reporting via @vitest/coverage-v8
 - [x] Documentation updates (CLAUDE.md, README.md, this file)
 
 ## 🔧 Troubleshooting Common Issues
