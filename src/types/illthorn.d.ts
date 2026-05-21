@@ -29,3 +29,6 @@ declare module "electron-squirrel-startup" {
   const handled: boolean;
   export default handled;
 }
+
+declare module "*.scss";
+declare module "*.css";

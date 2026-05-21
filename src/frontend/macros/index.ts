@@ -35,13 +35,13 @@ export async function bindMetaMacros() {
       e?.preventDefault();
       const buttons = document.querySelectorAll<SessionButton>("illthorn-session-button");
       const button = buttons[idx];
-      if (button) focusSession(button.session);
+      if (button?.session) focusSession(button.session);
     });
   });
 
   keyboardjs.on("ctrl+pagedown", (_) => {
     const sess = currentSession();
-    sess?.ui.feed.scrollToNow();
+    sess?.ui?.feed?.scrollToNow();
   });
 
   // Add Ctrl+Shift+L for clear game log
@@ -60,7 +60,7 @@ export async function bindMetaMacros() {
     e?.preventDefault();
     const sess = currentSession();
     if (!sess) return;
-    const ele = sess.ui.feed;
+    const ele = sess.ui?.feed;
     if (!ele) return;
     ele.scrollBy(0, ele.clientHeight * -0.8);
     ele.dispatchEvent(new Event("mousewheel"));
@@ -70,7 +70,7 @@ export async function bindMetaMacros() {
     e?.preventDefault();
     const sess = currentSession();
     if (!sess) return;
-    const ele = sess.ui.feed;
+    const ele = sess.ui?.feed;
     if (!ele) return;
     ele.scrollBy(0, ele.clientHeight * 0.8);
     ele.dispatchEvent(new Event("mousewheel"));

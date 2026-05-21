@@ -2,21 +2,18 @@
   "compilerOptions": {
     "target": "ESNext",
     "allowJs": false,
-    "module": "commonjs",
+    "module": "esnext",
     "skipLibCheck": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
     "sourceMap": true,
-    "baseUrl": ".",
     "outDir": "dist",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
-    "types": ["./src/types/illthorn.d.ts", "vitest/globals"],
-    "paths": {
-      "*": ["node_modules/*"]
-    }
+    "types": ["./src/types/illthorn.d.ts", "vitest/globals"]
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["**/*.stories.ts"]
 }

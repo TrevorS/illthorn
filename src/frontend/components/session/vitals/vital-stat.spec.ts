@@ -414,7 +414,7 @@ describe("VitalStat Component", () => {
       await vitalStat.updateComplete;
 
       // Then set to null for indeterminate state
-      vitalStat.percent = null as number | undefined;
+      vitalStat.percent = null as unknown as number | undefined;
       await vitalStat.updateComplete;
 
       const progressBar = vitalStat.shadowRoot?.querySelector("sl-progress-bar");

@@ -141,14 +141,14 @@ export const HighlightingMixin = <T extends new (...args: any[]) => LitElement>(
      * Set up global event listeners for pattern updates
      */
     private _setupGlobalListeners() {
-      document.addEventListener("illthorn:highlights-updated", this._handleHighlightsUpdated);
+      document.addEventListener("illthorn:highlights-updated", this._handleHighlightsUpdated as EventListener);
     }
 
     /**
      * Remove global event listeners
      */
     private _removeGlobalListeners() {
-      document.removeEventListener("illthorn:highlights-updated", this._handleHighlightsUpdated);
+      document.removeEventListener("illthorn:highlights-updated", this._handleHighlightsUpdated as EventListener);
     }
 
     /**

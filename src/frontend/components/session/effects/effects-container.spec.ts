@@ -179,13 +179,13 @@ describe("EffectsContainer", () => {
       const spellEffects = uiComponent?.spellEffects;
 
       expect(spellEffects).toHaveLength(2);
-      expect(spellEffects[0]).toEqual({
+      expect(spellEffects![0]).toEqual({
         text: "Bless",
         id: "bless-101",
         time: "12:30", // Should remain unchanged
         value: "75",
       });
-      expect(spellEffects[1]).toEqual({
+      expect(spellEffects![1]).toEqual({
         text: "Spirit Warding I",
         id: "spirit-warding-i-103",
         time: "8:15", // Leading zero should be removed
@@ -237,7 +237,7 @@ describe("EffectsContainer", () => {
       const spellEffects = uiComponent?.spellEffects;
 
       expect(spellEffects).toHaveLength(1);
-      expect(spellEffects[0].text).toBe("Valid Effect");
+      expect(spellEffects![0].text).toBe("Valid Effect");
     });
 
     it("should handle missing attributes gracefully", async () => {
@@ -271,7 +271,7 @@ describe("EffectsContainer", () => {
       const spellEffects = uiComponent?.spellEffects;
 
       expect(spellEffects).toHaveLength(1);
-      expect(spellEffects[0]).toEqual({
+      expect(spellEffects![0]).toEqual({
         text: "Partial Data",
         id: "",
         time: "",
@@ -311,7 +311,7 @@ describe("EffectsContainer", () => {
       const uiComponent = queryEffectsUI(container.shadowRoot);
       const spellEffects = uiComponent?.spellEffects;
 
-      expect(spellEffects[0].time).toBe("5:30");
+      expect(spellEffects![0].time).toBe("5:30");
     });
   });
 

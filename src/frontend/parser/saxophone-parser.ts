@@ -290,14 +290,18 @@ export class SaxophoneParser {
    * Collect content into a stream tag for later processing
    */
   private collectStreamContent(tag: GameTag): void {
+    if (!this.currentStream) {
+      return;
+    }
+    const streamId = this.currentStream;
     // Find or create a stream tag for this stream type
     // Only reuse OPEN stream tags - create new tags for each pushStream/popStream cycle
-    let streamTag = this.completed.find((t) => t.name === "stream" && t.attrs.id === this.currentStream && t.state === TagState.OPEN);
+    let streamTag = this.completed.find((t) => t.name === "stream" && t.attrs.id === streamId && t.state === TagState.OPEN);
 
     if (!streamTag) {
       // Create new stream tag to collect content
       streamTag = makeTag("stream");
-      streamTag.attrs = { id: this.currentStream };
+      streamTag.attrs = { id: streamId };
       streamTag.state = TagState.OPEN; // Keep it open to collect more content
       this.completed.push(streamTag);
     }
@@ -334,8 +338,8 @@ export class SaxophoneParser {
   /**
    * Handle parsing errors with basic recovery
    */
-  private handleError(error: Error): void {
-    debugParser("Saxophone parser error: %s", error.message);
+  private handleError(error: unknown): void {
+    debugParser("Saxophone parser error: %s", error instanceof Error ? error.message : String(error));
 
     // For now, just continue - more sophisticated error recovery can be added later
   }
@@ -344,8 +348,8 @@ export class SaxophoneParser {
    * Attempt to recover from saxophone parsing failures
    * Could fall back to simpler parsing or return partial results
    */
-  private recoverFromError(originalText: string, error: Error): GameTag[] {
-    debugParser("SaxophoneParser failed to parse XML: %s", error.message);
+  private recoverFromError(originalText: string, error: unknown): GameTag[] {
+    debugParser("SaxophoneParser failed to parse XML: %s", error instanceof Error ? error.message : String(error));
     debugParser("Original text: %s", originalText);
 
     // For now, return empty array - in production this could try:

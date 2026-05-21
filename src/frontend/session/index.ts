@@ -15,7 +15,7 @@ import { SessionMap } from "./map";
 export class FrontendSession {
   static async connect(config: Illthorn.Session.Config) {
     const session = new FrontendSession(config);
-    await window.Session.connect(config, (_e, message: string) => session.onMessage(message));
+    await window.Session.connect(config, (_e, message) => session.onMessage(String(message)));
     return session;
   }
 

@@ -20,9 +20,9 @@ type CommandEchoEvent = {
 
 // Type for the feed component in Storybook contexts
 type FeedElement = HTMLElement & {
-  appendGameTags?: (tags: Array<GameTag>) => void;
-  shadowRoot?: ShadowRoot | null;
-  getRenderStats?: () => {
+  appendGameTags: (tags: Array<GameTag>) => void;
+  shadowRoot: ShadowRoot | null;
+  getRenderStats: () => {
     totalTagGroups: number;
     totalTags: number;
     componentTags: number;
@@ -119,55 +119,55 @@ export const ComprehensiveInventoryWithMixedCategories: Story = {
 
         // Add inventory items gradually to show realistic game flow
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("125592513", "gladius", "matte black golvern gladius"), createTextTag(" (weapon)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("125592513", "gladius", "matte black golvern gladius"), createTextTag(" (weapon)")]);
         }, 200);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("127527554", "stem", "some aloeas stem"), createTextTag(" (herb)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("127527554", "stem", "some aloeas stem"), createTextTag(" (herb)")]);
         }, 400);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("ruby456", "ruby", "a brilliant ruby"), createTextTag(" (gem)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("ruby456", "ruby", "a brilliant ruby"), createTextTag(" (gem)")]);
         }, 600);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("shield789", "shield", "a reinforced steel shield"), createTextTag(" (armor)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("shield789", "shield", "a reinforced steel shield"), createTextTag(" (armor)")]);
         }, 800);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("127527553", "moss", "some ephlox moss"), createTextTag(" (herb)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("127527553", "moss", "some ephlox moss"), createTextTag(" (herb)")]);
         }, 1000);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("potion777", "potion", "rose-marrow potion"), createTextTag(" (herb)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("potion777", "potion", "rose-marrow potion"), createTextTag(" (herb)")]);
         }, 1200);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("ring101", "ring", "gold wedding ring"), createTextTag(" (jewelry)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("ring101", "ring", "gold wedding ring"), createTextTag(" (jewelry)")]);
         }, 1400);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("scroll202", "scroll", "scroll of mass blur"), createTextTag(" (magic)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("scroll202", "scroll", "scroll of mass blur"), createTextTag(" (magic)")]);
         }, 1600);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("backpack303", "backpack", "forest green backpack"), createTextTag(" (worn)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("backpack303", "backpack", "forest green backpack"), createTextTag(" (worn)")]);
         }, 1800);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("tart404", "tart", "wild berry tart"), createTextTag(" (food)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("tart404", "tart", "wild berry tart"), createTextTag(" (food)")]);
         }, 2000);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("skin505", "skin", "supple troll skin"), createTextTag(" (valuable)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("skin505", "skin", "supple troll skin"), createTextTag(" (valuable)")]);
         }, 2200);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("• "), createGameLinkTag("box606", "box", "ornate silver strongbox"), createTextTag(" (container)")]);
+          feed?.appendGameTags([createTextTag("• "), createGameLinkTag("box606", "box", "ornate silver strongbox"), createTextTag(" (container)")]);
         }, 2400);
 
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("\nTotal: 12 items")]);
+          feed?.appendGameTags([createTextTag("\nTotal: 12 items")]);
         }, 2600);
       }
     }, 100);
@@ -210,10 +210,10 @@ export const BasicGameText: Story = {
       if (feed) {
         feed.appendGameTags([createTextTag("You look around and see:")]);
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("A "), createGameLinkTag("sword123", "sword", "steel longsword"), createTextTag(" is here.")]);
+          feed?.appendGameTags([createTextTag("A "), createGameLinkTag("sword123", "sword", "steel longsword"), createTextTag(" is here.")]);
         }, 500);
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("There is also "), createGameLinkTag("potion456", "potion", "healing potion"), createTextTag(".")]);
+          feed?.appendGameTags([createTextTag("There is also "), createGameLinkTag("potion456", "potion", "healing potion"), createTextTag(".")]);
         }, 1000);
       }
     }, 100);
@@ -241,7 +241,7 @@ export const WithCommands: Story = {
       if (feed) {
         feed.appendGameTags([createTextTag("You can "), createGameCommandTag("get sword", "get"), createTextTag(" the sword.")]);
         setTimeout(() => {
-          feed.appendGameTags([createTextTag("Or you can "), createGameCommandTag("look potion", "examine"), createTextTag(" the potion.")]);
+          feed?.appendGameTags([createTextTag("Or you can "), createGameCommandTag("look potion", "examine"), createTextTag(" the potion.")]);
         }, 500);
       }
     }, 100);

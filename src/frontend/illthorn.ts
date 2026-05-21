@@ -29,7 +29,7 @@ class IIllthorn {
 
   hud(on: boolean) {
     const sess = currentSession();
-    sess.ui.context.classList.toggle("no-hud", !on);
+    sess?.ui?.context.classList.toggle("no-hud", !on);
   }
 
   toggleSessionsUI(visible: boolean) {
@@ -206,7 +206,7 @@ Available commands:
     }
 
     const currentSess = currentSession();
-    if (currentSess?.ui.feed?.setScrollbackSize) {
+    if (currentSess?.ui?.feed?.setScrollbackSize) {
       try {
         await currentSess.ui.feed.setScrollbackSize(size);
 
@@ -219,7 +219,7 @@ Available commands:
       } catch (error) {
         if (currentSess.bus) {
           currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
-            message: `Error setting scrollback size: ${error.message}`,
+            message: `Error setting scrollback size: ${error instanceof Error ? error.message : String(error)}`,
             timestamp: Date.now(),
           });
         }
@@ -239,7 +239,7 @@ Available commands:
    */
   clearGameLog() {
     const currentSess = currentSession();
-    if (currentSess?.ui.feed?.clear) {
+    if (currentSess?.ui?.feed?.clear) {
       currentSess.ui.feed.clear();
 
       if (currentSess.bus) {
@@ -263,7 +263,7 @@ Available commands:
    */
   clearAllStreams() {
     const currentSess = currentSession();
-    if (currentSess?.ui.streams?.clearAllStreams) {
+    if (currentSess?.ui?.streams?.clearAllStreams) {
       currentSess.ui.streams.clearAllStreams();
 
       if (currentSess.bus) {
@@ -287,7 +287,7 @@ Available commands:
    */
   clearStreamType(streamType: string) {
     const currentSess = currentSession();
-    if (!currentSess?.ui.streams) {
+    if (!currentSess?.ui?.streams) {
       if (currentSess?.bus) {
         currentSess.bus.dispatchEvent(IllthornEvent.CLIENT_MESSAGE, {
           message: "No active streams found",

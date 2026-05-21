@@ -337,22 +337,22 @@ export class SessionLayout extends LitElement {
         return self as HTMLElement;
       },
       get cli() {
-        return self._cli || null;
+        return self._cli!;
       },
       get feed() {
-        return self._feed || null;
+        return self._feed!;
       },
       get prompt() {
-        return self._prompt || null;
+        return self._prompt!;
       },
       get vitals() {
-        return self._vitals || null;
+        return self._vitals!;
       },
       get injuries() {
-        return self._injuries || null;
+        return self._injuries!;
       },
       get streams() {
-        return self._streams || null;
+        return self._streams!;
       },
       get hands(): { left: null; right: null; spell: null } {
         return { left: null, right: null, spell: null };
