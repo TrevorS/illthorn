@@ -4,320 +4,85 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 direct-commits-allowed: true
 
-## Project Overview
+## Project
 
-Illthorn is a modern cross-platform Electron application that serves as a front-end client for Gemstone IV, a text-based MUD (Multi-User Dungeon). The app connects to Lich (a Ruby-based scripting framework) via TCP sockets and provides a rich UI with themes, highlighting, command history, and multi-session support.
+Illthorn is an Electron front-end for Gemstone IV, a Lich-driven MUD. Three-process Electron app (`src/main.ts`, `src/preload.ts`, `src/frontend/index.ts`) connecting to Lich over TCP.
 
-## Environment Configuration
+## Toolchain
 
-The application uses dotenv for environment variable management. Copy `.env.example` to `.env` and modify as needed:
+- **pnpm 11.x** (not yarn/npm). `nodeLinker: hoisted` is required in `pnpm-workspace.yaml` — electron-forge can't resolve pnpm's symlinked layout.
+- **Node 22.20.0** (pinned in `.node-version`, `package.json` volta, and CI). **Do not bump to Node 24** — `extract-zip` silently truncates Electron's postinstall on Node 24. Revisit when upstream fixes it.
+- **Vite 7.3.3** — don't jump to Vite 8 until `@electron-forge/plugin-vite` ships Rolldown support (Vite 8 renamed `build.rollupOptions` → `build.rolldownOptions`).
+- TypeScript 6 with `strict: true` and `moduleResolution: "bundler"`. Catch blocks: `error` is `unknown` — narrow with `error instanceof Error ? error.message : String(error)`.
 
-```bash
-cp .env.example .env
-```
+## Commands
 
-Environment variables can be configured as needed for development.
+- `pnpm check` — format + lint + typecheck + test (full validation)
+- `pnpm start` — Electron dev runtime
+- `pnpm package` — non-installer Forge bundle (faster smoke test than `pnpm make`)
+- `pnpm make` — full distributables (zip, deb, rpm, squirrel)
+- `pnpm test path/to/file.spec.ts` — single spec
+- `pnpm test:coverage` — coverage report at `coverage/index.html`
 
-## Development Commands
+## Code conventions
 
-### Core Development
-- **Start development**: `pnpm start` - Launches Electron in development mode with hot reload
-- **Build package**: `pnpm make` - Creates distributable packages in `/out/`
-- **Install dependencies**: `pnpm install`
-- **Storybook**: `pnpm storybook` - Launches Storybook development server on port 6006
+- **Never use single-line if statements** — always block braces. Biome doesn't enforce this; it's project style.
+- **Prefer `Array<T>` over `T[]`** for array type declarations.
+- **`// ABOUTME:` header** on the first two lines of every new component file describing purpose + implementation note.
+- **Lit components**: `@customElement('illthorn-*-lit')` decorator, `static styles` as first class member, `declare global { interface HTMLElementTagNameMap }` block at file bottom.
 
-### Code Quality
-- **Full validation**: `pnpm check` - Runs complete validation pipeline (format, lint, typecheck, test)
-- **Format**: `pnpm format` - Formats code using Biome
-- **Lint**: `pnpm lint` - Runs Biome linter and auto-fixes issues  
-- **Type Check**: `pnpm typecheck` - Runs TypeScript compiler type checking
-- **Test**: `pnpm test` - Runs Vitest test suite with verbose output
-- **Test with UI**: `pnpm test:ui` - Runs Vitest with browser UI
-- **Test watch mode**: `pnpm test:watch` - Runs tests in watch mode
-- **Test coverage**: `pnpm test:coverage` - Generates coverage report
-- **Single test**: `pnpm test test/components/session/injuries/injuries.lit.spec.ts` - Run specific test file
+## Light DOM Lit pattern
 
-### Versioning
-- **Release candidate**: `pnpm rc` - Creates prerelease version, commits, and pushes tags
+A few components opt out of Shadow DOM via `createRenderRoot() { return this; }` (e.g. `app.lit.ts`, `sessions-menu.lit.ts`, `session-button.lit.ts`, `session-layout.lit.ts`). Their `static styles` are NOT auto-injected. Required pattern:
 
-## Architecture Overview
-
-### Electron Multi-Process Structure
-- **Main Process** (`src/main.ts`): Electron app initialization, window management, and backend coordination
-- **Preload Script** (`src/preload.ts`): Secure context bridge exposing APIs to renderer
-- **Renderer Process** (`src/frontend/index.ts`): Frontend application initialization and UI management
-
-### Backend Architecture (`src/backend/`)
-The backend uses a modular IPC (Inter-Process Communication) pattern:
-- **Session Management** (`session/`): Handles TCP connections to Lich processes, session lifecycle
-- **App Management** (`app/`): Core application state and operations  
-- **Settings Management** (`settings/`): Configuration persistence and retrieval
-- Each module has three key files:
-  - `ipc-handlers.ts`: Main process IPC event handlers
-  - `mainworld-api.ts`: Renderer-safe API exposure via preload
-  - `methods.ts`: Core business logic implementation
-
-### Frontend Architecture (`src/frontend/`)
-- **Session Management** (`session/`): Frontend session state, command handling, UI rendering
-- **Components** (`components/`): Lit Web Components
-- **Parser** (`parser/`): Game text parsing with tag-based content transformation
-- **Themes** (`styles/themes/`): Multiple visual themes for customization
-- **Bus System** (`util/bus.ts`): Custom event-driven communication between components
-
-### Key Design Patterns
-- **IPC Communication**: Structured three-layer pattern (handlers → API → methods) for secure main/renderer communication
-- **Session Mapping**: Both frontend and backend maintain session maps for multi-character support
-- **Event Bus**: Custom DOM-based event system using `CustomEvent` for component communication
-- **Web Components**: Lit-based, registered with `@customElement('illthorn-*-lit')` decorators
-- **Parser Architecture**: Saxophone-based XML parser consuming game text streams and producing structured DOM
-
-### Game Text Processing Flow
-1. **TCP Stream**: Raw game text received from Lich via WebSocket
-2. **Parser** (`parser/saxophone-parser.ts`): Tokenizes XML-like tags and text into structured `GameTag` objects
-3. **DOM Rendering**: Components subscribe to parsed events and update their display
-4. **Highlighting**: Text is processed through highlight groups with configurable CSS styling
-
-### Session Detection & Connection
-- **Auto-detection**: Scans `/tmp/simutronics/sessions/` for Lich session descriptors
-- **Manual connection**: `:connect <name> <port>` command for explicit session creation
-- **Multi-session**: Multiple characters supported simultaneously with alt+# switching
-
-## Development Notes
-
-### Package Management
-- Uses Yarn 4.9.2 (specified in volta config: Node 22.11.0)
-- Electron Forge with Vite plugin for build tooling and packaging
-- Vite for bundling with SCSS support
-- Biome for code formatting and linting (replaces ESLint/Prettier)
-- Storybook for component development and documentation
-
-### Build Configuration
-- **Electron Forge**: Configured in `forge.config.ts` with multiple makers (ZIP, DEB, RPM, Squirrel)
-- **Vite Configuration**: Separate configs for main process, preload, and renderer
-- **Multi-platform Support**: Builds for macOS, Windows, and Linux distributions
-
-### Testing Setup
-- Vitest test framework with TypeScript support
-- Tests located in `/test/` directory (mirrors `src/` structure)
-- Path alias `@` points to `src/` for imports
-- JSDOM environment for component testing
-- Global test environment with experimental decorators support
-- Verbose reporter with bail-on-first-failure for CI/CD
-
-### Debug Logging System
-The project includes a structured debug logging system using the `debug` library for troubleshooting game events and data flow:
-
-#### Available Debug Namespaces
-- `illthorn:bus` - Bus event dispatching and subscriptions
-- `illthorn:metadata` - XML metadata processing and event creation  
-- `illthorn:raw-input` - Raw Lich input data before parsing
-- `illthorn:effects` - Effects component event processing
-- `illthorn:session` - Session-level message processing
-- `illthorn:session-connect` - Session connection and detection events
-- `illthorn:app` - Application-level events and state changes
-- `illthorn:feed` - Feed component rendering and content management
-- `illthorn:injuries` - Injury system debugging and wound processing
-- `illthorn:parser` - XML parser operation and error handling
-- `illthorn:macros` - Macro binding and execution
-- `illthorn:commands` - Command processing and echo system
-
-#### Enabling Debug Logging (Opt-in Only)
-**Browser Console** (for frontend debugging):
-```javascript
-localStorage.setItem('debug', 'illthorn:*');  // Enable all loggers
-localStorage.setItem('debug', 'illthorn:bus,illthorn:metadata');  // Specific loggers
-// Then refresh the page to see debug output
-```
-
-**Disabling Debug Logging**:
-```javascript
-localStorage.removeItem('debug');  // Remove debug setting
-// Then refresh the page to stop debug output
-```
-
-**Check Current Debug State**:
-```javascript
-localStorage.getItem('debug');  // Returns current debug setting or null
-```
-
-**Environment Variable** (for development):
-```bash
-DEBUG=illthorn:* pnpm start  # Enable all debug logging
-DEBUG=illthorn:effects,illthorn:metadata pnpm start  # Specific loggers
-```
-
-**Note**: Debug logging is disabled by default and must be explicitly enabled. If you're seeing unexpected debug output, check `localStorage.getItem('debug')` and remove it if needed.
-
-#### Common Debug Patterns
-- **Spell Effects Issues**: `DEBUG=illthorn:effects,illthorn:metadata,illthorn:bus`
-- **Raw Input Analysis**: `DEBUG=illthorn:raw-input,illthorn:session`
-- **Parser Issues**: `DEBUG=illthorn:parser,illthorn:raw-input`
-- **Injury System Debugging**: `DEBUG=illthorn:injuries,illthorn:metadata`
-- **Session Connection Problems**: `DEBUG=illthorn:session-connect,illthorn:session`
-- **Command System Issues**: `DEBUG=illthorn:commands,illthorn:macros`
-- **Event Flow Debugging**: `DEBUG=illthorn:*`
-
-### CLI Commands (User-facing)
-Frontend commands prefixed with `:` (vim-style):
-- `:theme <name>` - Switch themes (original, rogue, dark-king, icemule, kobold, raging-thrak)
-- `:connect <name> <port>` or `:c` - Create new session
-- `:focus <session>` or `:f` - Switch session focus
-- `:set <path> <value>` - Configure settings (e.g., `clickable` boolean)
-- `:ui` - Show current UI panel status and available commands
-- `:ui <name> <state>` - Toggle UI panels (sessions, hud, streams)
-- `:stream <name> <state>` - Toggle stream panels (thoughts, speech, logon, logoff, death)
-- `:hilite add <group> <pattern>` - Add highlight patterns with regex
-- `:hilite group <group> <property>=<value>` - Style highlight groups with CSS
-- `:hilite reload` - Reload highlight configuration
-- `:hilite remove <type> <text>` - Remove pattern or group (use `confirm` for groups with patterns)
-- `:rename <new name>` - Rename the currently focused session
-- `:swap <other name>` - Swap names between sessions if mixed up during connection
-- `:config` - Display current Illthorn configuration
-
-### Lit Component Development Patterns
-
-#### Component Structure
-- Use `@customElement('illthorn-*-lit')` decorator for component registration
-- Use `@property()` for reactive public properties
-- Use `@state()` for internal reactive state
-- Always include `declare global` interface for TypeScript support
-
-#### Code Style Requirements
-- **NEVER use single-line if statements** - always use block format with braces
-- **Prefer Array<T> over T[]** for array type declarations
-- Use descriptive property types: `@property({ type: Object })`, `@property({ type: Boolean })`
-- Place static styles as first class member after decorators
-- Use CSS custom properties for theming integration
-
-#### Example Pattern
-```typescript
-// ABOUTME: Brief description of component purpose
-// ABOUTME: Additional implementation details
-import { css, html, LitElement } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
-
-@customElement('illthorn-example-lit')
-export class ExampleLit extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-    }
-    /* Theme-aware styling with CSS custom properties */
-  `;
-
-  @property({ type: String })
-  title = '';
-
-  @state()
-  private _internalState = false;
-
-  render() {
-    return html`
-      <div class="container">
-        <h2>${this.title}</h2>
-        <slot></slot>
-      </div>
-    `;
-  }
-}
-
-declare global {
-  interface HTMLElementTagNameMap {
-    "illthorn-example-lit": ExampleLit;
-  }
-}
-```
-
-### Component Testing Patterns
-- Use Vitest with JSDOM environment for component testing
-- Create mock sessions using `createMockSession()` helper from `/test/mocks/`
-- Test component lifecycle: creation, property updates, event handling, cleanup
-- Use `updateComplete` Promise for async component rendering
-- Mock external dependencies and bus events for isolated testing
-- Follow TDD approach: write tests first, implement to pass tests
-
-## Project Validation Tools
-
-### Project Type
-
-Node.js/TypeScript Electron project
-
-### Package Manager
-
-- **Node.js**: `pnpm` (11.x, with `nodeLinker: hoisted` for electron-forge compatibility)
-
-### Validation Commands
-
-- **Format**: `pnpm format` (Biome formatter)
-- **Lint**: `pnpm lint` (Biome linter with auto-fix)
-- **Type Check**: `pnpm typecheck` (TypeScript compiler)
-- **Test**: `pnpm test` (Vitest test suite)
-- **Complete Pipeline**: `pnpm check` (runs all validation steps in sequence)
-
-### Last Updated
-
-2026-05-21
-
-## Component Architecture Details
-
-### HUD Panel System
-The application uses a collapsible panel system in the left sidebar (HUD):
-- **Room Panel**: Contains room description and compass component
-- **Vitals Panel**: Health, mana, stamina, spirit, mind stats with progress bars
-- **Injuries Panel**: Character wounds with smart left/right pairing and severity indicators
-- **Active Spells Panel**: Currently active spell effects with duration timers
-
-Panels use the `illthorn-panel` component with consistent header styling and can be toggled on/off via `:ui <panel> <on|off>` commands.
-
-### Session UI Integration
-Components integrate with the session system via:
-- `SessionUI` interface provides component references to session logic
-- Components subscribe to bus events: `session.bus.subscribeEvent<GameTag>('metadata/...')`
-- Event namespacing follows pattern: `metadata/<tagName>/<id?>` (e.g., `metadata/progressBar/health`)
-- Session state updates trigger component re-renders via reactive properties
-
-## Light DOM Component Styling Pattern
-
-**IMPORTANT**: When creating Lit components that use Light DOM (`createRenderRoot() { return this; }`), special care is needed for CSS styling.
-
-### The Problem
-Light DOM components don't automatically inject their `static styles` CSS. Using `:host` selectors doesn't work properly with Light DOM.
-
-### The Solution
-1. **Change CSS selectors**: Replace `:host` with the actual component name
-   ```css
-   // ❌ Wrong (doesn't work with Light DOM)
-   static styles = css`:host { display: grid; }`;
-   
-   // ✅ Correct (works with Light DOM)  
+1. CSS selectors use the actual element name, not `:host`:
+   ```ts
    static styles = css`illthorn-my-component { display: grid; }`;
    ```
-
-2. **Add manual style adoption**:
-   ```typescript
+2. Manually adopt styles in `connectedCallback`:
+   ```ts
    private _adoptStyles() {
-     if (!document.head.querySelector('style[data-lit-component="my-component"]')) {
-       const style = document.createElement("style");
-       style.setAttribute("data-lit-component", "my-component");
-       style.textContent = MyComponent.styles.cssText;
-       document.head.appendChild(style);
-     }
+     if (document.head.querySelector('style[data-lit-component="my-component"]')) return;
+     const style = document.createElement("style");
+     style.setAttribute("data-lit-component", "my-component");
+     style.textContent = MyComponent.styles.cssText;
+     document.head.appendChild(style);
    }
    ```
 
-3. **Call in lifecycle method**:
-   ```typescript
-   connectedCallback() {
-     super.connectedCallback();
-     this._adoptStyles();
-   }
-   ```
+## Architecture notes
 
-### CSS Conflicts
-Beware of CSS specificity conflicts with old layout styles. ID selectors (`#app`) override element selectors (`illthorn-app-lit`). Use `!important` or disable conflicting old styles.
+- **IPC pattern**: each backend module (`src/backend/<module>/`) has three files — `ipc-handlers.ts` (main process), `mainworld-api.ts` (preload bridge), `methods.ts` (business logic).
+- **Bus**: components communicate via `CustomEvent` on a `Bus` instance per session (`session.bus.subscribeEvent<GameTag>("metadata/...")`). Event namespace is `metadata/<tagName>/<id?>`.
+- **Parser**: `src/frontend/parser/saxophone-parser.ts` tokenizes Lich's XML stream into `GameTag` objects. `saxophone` is abandoned (last release 2022) — works fine, flagged for eventual replacement.
+- **Stories** are typechecked by the main `tsconfig.json` (no exclusion). Each `*.stories.ts` defines a local `FeedElement` type — keep methods non-optional or `pnpm typecheck` fails.
 
-### Components Using This Pattern
-- `AppRoot` (`components/app.lit.ts`)
-- `SessionsMenu` (`components/sessions-menu.lit.ts`) 
-- `SessionButton` (`components/session/session-button.lit.ts`)
-- `SessionLayout` (`components/session-layout.lit.ts`)
+## Testing
+
+- Vitest + JSDOM. Tests in `test/` mirror `src/`. Path alias `@` → `src/`.
+- Mock sessions via `createMockSession()` from `test/mocks/`.
+- Await `updateComplete` after property changes for Lit components.
+
+## Debug logging
+
+Disabled by default. Enable via env var or localStorage:
+
+```bash
+DEBUG=illthorn:* pnpm start
+```
+
+```js
+localStorage.setItem('debug', 'illthorn:effects,illthorn:metadata');
+```
+
+Namespaces: `bus`, `metadata`, `raw-input`, `effects`, `session`, `session-connect`, `app`, `feed`, `injuries`, `parser`, `macros`, `commands`. Grep for `debug(` calls in `src/` for the full list.
+
+## CLI command surface
+
+Frontend commands use vim-style `:` prefix (`:theme`, `:connect`, `:focus`, `:set`, `:ui`, `:stream`, `:hilite`, `:rename`, `:swap`, `:config`). Implementation: `src/frontend/illthorn.ts` → `handleCommand`.
+
+## Repo etiquette
+
+- Conventional commits — `feat:`, `fix:`, `build:`, `ci:`, `chore:`, `refactor:`, `docs:`. See `git log --oneline`.
+- Direct commits to `master` are allowed (see marker above). The branch-protection hook reads it.
+- Push: SSH origin (`git@github.com:TrevorS/illthorn.git`). CI runs on every push.

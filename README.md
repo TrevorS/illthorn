@@ -24,7 +24,7 @@ You need to have an active Lich session. So you'd connect something like...
 ruby lich.rb --login CHARACTER_NAME --detachable-client=8003 --without-frontend
 ```
 
-Lich might also be `lich.rbw` on your setup. You can run multiple connections (for multiple characters/accounts) in multiple terminals and Illtorn will autodetect them. You'll have to run them on different ports though, like `--detachable-client=8004`.
+Lich might also be `lich.rbw` on your setup. You can run multiple connections (for multiple characters/accounts) in multiple terminals and Illthorn will autodetect them. You'll have to run them on different ports though, like `--detachable-client=8004`.
 
 ## Current Features
 
@@ -43,14 +43,14 @@ Lich might also be `lich.rbw` on your setup. You can run multiple connections (f
 
 - [ ] Plugin Interface
 - [x] Custom Highlights
-- [ ] Macros
+- [x] Macros (TOML-configurable keybind bindings via keyboardjs)
 - [ ] Saved Logging
 - [ ] Download Public Themes
 - [x] Clickable links in game feed and ESP/LNet
 
 ## Meta Shortcuts
 
-Meta shortcuts are not customizable, as this project will general prefer sane defaults over configuration
+Meta shortcuts are not customizable — this project generally prefers sane defaults over configuration.
 
 #### `alt+<n>`
 
