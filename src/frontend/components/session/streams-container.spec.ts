@@ -157,7 +157,7 @@ describe("StreamsContainer", () => {
       thoughtsTag.text = 'Someone thinks, "This is a test thought"';
 
       // Get the handler that was registered
-      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call) => call[0] === "metadata/stream/thoughts");
+      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call: unknown[]) => call[0] === "metadata/stream/thoughts");
       expect(thoughtsHandlerCall).toBeDefined();
 
       const thoughtsHandler = thoughtsHandlerCall?.[1] as (event: { detail: GameTag }) => void;
@@ -183,7 +183,7 @@ describe("StreamsContainer", () => {
       testTag.text = "Direct text content";
 
       // Get the handler and trigger it
-      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call) => call[0] === "metadata/stream/thoughts");
+      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call: unknown[]) => call[0] === "metadata/stream/thoughts");
       expect(thoughtsHandlerCall).toBeDefined();
       const thoughtsHandler = thoughtsHandlerCall?.[1] as (event: { detail: GameTag }) => void;
       expect(typeof thoughtsHandler).toBe("function");
@@ -210,7 +210,7 @@ describe("StreamsContainer", () => {
       testTag.children = [childTag];
 
       // Get the handler and trigger it
-      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call) => call[0] === "metadata/stream/thoughts");
+      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call: unknown[]) => call[0] === "metadata/stream/thoughts");
       expect(thoughtsHandlerCall).toBeDefined();
       const thoughtsHandler = thoughtsHandlerCall?.[1] as (event: { detail: GameTag }) => void;
       expect(typeof thoughtsHandler).toBe("function");
@@ -231,7 +231,7 @@ describe("StreamsContainer", () => {
       await container.updateComplete;
 
       // Get the thoughts handler
-      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call) => call[0] === "metadata/stream/thoughts");
+      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call: unknown[]) => call[0] === "metadata/stream/thoughts");
       expect(thoughtsHandlerCall).toBeDefined();
       const thoughtsHandler = thoughtsHandlerCall?.[1] as (event: { detail: GameTag }) => void;
       expect(typeof thoughtsHandler).toBe("function");
@@ -261,7 +261,7 @@ describe("StreamsContainer", () => {
       await container.updateComplete;
 
       // Add some entries first
-      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call) => call[0] === "metadata/stream/thoughts");
+      const thoughtsHandlerCall = mockBus.subscribeEvent.mock.calls.find((call: unknown[]) => call[0] === "metadata/stream/thoughts");
       expect(thoughtsHandlerCall).toBeDefined();
       const thoughtsHandler = thoughtsHandlerCall?.[1] as (event: { detail: GameTag }) => void;
       expect(typeof thoughtsHandler).toBe("function");
