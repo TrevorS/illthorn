@@ -8,11 +8,13 @@ A modern cross-platform front-end for [Gemstone IV](https://www.play.net/gs4/).
 
 **From The Command Line**
 
-- Have Node
+- Have Node 22.20+ and [pnpm](https://pnpm.io/) 11+ (`brew install pnpm` on macOS, or `corepack enable && corepack prepare pnpm@latest --activate`)
 - Clone the repository or download the [.zip](https://github.com/elanthia-online/illthorn/archive/master.zip).
-- Navigate to the directory and install dependencies with `yarn install`.
-- You can then launch Illthorn with `yarn start`
-- Or make an app file with `yarn make` (look for the executable in `/out/`)
+- Navigate to the directory and install dependencies with `pnpm install`.
+- Launch Illthorn in dev mode with `pnpm start`.
+- Build a distributable app with `pnpm make` — outputs land in `/out/`.
+
+Other useful scripts: `pnpm check` (full format/lint/typecheck/test pipeline), `pnpm test:coverage` (HTML report at `coverage/index.html`), `pnpm storybook` (component dev server).
 
 ## Connecting to the Game
 
@@ -29,7 +31,9 @@ Lich might also be `lich.rbw` on your setup. You can run multiple connections (f
 - Runs on macOS, Windows, and Linux ([Electron](https://www.electronjs.org/docs/tutorial/support))
 - Attempts to autostart sessions by detecting open Lich processes started with `--without-frontend`
 - Runs multiple sessions in a single app (alt-# between them)
-- Highlights names/monsters/etc
+- HUD panels: room/compass, vitals, injuries, active spells, hands
+- Highlights names/monsters/etc with TOML-configurable rules
+- Click-to-execute game elements (`<d cmd>` links and monsters)
 - Autocomplete command history
 - Multiple themes to choose from
 - Zoom in/out (like a web browser)
@@ -104,10 +108,14 @@ Currently supported `:set` operations:
 
 Sets the panels. State is `on` or `off`. Names are:
 
+- `sessions`
+- `hud`
+- `streams`
 - `vitals`
 - `injuries`
 - `active-spells`
 - `compass`
+- `hands`
 
 Example: `:ui compass off`
 

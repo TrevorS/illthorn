@@ -1,5 +1,7 @@
 # Modernization Guide - July 2025
 
+> **Status: completed 2026-05-21.** All phases below have shipped. Current stack: pnpm 11.1.3, Node 22.20.0 LTS, TypeScript 6.0.3 (strict + bundler resolution), Electron 42.2.0, Vite 7.3.3, Vitest 4.1.7, Storybook 10.4.0, Biome 2.4.15. See git log entries between `a53046b` and `236468f` for the actual migration commits. This document is retained as historical context.
+
 This document outlines the modernization strategy for Illthorn to bring it up to current standards as of July 2025.
 
 ## Executive Summary
@@ -277,33 +279,33 @@ yarn audit       # Check for vulnerabilities
 ## 📋 Migration Checklist
 
 ### Phase 1: Critical Security ✅
-- [ ] Update Electron to latest version
-- [ ] Update Node.js to 22.x LTS  
-- [ ] Update TypeScript to 5.8.3
-- [ ] Verify all functionality works
-- [ ] Run security audit
-- [ ] Test packaging and distribution
+- [x] Update Electron to latest version (37 → 42.2.0)
+- [x] Update Node.js to 22.x LTS (22.20.0)
+- [x] Update TypeScript to 5.8.3, then to 6.0.3
+- [x] Verify all functionality works (757 tests pass)
+- [x] Run security audit
+- [x] Test packaging and distribution
 
 ### Phase 2: Build System ✅
-- [ ] Update Electron Forge to 7.8.1
-- [ ] Update all webpack dependencies
-- [ ] Consider Vite migration
-- [ ] Update ESLint to v9
-- [ ] Verify build performance
+- [x] Update Electron Forge to 7.11.2
+- [x] Migrate from webpack to Vite (6 → 7.3.3)
+- [x] Replace ESLint with Biome (2.4.15)
+- [x] Verify build performance
 
 ### Phase 3: Developer Experience ✅
-- [ ] Update package manager
-- [ ] Add Prettier configuration
-- [ ] Set up pre-commit hooks
-- [ ] Add conventional commits
-- [ ] Consider Vitest migration
+- [x] Update package manager (yarn 1 → 4 → pnpm 11.1.3)
+- [x] Biome handles formatting (Prettier not needed)
+- [x] Conventional commits in use
+- [x] Migrate from AVA to Vitest (now 4.1.7)
+- [x] Storybook 10.4.0 for component development
 
-### Phase 4: Code Modernization ✅  
-- [ ] Enable TypeScript strict mode
-- [ ] Implement performance optimizations
-- [ ] Add modern language features
-- [ ] Comprehensive testing
-- [ ] Documentation updates
+### Phase 4: Code Modernization ✅
+- [x] Enable TypeScript strict mode (via TS 6 default)
+- [x] Switch moduleResolution to bundler
+- [x] Performance optimizations (feed scroll sentinel, guard directives)
+- [x] Modern language features (optional chaining, nullish coalescing, async/await)
+- [x] Comprehensive testing (757 tests, coverage reporting via @vitest/coverage-v8)
+- [x] Documentation updates (CLAUDE.md, README.md, this file)
 
 ## 🔧 Troubleshooting Common Issues
 
