@@ -16,7 +16,7 @@ const config: StorybookConfig = {
     return mergeConfig(config, {
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, '../src'),
+          '@': path.resolve(import.meta.dirname, '../src'),
         },
         dedupe: ['lit', 'lit-html', 'lit-element'], // Dedupe Lit versions
       },
