@@ -89,7 +89,7 @@ const mixedMockHighlighter = {
     disk: null, // player disks
   } as Record<string, string | null>,
 
-  async categorizeGameElement(attributes: { noun?: string; exist?: string; name?: string }) {
+  categorizeGameElement(attributes: { noun?: string; exist?: string; name?: string }) {
     const { noun, exist, name } = attributes;
     console.log("[MIXED MOCK] categorizeGameElement called with:", { noun, exist, name });
 
@@ -139,13 +139,13 @@ const mixedMockHighlighter = {
     };
   },
 
-  async getItemCategory(noun: string, fullName?: string) {
-    const result = await this.categorizeGameElement({ noun, name: fullName });
+  getItemCategory(noun: string, fullName?: string) {
+    const result = this.categorizeGameElement({ noun, name: fullName });
     return result.category;
   },
 
   async initialize() {},
-  async isCategoryEnabled(_category: string) {
+  isCategoryEnabled(_category: string) {
     return true;
   },
   get isReady() {
@@ -169,7 +169,7 @@ import "../game-elements/game-command.lit";
 
 // Type for feed component
 type FeedElement = HTMLElement & {
-  appendGameTags?: (tags: Array<GameTag>) => void;
+  appendGameTags: (tags: Array<GameTag>) => void;
 };
 
 // Utility functions for creating game tags

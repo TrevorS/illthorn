@@ -79,7 +79,7 @@ export default meta;
 type Story = StoryObj;
 
 type FeedElement = HTMLElement & {
-  appendGameTags?: (tags: Array<GameTag>) => void;
+  appendGameTags: (tags: Array<GameTag>) => void;
 };
 
 export const BackpackContentsScenario: Story = {

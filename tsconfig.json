@@ -14,6 +14,5 @@
     "useDefineForClassFields": false,
     "types": ["./src/types/illthorn.d.ts", "vitest/globals"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["**/*.stories.ts"]
+  "include": ["src/**/*"]
 }

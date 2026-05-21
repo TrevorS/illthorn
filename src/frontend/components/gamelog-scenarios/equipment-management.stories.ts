@@ -60,7 +60,7 @@ const equipmentMockHighlighter = {
     wastebin: "box",
   } as Record<string, string>,
 
-  async categorizeGameElement(attributes: { noun?: string; exist?: string; name?: string }) {
+  categorizeGameElement(attributes: { noun?: string; exist?: string; name?: string }) {
     const { noun, exist, name } = attributes;
     console.log("[EQUIPMENT MOCK] categorizeGameElement called with:", { noun, exist, name });
 
@@ -97,8 +97,8 @@ const equipmentMockHighlighter = {
     };
   },
 
-  async getItemCategory(noun: string, fullName?: string) {
-    const result = await this.categorizeGameElement({ noun, name: fullName });
+  getItemCategory(noun: string, fullName?: string) {
+    const result = this.categorizeGameElement({ noun, name: fullName });
     return result.category;
   },
 
@@ -106,7 +106,7 @@ const equipmentMockHighlighter = {
     // Mock initialization
   },
 
-  async isCategoryEnabled(_category: string) {
+  isCategoryEnabled(_category: string) {
     return true;
   },
 
@@ -131,8 +131,8 @@ import "../game-elements/game-command.lit";
 
 // Type for feed component in gamelog contexts
 type FeedElement = HTMLElement & {
-  appendGameTags?: (tags: Array<GameTag>) => void;
-  shadowRoot?: ShadowRoot | null;
+  appendGameTags: (tags: Array<GameTag>) => void;
+  shadowRoot: ShadowRoot | null;
 };
 
 // Utility functions for creating realistic game tags from icemule log content

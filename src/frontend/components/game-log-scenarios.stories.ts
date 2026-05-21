@@ -20,8 +20,8 @@ import "./game-elements/game-monster.lit";
 
 // Type definitions for story context
 type FeedElement = HTMLElement & {
-  appendGameTags?: (tags: Array<GameTag>) => void;
-  shadowRoot?: ShadowRoot | null;
+  appendGameTags: (tags: Array<GameTag>) => void;
+  shadowRoot: ShadowRoot | null;
 };
 
 // Game tag creation utilities

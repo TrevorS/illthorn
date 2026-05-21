@@ -21,24 +21,24 @@ Environment variables can be configured as needed for development.
 ## Development Commands
 
 ### Core Development
-- **Start development**: `yarn start` - Launches Electron in development mode with hot reload
-- **Build package**: `yarn make` - Creates distributable packages in `/out/`
-- **Install dependencies**: `yarn install`
-- **Storybook**: `yarn storybook` - Launches Storybook development server on port 6006
+- **Start development**: `pnpm start` - Launches Electron in development mode with hot reload
+- **Build package**: `pnpm make` - Creates distributable packages in `/out/`
+- **Install dependencies**: `pnpm install`
+- **Storybook**: `pnpm storybook` - Launches Storybook development server on port 6006
 
 ### Code Quality
-- **Full validation**: `yarn check` - Runs complete validation pipeline (format, lint, typecheck, test)
-- **Format**: `yarn format` - Formats code using Biome
-- **Lint**: `yarn lint` - Runs Biome linter and auto-fixes issues  
-- **Type Check**: `yarn typecheck` - Runs TypeScript compiler type checking
-- **Test**: `yarn test` - Runs Vitest test suite with verbose output
-- **Test with UI**: `yarn test:ui` - Runs Vitest with browser UI
-- **Test watch mode**: `yarn test:watch` - Runs tests in watch mode
-- **Test coverage**: `yarn test:coverage` - Generates coverage report
-- **Single test**: `yarn test test/components/session/injuries/injuries.lit.spec.ts` - Run specific test file
+- **Full validation**: `pnpm check` - Runs complete validation pipeline (format, lint, typecheck, test)
+- **Format**: `pnpm format` - Formats code using Biome
+- **Lint**: `pnpm lint` - Runs Biome linter and auto-fixes issues  
+- **Type Check**: `pnpm typecheck` - Runs TypeScript compiler type checking
+- **Test**: `pnpm test` - Runs Vitest test suite with verbose output
+- **Test with UI**: `pnpm test:ui` - Runs Vitest with browser UI
+- **Test watch mode**: `pnpm test:watch` - Runs tests in watch mode
+- **Test coverage**: `pnpm test:coverage` - Generates coverage report
+- **Single test**: `pnpm test test/components/session/injuries/injuries.lit.spec.ts` - Run specific test file
 
 ### Versioning
-- **Release candidate**: `yarn rc` - Creates prerelease version, commits, and pushes tags
+- **Release candidate**: `pnpm rc` - Creates prerelease version, commits, and pushes tags
 
 ## Architecture Overview
 
@@ -59,7 +59,7 @@ The backend uses a modular IPC (Inter-Process Communication) pattern:
 
 ### Frontend Architecture (`src/frontend/`)
 - **Session Management** (`session/`): Frontend session state, command handling, UI rendering
-- **Components** (`components/`): Mix of Lit Web Components and legacy vanilla components
+- **Components** (`components/`): Lit Web Components
 - **Parser** (`parser/`): Game text parsing with tag-based content transformation
 - **Themes** (`styles/themes/`): Multiple visual themes for customization
 - **Bus System** (`util/bus.ts`): Custom event-driven communication between components
@@ -68,9 +68,8 @@ The backend uses a modular IPC (Inter-Process Communication) pattern:
 - **IPC Communication**: Structured three-layer pattern (handlers → API → methods) for secure main/renderer communication
 - **Session Mapping**: Both frontend and backend maintain session maps for multi-character support
 - **Event Bus**: Custom DOM-based event system using `CustomEvent` for component communication
-- **Web Components**: Mix of modern Lit components and legacy vanilla custom elements extending `HTMLElement`
+- **Web Components**: Lit-based, registered with `@customElement('illthorn-*-lit')` decorators
 - **Parser Architecture**: Saxophone-based XML parser consuming game text streams and producing structured DOM
-- **Migration Pattern**: Active migration from vanilla Web Components to Lit components for better maintainability
 
 ### Game Text Processing Flow
 1. **TCP Stream**: Raw game text received from Lich via WebSocket
@@ -143,8 +142,8 @@ localStorage.getItem('debug');  // Returns current debug setting or null
 
 **Environment Variable** (for development):
 ```bash
-DEBUG=illthorn:* yarn start  # Enable all debug logging
-DEBUG=illthorn:effects,illthorn:metadata yarn start  # Specific loggers
+DEBUG=illthorn:* pnpm start  # Enable all debug logging
+DEBUG=illthorn:effects,illthorn:metadata pnpm start  # Specific loggers
 ```
 
 **Note**: Debug logging is disabled by default and must be explicitly enabled. If you're seeing unexpected debug output, check `localStorage.getItem('debug')` and remove it if needed.
@@ -229,13 +228,6 @@ declare global {
 }
 ```
 
-### Legacy Component Development Patterns (being migrated)
-- Extend `HTMLElement` and use `customElements.define("illthorn-*", Class)`
-- Implement `observedAttributes` and `attributeChangedCallback` for reactivity
-- Use constructor for DOM creation and `connectedCallback` for initialization
-- Subscribe to bus events for inter-component communication
-- Maintain existing API compatibility when migrating components
-
 ### Component Testing Patterns
 - Use Vitest with JSDOM environment for component testing
 - Create mock sessions using `createMockSession()` helper from `/test/mocks/`
@@ -252,19 +244,19 @@ Node.js/TypeScript Electron project
 
 ### Package Manager
 
-- **Node.js**: `yarn`
+- **Node.js**: `pnpm` (11.x, with `nodeLinker: hoisted` for electron-forge compatibility)
 
 ### Validation Commands
 
-- **Format**: `yarn format` (Biome formatter)
-- **Lint**: `yarn lint` (Biome linter with auto-fix)
-- **Type Check**: `yarn typecheck` (TypeScript compiler)
-- **Test**: `yarn test` (Vitest test suite)
-- **Complete Pipeline**: `yarn check` (runs all validation steps in sequence)
+- **Format**: `pnpm format` (Biome formatter)
+- **Lint**: `pnpm lint` (Biome linter with auto-fix)
+- **Type Check**: `pnpm typecheck` (TypeScript compiler)
+- **Test**: `pnpm test` (Vitest test suite)
+- **Complete Pipeline**: `pnpm check` (runs all validation steps in sequence)
 
 ### Last Updated
 
-2025-09-20
+2026-05-21
 
 ## Component Architecture Details
 
