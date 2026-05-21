@@ -24,3 +24,8 @@ declare module "*.xml?raw" {
   const value: string;
   export default value;
 }
+
+declare module "electron-squirrel-startup" {
+  const handled: boolean;
+  export default handled;
+}

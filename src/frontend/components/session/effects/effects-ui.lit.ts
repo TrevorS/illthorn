@@ -42,7 +42,7 @@ export class EffectsUI extends LitElement {
           .spellName=${spellData.text}
           .timeRemaining=${spellData.time}
           .spellId=${spellData.id}
-          .percent=${parseInt(spellData.value || "0")}>
+          .percent=${parseInt(spellData.value || "0", 10)}>
         </illthorn-spell-effect>
       `,
       )}

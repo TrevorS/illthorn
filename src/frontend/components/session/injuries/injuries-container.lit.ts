@@ -149,7 +149,7 @@ export class InjuriesContainer extends BaseContainerComponent {
     // Parse injury severity from image name
     if (imageName.startsWith("Injury")) {
       const severityMatch = imageName.match(/Injury(\d+)/);
-      const severity = Math.min(severityMatch ? parseInt(severityMatch[1]) : 1, 3) as 0 | 1 | 2 | 3;
+      const severity = Math.min(severityMatch ? parseInt(severityMatch[1], 10) : 1, 3) as 0 | 1 | 2 | 3;
 
       return {
         displayName: DISPLAY_NAMES.get(internalPart) || internalPart,
@@ -160,7 +160,7 @@ export class InjuriesContainer extends BaseContainerComponent {
 
     if (imageName.startsWith("Scar")) {
       const severityMatch = imageName.match(/Scar(\d+)/);
-      const severity = Math.min(severityMatch ? parseInt(severityMatch[1]) : 1, 3) as 0 | 1 | 2 | 3;
+      const severity = Math.min(severityMatch ? parseInt(severityMatch[1], 10) : 1, 3) as 0 | 1 | 2 | 3;
 
       return {
         displayName: DISPLAY_NAMES.get(internalPart) || internalPart,

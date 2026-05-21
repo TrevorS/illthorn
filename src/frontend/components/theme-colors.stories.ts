@@ -1,7 +1,7 @@
 // ABOUTME: Comprehensive showcase of all theme color variables used throughout Illthorn
 // ABOUTME: Provides visual documentation and testing for the complete color palette system
 
-import type { Meta, StoryObj } from "@storybook/web-components";
+import type { Meta, StoryObj } from "@storybook/web-components-vite";
 import { html } from "lit";
 
 const meta: Meta = {

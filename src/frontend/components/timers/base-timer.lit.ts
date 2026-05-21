@@ -76,7 +76,7 @@ export abstract class BaseTimerComponent extends LitElement {
   }
 
   private _subscribeToEvents() {
-    if (!this.session || !this.session.bus) {
+    if (!this.session?.bus) {
       return;
     }
 

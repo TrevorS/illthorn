@@ -30,7 +30,7 @@ export class ConfigWatcher {
 
     try {
       const watcher = watch(configPath, { recursive: false }, (eventType, filename) => {
-        if (!filename || !filename.endsWith(".toml")) {
+        if (!filename?.endsWith(".toml")) {
           return; // Only watch TOML files
         }
 

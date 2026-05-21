@@ -128,7 +128,9 @@ class DevPanel {
 
     // Remove all log entries
     const entries = this.logsContainer.querySelectorAll(".log-entry");
-    entries.forEach((entry) => entry.remove());
+    entries.forEach((entry) => {
+      entry.remove();
+    });
 
     // Reset empty state
     this.emptyState.innerHTML = `
@@ -260,7 +262,9 @@ class DevPanel {
   private renderFilteredEntries(): void {
     // Clear current entries (but keep empty state)
     const entries = this.logsContainer.querySelectorAll(".log-entry");
-    entries.forEach((entry) => entry.remove());
+    entries.forEach((entry) => {
+      entry.remove();
+    });
 
     const buffer = this.currentFilter ? this.filteredBuffer : this.logBuffer;
 

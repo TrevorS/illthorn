@@ -6,7 +6,9 @@ import { VitalStat } from "./vital-stat.lit";
 describe("VitalStat Component", () => {
   afterEach(() => {
     // Clean up any elements added to the DOM
-    document.querySelectorAll("illthorn-vital-stat").forEach((el) => el.remove());
+    document.querySelectorAll("illthorn-vital-stat").forEach((el) => {
+      el.remove();
+    });
   });
 
   describe("Basic Rendering", () => {

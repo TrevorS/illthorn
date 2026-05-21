@@ -5,7 +5,9 @@ import type { InjuryItem } from "./injury-item.lit";
 describe("InjuriesUI", () => {
   afterEach(() => {
     // Clean up any elements added to the DOM
-    document.querySelectorAll("illthorn-injuries-ui").forEach((el) => el.remove());
+    document.querySelectorAll("illthorn-injuries-ui").forEach((el) => {
+      el.remove();
+    });
   });
 
   describe("Component Initialization", () => {

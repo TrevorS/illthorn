@@ -5,7 +5,9 @@ describe("CommandHistory", () => {
   test("back() returns commands in reverse order with linear indexing", () => {
     const history = new CommandHistory();
     const commands = ["climb tower", "exp", "info"];
-    commands.forEach((cmd) => history.add(cmd));
+    commands.forEach((cmd) => {
+      history.add(cmd);
+    });
 
     // History is [info, exp, climb tower] (newest first)
     // Current index starts at 0 (most recent = "info")
@@ -17,7 +19,9 @@ describe("CommandHistory", () => {
   test("forward() moves towards newer commands", () => {
     const history = new CommandHistory();
     const commands = ["climb tower", "exp", "info"];
-    commands.forEach((cmd) => history.add(cmd));
+    commands.forEach((cmd) => {
+      history.add(cmd);
+    });
 
     // Go back a few steps
     history.back(); // "exp"
@@ -32,7 +36,9 @@ describe("CommandHistory", () => {
   test("canNavigateBack() and canNavigateForward() return correct boundaries", () => {
     const history = new CommandHistory();
     const commands = ["climb tower", "exp", "info"];
-    commands.forEach((cmd) => history.add(cmd));
+    commands.forEach((cmd) => {
+      history.add(cmd);
+    });
 
     // At position 0 (newest)
     expect(history.canNavigateForward()).toBe(false);

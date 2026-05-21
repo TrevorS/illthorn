@@ -72,7 +72,7 @@ export class MacroManager {
     this.bindings = [];
     this.userKeyBindings = [];
 
-    if (!this.config || !this.config.settings.enabled) {
+    if (!this.config?.settings.enabled) {
       debugMacros("User macros disabled or no config loaded");
       return;
     }
@@ -297,7 +297,7 @@ export class MacroManager {
    * Remove a macro binding
    */
   async removeMacro(category: string, key: string): Promise<void> {
-    if (!this.config || !this.config[category]) {
+    if (!this.config?.[category]) {
       return;
     }
 
@@ -316,7 +316,7 @@ export class MacroManager {
    * Update a macro command
    */
   async updateMacro(category: string, key: string, newCommand: string): Promise<void> {
-    if (!this.config || !this.config[category]) {
+    if (!this.config?.[category]) {
       return;
     }
 

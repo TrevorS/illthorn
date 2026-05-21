@@ -223,7 +223,9 @@ export class FrontendSession {
     // Process metadata for other systems (vitals, injuries, etc.)
     if (metadata.length) {
       debugSession(`[${this.name}] Processing ${metadata.length} metadata tags: ${metadata.map((tag) => tag.name).join(", ")}`);
-      metadata.forEach((tag) => dispatchMetadata(this, tag));
+      metadata.forEach((tag) => {
+        dispatchMetadata(this, tag);
+      });
     }
   }
 
@@ -241,7 +243,9 @@ export class FrontendSession {
         .split(/\r|\n/g)
         .map((cmd) => cmd.trim())
         .filter((cmd) => cmd.length)
-        .forEach((cmd) => this.sendCommand(cmd));
+        .forEach((cmd) => {
+          this.sendCommand(cmd);
+        });
     }
     cliInput.value = macro;
     cliInput.focus();

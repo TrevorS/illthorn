@@ -6,7 +6,9 @@ import { VitalText } from "./vital-text.lit";
 describe("VitalText Component", () => {
   afterEach(() => {
     // Clean up any elements added to the DOM
-    document.querySelectorAll("illthorn-vital-text").forEach((el) => el.remove());
+    document.querySelectorAll("illthorn-vital-text").forEach((el) => {
+      el.remove();
+    });
   });
 
   describe("Basic Rendering", () => {

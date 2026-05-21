@@ -125,7 +125,7 @@ describe("CompassRoseUI", () => {
       await compass.updateComplete;
 
       const roomInfo = compass.shadowRoot?.querySelector(".room-info");
-      expect(roomInfo?.textContent?.trim()).toBe("95157 - Monastery, Gallery");
+      expect(roomInfo?.getAttribute("title")).toBe("95157 - Monastery, Gallery");
 
       teardown(compass);
     });

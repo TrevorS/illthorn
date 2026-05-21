@@ -101,7 +101,7 @@ export class VitalsContainer extends BaseContainerComponent {
           const { attrs } = tag;
           this._mind = {
             label: "mind",
-            percent: parseInt((attrs.value as string) || "0"),
+            percent: parseInt((attrs.value as string) || "0", 10),
             value: (attrs.text as string) || "",
           };
         }),
@@ -138,13 +138,13 @@ export class VitalsContainer extends BaseContainerComponent {
     const { attrs } = feedInfo;
     const [userText, value] = (attrs.text || ":unknown").toString().split(" ");
     const percentString = (attrs.value as string) || "100";
-    let percent = parseInt(percentString);
+    let percent = parseInt(percentString, 10);
 
     // Game server bug: vitals send value="0" despite showing full fractions like "74/74"
     // Other progressBar tags (stance, encumbrance) send correct percentages
     // We calculate percentage from the fraction as a workaround
     if ((percent <= 1 || Number.isNaN(percent)) && value && value.includes("/")) {
-      const [current, max] = value.split("/").map((n) => parseInt(n.trim()));
+      const [current, max] = value.split("/").map((n) => parseInt(n.trim(), 10));
       if (!Number.isNaN(current) && !Number.isNaN(max) && max > 0) {
         percent = Math.round((current / max) * 100);
       }

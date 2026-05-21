@@ -95,7 +95,7 @@ export class HighlightManager {
   private compilePatterns() {
     this.patterns = [];
 
-    if (!this.config || !this.config.settings.enabled) {
+    if (!this.config?.settings.enabled) {
       return;
     }
 
